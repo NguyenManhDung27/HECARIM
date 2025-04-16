@@ -1,0 +1,42 @@
+# Backend development image
+FROM node:18-alpine AS backend-dev
+
+WORKDIR /app/backend
+
+# Install nodemon for development
+RUN npm install -g nodemon
+
+# Copy package files
+COPY back-end/package*.json ./
+
+# Install dependencies
+RUN npm install
+
+# Copy source code
+COPY back-end ./
+
+# Expose development port
+EXPOSE 5000
+
+# Start development server
+CMD ["npm", "run", "dev"]
+
+# Frontend development image
+FROM node:18-alpine AS frontend-dev
+
+WORKDIR /app/frontend
+
+# Copy package files
+COPY front-end/package*.json ./
+
+# Install dependencies
+RUN npm install
+
+# Copy source code
+COPY front-end ./
+
+# Expose development port
+EXPOSE 3000
+
+# Start development server
+CMD ["npm", "start"]

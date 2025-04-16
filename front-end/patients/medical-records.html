@@ -1,0 +1,168 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Hồ Sơ Khám Bệnh</title>
+    <link rel="stylesheet" href="../assets/css/style.css">
+</head>
+<body>
+    <div class="container">
+        <div class="sidebar">
+            <img src="../assets/images/logo.png" alt="Logo" class="logo">
+            <h3>Bệnh Nhân</h3>
+            <ul>
+                <li><a href="dashboard.html">Trang Chính</a></li>
+                <li><a href="profile.html">Thông Tin Cá Nhân</a></li>
+                <li><a href="medical-records.html">Hồ Sơ Khám Bệnh</a></li>
+                <li><a href="../index.html">Đăng Xuất</a></li>
+            </ul>
+        </div>
+        <div class="main-content">
+            <h2>Hồ Sơ Khám Bệnh - Nguyễn Văn A</h2>
+
+            <!-- Bộ lọc và tìm kiếm -->
+            <div class="card">
+                <h3>Tìm Kiếm & Lọc</h3>
+                <div style="display: flex; gap: 10px; margin-bottom: 10px;">
+                    <input type="text" placeholder="Tìm kiếm...">
+                    <select>
+                        <option value="">Tất cả các khoa</option>
+                        <option value="noi">Nội</option>
+                        <option value="ngoai">Ngoại</option>
+                        <option value="mat">Mắt</option>
+                    </select>
+                    <input type="date">
+                    <button>Tìm Kiếm</button>
+                </div>
+            </div>
+
+            <!-- Lịch sử khám bệnh -->
+            <div class="card">
+                <h3>Lịch Sử Khám Bệnh</h3>
+                <table>
+                    <thead>
+                        <tr>
+                            <th>Ngày Khám</th>
+                            <th>Khoa</th>
+                            <th>Bác Sĩ</th>
+                            <th>Chẩn Đoán</th>
+                            <th>Tình Trạng</th>
+                            <th>Chi Tiết</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr>
+                            <td>15/04/2025</td>
+                            <td>Nội Tổng Quát</td>
+                            <td>BS. Trần Văn B</td>
+                            <td>Viêm họng cấp</td>
+                            <td>Đang điều trị</td>
+                            <td><button>Xem</button></td>
+                        </tr>
+                        <tr>
+                            <td>10/03/2025</td>
+                            <td>Nội Tổng Quát</td>
+                            <td>BS. Trần Văn B</td>
+                            <td>Cảm cúm</td>
+                            <td>Hoàn thành</td>
+                            <td><button>Xem</button></td>
+                        </tr>
+                        <tr>
+                            <td>15/02/2025</td>
+                            <td>Tai Mũi Họng</td>
+                            <td>BS. Lê Thị C</td>
+                            <td>Viêm xoang</td>
+                            <td>Hoàn thành</td>
+                            <td><button>Xem</button></td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+
+            <!-- Đơn thuốc gần đây -->
+            <div class="card">
+                <h3>Đơn Thuốc Gần Đây</h3>
+                <table>
+                    <thead>
+                        <tr>
+                            <th>Ngày Kê Đơn</th>
+                            <th>Tên Thuốc</th>
+                            <th>Liều Lượng</th>
+                            <th>Thời Gian Dùng</th>
+                            <th>Bác Sĩ Kê Đơn</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr>
+                            <td>15/04/2025</td>
+                            <td>Amoxicillin</td>
+                            <td>500mg x 3 lần/ngày</td>
+                            <td>7 ngày</td>
+                            <td>BS. Trần Văn B</td>
+                        </tr>
+                        <tr>
+                            <td>15/04/2025</td>
+                            <td>Paracetamol</td>
+                            <td>500mg x 2 lần/ngày</td>
+                            <td>5 ngày</td>
+                            <td>BS. Trần Văn B</td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+
+            <!-- Kết quả xét nghiệm -->
+            <div class="card">
+                <h3>Kết Quả Xét Nghiệm</h3>
+                <table>
+                    <thead>
+                        <tr>
+                            <th>Ngày</th>
+                            <th>Loại Xét Nghiệm</th>
+                            <th>Kết Quả</th>
+                            <th>Bác Sĩ Chỉ Định</th>
+                            <th>Tài Liệu</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr>
+                            <td>15/04/2025</td>
+                            <td>Công thức máu</td>
+                            <td>Bình thường</td>
+                            <td>BS. Trần Văn B</td>
+                            <td><button>Tải Xuống</button></td>
+                        </tr>
+                        <tr>
+                            <td>15/04/2025</td>
+                            <td>X-quang phổi</td>
+                            <td>Bình thường</td>
+                            <td>BS. Trần Văn B</td>
+                            <td><button>Tải Xuống</button></td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+
+            <!-- Thông tin bổ sung -->
+            <div class="card">
+                <h3>Thông Tin Bổ Sung</h3>
+                <table>
+                    <tr>
+                        <td><strong>Dị ứng:</strong></td>
+                        <td>Không có</td>
+                        <td><strong>Nhóm máu:</strong></td>
+                        <td>O+</td>
+                    </tr>
+                    <tr>
+                        <td><strong>Bệnh nền:</strong></td>
+                        <td>Không có</td>
+                        <td><strong>Tiền sử gia đình:</strong></td>
+                        <td>Không có bệnh di truyền</td>
+                    </tr>
+                </table>
+            </div>
+        </div>
+    </div>
+</body>
+</html>

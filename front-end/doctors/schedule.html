@@ -1,0 +1,263 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Lịch Khám - Bác Sĩ</title>
+    <link rel="stylesheet" href="../assets/css/style.css">
+    <style>
+        .calendar-nav {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 20px;
+        }
+        .view-options {
+            display: flex;
+            gap: 10px;
+        }
+        .view-options button {
+            padding: 8px 15px;
+        }
+        .calendar-grid {
+            display: grid;
+            grid-template-columns: repeat(7, 1fr);
+            gap: 5px;
+            margin-bottom: 20px;
+        }
+        .calendar-header {
+            background: #00796b;
+            color: white;
+            padding: 10px;
+            text-align: center;
+            font-weight: bold;
+        }
+        .calendar-day {
+            background: #f5f5f5;
+            padding: 10px;
+            min-height: 100px;
+            border-radius: 5px;
+        }
+        .calendar-day.today {
+            background: #e0f2f1;
+            border: 2px solid #00796b;
+        }
+        .calendar-day.has-appointments {
+            background: #fff3e0;
+        }
+        .appointment {
+            background: white;
+            padding: 5px;
+            margin: 5px 0;
+            border-radius: 3px;
+            font-size: 12px;
+            cursor: pointer;
+            border-left: 3px solid #00796b;
+        }
+        .appointment.urgent {
+            border-left-color: #f44336;
+        }
+        .filters {
+            display: flex;
+            gap: 10px;
+            margin-bottom: 20px;
+        }
+        .time-slot {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 10px;
+            margin-bottom: 5px;
+            background: #f5f5f5;
+            border-radius: 5px;
+        }
+        .status-indicator {
+            width: 10px;
+            height: 10px;
+            border-radius: 50%;
+            display: inline-block;
+            margin-right: 5px;
+        }
+        .status-scheduled {
+            background: #4caf50;
+        }
+        .status-completed {
+            background: #9e9e9e;
+        }
+        .status-cancelled {
+            background: #f44336;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="sidebar">
+            <img src="../assets/images/logo.png" alt="Logo" class="logo">
+            <h3>Bác Sĩ</h3>
+            <ul>
+                <li><a href="dashboard.html">Trang Chính</a></li>
+                <li><a href="patients.html">Danh Sách Bệnh Nhân</a></li>
+                <li><a href="schedule.html">Lịch Khám</a></li>
+                <li><a href="../index.html">Đăng Xuất</a></li>
+            </ul>
+        </div>
+        <div class="main-content">
+            <h2>Lịch Khám - BS. Trần Văn B</h2>
+
+            <!-- Bộ lọc và tìm kiếm -->
+            <div class="card">
+                <div class="filters">
+                    <input type="text" placeholder="Tìm kiếm bệnh nhân..." style="flex: 1;">
+                    <select>
+                        <option>Tất cả trạng thái</option>
+                        <option>Đã xếp lịch</option>
+                        <option>Đã hoàn thành</option>
+                        <option>Đã hủy</option>
+                    </select>
+                    <select>
+                        <option>Tất cả loại khám</option>
+                        <option>Khám mới</option>
+                        <option>Tái khám</option>
+                        <option>Khám định kỳ</option>
+                    </select>
+                    <button>Tìm Kiếm</button>
+                </div>
+            </div>
+
+            <!-- Điều hướng lịch -->
+            <div class="card">
+                <div class="calendar-nav">
+                    <div class="view-options">
+                        <button>Ngày</button>
+                        <button>Tuần</button>
+                        <button>Tháng</button>
+                    </div>
+                    <div style="display: flex; align-items: center; gap: 10px;">
+                        <button>&#8592;</button>
+                        <h3>Tháng 4, 2025</h3>
+                        <button>&#8594;</button>
+                    </div>
+                    <button>Hôm Nay</button>
+                </div>
+
+                <!-- Lịch -->
+                <div class="calendar-grid">
+                    <!-- Tiêu đề các ngày trong tuần -->
+                    <div class="calendar-header">CN</div>
+                    <div class="calendar-header">T2</div>
+                    <div class="calendar-header">T3</div>
+                    <div class="calendar-header">T4</div>
+                    <div class="calendar-header">T5</div>
+                    <div class="calendar-header">T6</div>
+                    <div class="calendar-header">T7</div>
+
+                    <!-- Các ô ngày -->
+                    <div class="calendar-day">
+                        <div>14</div>
+                    </div>
+                    <div class="calendar-day">
+                        <div>15</div>
+                        <div class="appointment">
+                            09:00 - Nguyễn V.A
+                        </div>
+                    </div>
+                    <div class="calendar-day today has-appointments">
+                        <div>16</div>
+                        <div class="appointment">
+                            08:00 - Trần T.B
+                        </div>
+                        <div class="appointment urgent">
+                            10:30 - Lê V.C
+                        </div>
+                    </div>
+                    <div class="calendar-day has-appointments">
+                        <div>17</div>
+                        <div class="appointment">
+                            14:00 - Phạm T.D
+                        </div>
+                    </div>
+                    <div class="calendar-day">
+                        <div>18</div>
+                    </div>
+                    <div class="calendar-day">
+                        <div>19</div>
+                    </div>
+                    <div class="calendar-day">
+                        <div>20</div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Chi tiết lịch hẹn trong ngày -->
+            <div class="card">
+                <h3>Lịch Hẹn Hôm Nay (16/04/2025)</h3>
+                <div class="time-slots">
+                    <div class="time-slot">
+                        <div>
+                            <span class="status-indicator status-scheduled"></span>
+                            <strong>08:00 - 08:30</strong>
+                            <span>Trần Thị B</span>
+                        </div>
+                        <div>
+                            <span>Khám Định Kỳ</span>
+                            <div class="action-buttons">
+                                <button class="btn-small">Xem Hồ Sơ</button>
+                                <button class="btn-small">Bắt Đầu Khám</button>
+                                <button class="btn-small" style="background: #f44336;">Hủy</button>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="time-slot">
+                        <div>
+                            <span class="status-indicator status-scheduled"></span>
+                            <strong>10:30 - 11:00</strong>
+                            <span>Lê Văn C</span>
+                        </div>
+                        <div>
+                            <span>Tái Khám</span>
+                            <div class="action-buttons">
+                                <button class="btn-small">Xem Hồ Sơ</button>
+                                <button class="btn-small">Bắt Đầu Khám</button>
+                                <button class="btn-small" style="background: #f44336;">Hủy</button>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="time-slot">
+                        <div>
+                            <span class="status-indicator status-completed"></span>
+                            <strong>14:00 - 14:30</strong>
+                            <span>Phạm Thị D</span>
+                        </div>
+                        <div>
+                            <span>Khám Mới</span>
+                            <div class="action-buttons">
+                                <button class="btn-small">Xem Hồ Sơ</button>
+                                <button class="btn-small" disabled>Đã Hoàn Thành</button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Chú thích -->
+            <div class="card">
+                <h3>Chú Thích</h3>
+                <div style="display: flex; gap: 20px;">
+                    <div>
+                        <span class="status-indicator status-scheduled"></span>
+                        Đã xếp lịch
+                    </div>
+                    <div>
+                        <span class="status-indicator status-completed"></span>
+                        Đã hoàn thành
+                    </div>
+                    <div>
+                        <span class="status-indicator status-cancelled"></span>
+                        Đã hủy
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</body>
+</html>

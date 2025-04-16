@@ -1,0 +1,241 @@
+{% extends "base.html" %}
+
+{% block title %}Medical History{% endblock %}
+
+{% block content %}
+<div class="mb-4">
+    <h1>Medical History</h1>
+    <button class="btn btn-primary" onclick="showAddVisitForm()">Add New Visit</button>
+</div>
+
+<div class="card">
+    <div class="form-group">
+        <input type="text" id="searchInput" class="form-control" placeholder="Search medical records..." oninput="filterRecords()">
+    </div>
+    
+    <div id="medicalRecords">
+        <!-- Records will be loaded here -->
+    </div>
+</div>
+
+<!-- Add Visit Form Modal -->
+<div id="visitModal" class="modal" style="display: none;">
+    <div class="modal-content card">
+        <h2>Add New Visit Record</h2>
+        <form id="visitForm" onsubmit="handleVisitSubmit(event)">
+            <div class="form-group">
+                <label class="form-label" for="visitDate">Visit Date</label>
+                <input type="date" class="form-control" id="visitDate" required>
+            </div>
+
+            <div class="form-group">
+                <label class="form-label" for="diagnosis">Diagnosis</label>
+                <textarea class="form-control" id="diagnosis" required></textarea>
+            </div>
+
+            <div class="form-group">
+                <label class="form-label" for="treatment">Treatment Plan</label>
+                <textarea class="form-control" id="treatment" required></textarea>
+            </div>
+
+            <div class="form-group">
+                <label class="form-label">Prescriptions</label>
+                <div id="prescriptionContainer">
+                    <div class="prescription-entry">
+                        <input type="text" class="form-control" placeholder="Medication" name="medication[]">
+                        <input type="text" class="form-control" placeholder="Dosage" name="dosage[]">
+                        <input type="text" class="form-control" placeholder="Frequency" name="frequency[]">
+                        <input type="text" class="form-control" placeholder="Duration" name="duration[]">
+                    </div>
+                </div>
+                <button type="button" class="btn btn-primary" onclick="addPrescriptionEntry()">Add Prescription</button>
+            </div>
+
+            <div class="form-group">
+                <button type="submit" class="btn btn-primary">Save Record</button>
+                <button type="button" class="btn btn-primary" onclick="hideAddVisitForm()">Cancel</button>
+            </div>
+        </form>
+    </div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<style>
+.modal {
+    display: none;
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background-color: rgba(0,0,0,0.5);
+}
+
+.modal-content {
+    position: relative;
+    margin: 15% auto;
+    padding: 20px;
+    width: 80%;
+    max-width: 600px;
+}
+
+.prescription-entry {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: 1rem;
+    margin-bottom: 1rem;
+}
+
+.medical-record {
+    border: 1px solid var(--border-color);
+    border-radius: 4px;
+    padding: 1rem;
+    margin-bottom: 1rem;
+}
+
+.medical-record h3 {
+    margin-bottom: 0.5rem;
+}
+
+.prescriptions-list {
+    margin-top: 1rem;
+}
+
+.prescription-item {
+    padding: 0.5rem;
+    background-color: #f8f9fa;
+    border-radius: 4px;
+    margin-bottom: 0.5rem;
+}
+</style>
+
+<script>
+let medicalRecords = [];
+
+document.addEventListener('DOMContentLoaded', function() {
+    loadMedicalRecords();
+});
+
+function loadMedicalRecords() {
+    // TODO: Implement API call to fetch medical records
+    // For now, using sample data
+    medicalRecords = generateSampleRecords();
+    displayMedicalRecords(medicalRecords);
+}
+
+function generateSampleRecords() {
+    const records = [];
+    const conditions = ['Hypertension', 'Common Cold', 'Allergies', 'Back Pain'];
+    const treatments = ['Medication prescribed', 'Rest recommended', 'Physical therapy', 'Regular monitoring'];
+    const medications = ['Amoxicillin', 'Ibuprofen', 'Loratadine', 'Omeprazole'];
+
+    for (let i = 0; i < 5; i++) {
+        const date = new Date();
+        date.setDate(date.getDate() - i * 7);
+        records.push({
+            visitDate: date.toISOString().split('T')[0],
+            diagnosis: conditions[i % conditions.length],
+            treatment: treatments[i % treatments.length],
+            prescriptions: [
+                {
+                    medication: medications[i % medications.length],
+                    dosage: '500mg',
+                    frequency: 'Twice daily',
+                    duration: '7 days'
+                }
+            ]
+        });
+    }
+    return records;
+}
+
+function displayMedicalRecords(records) {
+    const container = document.getElementById('medicalRecords');
+    container.innerHTML = records.map(record => `
+        <div class="medical-record">
+            <h3>${record.visitDate}</h3>
+            <p><strong>Diagnosis:</strong> ${record.diagnosis}</p>
+            <p><strong>Treatment:</strong> ${record.treatment}</p>
+            <div class="prescriptions-list">
+                <strong>Prescriptions:</strong>
+                ${record.prescriptions.map(prescription => `
+                    <div class="prescription-item">
+                        ${prescription.medication} - ${prescription.dosage}
+                        <br>
+                        ${prescription.frequency} for ${prescription.duration}
+                    </div>
+                `).join('')}
+            </div>
+        </div>
+    `).join('');
+}
+
+function filterRecords() {
+    const searchTerm = document.getElementById('searchInput').value.toLowerCase();
+    const filteredRecords = medicalRecords.filter(record => 
+        record.diagnosis.toLowerCase().includes(searchTerm) ||
+        record.treatment.toLowerCase().includes(searchTerm) ||
+        record.prescriptions.some(p => p.medication.toLowerCase().includes(searchTerm))
+    );
+    displayMedicalRecords(filteredRecords);
+}
+
+function showAddVisitForm() {
+    document.getElementById('visitModal').style.display = 'block';
+    document.getElementById('visitDate').value = new Date().toISOString().split('T')[0];
+}
+
+function hideAddVisitForm() {
+    document.getElementById('visitModal').style.display = 'none';
+}
+
+function addPrescriptionEntry() {
+    const container = document.getElementById('prescriptionContainer');
+    const entry = document.createElement('div');
+    entry.className = 'prescription-entry';
+    entry.innerHTML = `
+        <input type="text" class="form-control" placeholder="Medication" name="medication[]">
+        <input type="text" class="form-control" placeholder="Dosage" name="dosage[]">
+        <input type="text" class="form-control" placeholder="Frequency" name="frequency[]">
+        <input type="text" class="form-control" placeholder="Duration" name="duration[]">
+    `;
+    container.appendChild(entry);
+}
+
+async function handleVisitSubmit(event) {
+    event.preventDefault();
+
+    const prescriptions = [];
+    const medications = document.getElementsByName('medication[]');
+    const dosages = document.getElementsByName('dosage[]');
+    const frequencies = document.getElementsByName('frequency[]');
+    const durations = document.getElementsByName('duration[]');
+
+    for (let i = 0; i < medications.length; i++) {
+        if (medications[i].value) {
+            prescriptions.push({
+                medication: medications[i].value,
+                dosage: dosages[i].value,
+                frequency: frequencies[i].value,
+                duration: durations[i].value
+            });
+        }
+    }
+
+    const visitData = {
+        visitDate: document.getElementById('visitDate').value,
+        diagnosis: document.getElementById('diagnosis').value,
+        treatment: document.getElementById('treatment').value,
+        prescriptions: prescriptions
+    };
+
+    // TODO: Implement API call to save visit record
+    console.log('Saving visit record:', visitData);
+    medicalRecords.unshift(visitData);
+    
+    hideAddVisitForm();
+    displayMedicalRecords(medicalRecords);
+}
+</script>
+{% endblock %}

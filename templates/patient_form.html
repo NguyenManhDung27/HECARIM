@@ -1,0 +1,153 @@
+{% extends "base.html" %}
+
+{% block title %}{% if patient %}Edit Patient{% else %}New Patient{% endif %}{% endblock %}
+
+{% block content %}
+<div class="card">
+    <h1 class="mb-4">{% if patient %}Edit Patient{% else %}New Patient{% endif %}</h1>
+    
+    <form id="patientForm" onsubmit="handleSubmit(event)">
+        <div class="form-group">
+            <label class="form-label" for="name">Full Name</label>
+            <input type="text" class="form-control" id="name" name="name" required>
+        </div>
+
+        <div class="form-group">
+            <label class="form-label" for="age">Age</label>
+            <input type="number" class="form-control" id="age" name="age" required>
+        </div>
+
+        <div class="form-group">
+            <label class="form-label" for="gender">Gender</label>
+            <select class="form-control" id="gender" name="gender" required>
+                <option value="">Select Gender</option>
+                <option value="Male">Male</option>
+                <option value="Female">Female</option>
+                <option value="Other">Other</option>
+            </select>
+        </div>
+
+        <div class="form-group">
+            <label class="form-label" for="address">Address</label>
+            <textarea class="form-control" id="address" name="address" required></textarea>
+        </div>
+
+        <div class="form-group">
+            <label class="form-label" for="phone">Phone Number</label>
+            <input type="tel" class="form-control" id="phone" name="phone" required>
+        </div>
+
+        <div class="form-group">
+            <label class="form-label" for="bloodType">Blood Type</label>
+            <select class="form-control" id="bloodType" name="bloodType" required>
+                <option value="">Select Blood Type</option>
+                <option value="A+">A+</option>
+                <option value="A-">A-</option>
+                <option value="B+">B+</option>
+                <option value="B-">B-</option>
+                <option value="AB+">AB+</option>
+                <option value="AB-">AB-</option>
+                <option value="O+">O+</option>
+                <option value="O-">O-</option>
+            </select>
+        </div>
+
+        <div class="form-group">
+            <label class="form-label" for="allergies">Allergies (comma-separated)</label>
+            <input type="text" class="form-control" id="allergies" name="allergies">
+        </div>
+
+        <div class="form-group">
+            <label class="form-label" for="chronicConditions">Chronic Conditions (comma-separated)</label>
+            <input type="text" class="form-control" id="chronicConditions" name="chronicConditions">
+        </div>
+
+        <div class="form-group">
+            <label class="form-label">Family History</label>
+            <div id="familyHistoryContainer">
+                <div class="family-history-entry">
+                    <input type="text" class="form-control" placeholder="Relation" name="relation[]">
+                    <input type="text" class="form-control" placeholder="Condition" name="condition[]">
+                </div>
+            </div>
+            <button type="button" class="btn btn-primary" onclick="addFamilyHistoryEntry()">Add More</button>
+        </div>
+
+        <button type="submit" class="btn btn-primary">Save Patient</button>
+    </form>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script>
+function addFamilyHistoryEntry() {
+    const container = document.getElementById('familyHistoryContainer');
+    const entry = document.createElement('div');
+    entry.className = 'family-history-entry';
+    entry.innerHTML = `
+        <input type="text" class="form-control" placeholder="Relation" name="relation[]">
+        <input type="text" class="form-control" placeholder="Condition" name="condition[]">
+    `;
+    container.appendChild(entry);
+}
+
+async function handleSubmit(event) {
+    event.preventDefault();
+    
+    const formData = {
+        name: document.getElementById('name').value,
+        age: parseInt(document.getElementById('age').value),
+        gender: document.getElementById('gender').value,
+        address: document.getElementById('address').value,
+        phone: document.getElementById('phone').value,
+        bloodType: document.getElementById('bloodType').value,
+        allergies: document.getElementById('allergies').value.split(',').map(item => item.trim()).filter(Boolean),
+        chronicConditions: document.getElementById('chronicConditions').value.split(',').map(item => item.trim()).filter(Boolean),
+        familyHistory: {
+            conditions: []
+        }
+    };
+
+    // Collect family history entries
+    const relations = document.getElementsByName('relation[]');
+    const conditions = document.getElementsByName('condition[]');
+    for (let i = 0; i < relations.length; i++) {
+        if (relations[i].value && conditions[i].value) {
+            formData.familyHistory.conditions.push({
+                relation: relations[i].value,
+                condition: conditions[i].value
+            });
+        }
+    }
+
+    try {
+        const response = await fetch('/api/patients', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json'
+            },
+            body: JSON.stringify(formData)
+        });
+
+        if (response.ok) {
+            window.location.href = '/patients';
+        } else {
+            const data = await response.json();
+            alert(data.error || 'Error saving patient');
+        }
+    } catch (error) {
+        alert('Error saving patient');
+        console.error('Error:', error);
+    }
+}
+</script>
+
+<style>
+.family-history-entry {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 1rem;
+    margin-bottom: 1rem;
+}
+</style>
+{% endblock %}

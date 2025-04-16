@@ -1,0 +1,249 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Cập Nhật Hồ Sơ Khám Bệnh</title>
+    <link rel="stylesheet" href="../assets/css/style.css">
+    <style>
+        .form-section {
+            margin-bottom: 20px;
+            padding-bottom: 20px;
+            border-bottom: 1px solid #e0e0e0;
+        }
+        .form-row {
+            display: flex;
+            gap: 20px;
+            margin-bottom: 15px;
+        }
+        .form-group {
+            flex: 1;
+        }
+        .form-group label {
+            display: block;
+            margin-bottom: 5px;
+            font-weight: bold;
+            color: #004d40;
+        }
+        textarea {
+            width: 100%;
+            padding: 10px;
+            border: 1px solid #b0bec5;
+            border-radius: 5px;
+            resize: vertical;
+        }
+        .prescription-item {
+            display: flex;
+            gap: 10px;
+            align-items: center;
+            margin-bottom: 10px;
+            padding: 10px;
+            background: #f5f5f5;
+            border-radius: 5px;
+        }
+        .btn-add {
+            background: #4caf50;
+            color: white;
+            border: none;
+            padding: 8px 16px;
+            border-radius: 4px;
+            cursor: pointer;
+        }
+        .history-item {
+            padding: 10px;
+            margin-bottom: 10px;
+            background: #f5f5f5;
+            border-radius: 5px;
+        }
+        .file-upload {
+            border: 2px dashed #b0bec5;
+            padding: 20px;
+            text-align: center;
+            border-radius: 5px;
+            margin-bottom: 15px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+        .file-upload.dragover {
+            border-color: #4caf50;
+            background: #e8f5e9;
+        }
+        .uploaded-files {
+            margin-top: 10px;
+        }
+        .file-item {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 5px 10px;
+            background: #f5f5f5;
+            border-radius: 3px;
+            margin-bottom: 5px;
+        }
+        .test-item {
+            background: #f5f5f5;
+            padding: 10px;
+            border-radius: 5px;
+            margin-bottom: 10px;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="sidebar">
+            <img src="../assets/images/logo.png" alt="Logo" class="logo">
+            <h3>Bác Sĩ</h3>
+            <ul>
+                <li><a href="dashboard.html">Trang Chính</a></li>
+                <li><a href="patients.html">Danh Sách Bệnh Nhân</a></li>
+                <li><a href="schedule.html">Lịch Khám</a></li>
+                <li><a href="../index.html">Đăng Xuất</a></li>
+            </ul>
+        </div>
+        <div class="main-content">
+            <h2>Cập Nhật Hồ Sơ Khám Bệnh</h2>
+
+            <!-- Thông tin bệnh nhân -->
+            <div class="card">
+                <h3>Thông Tin Bệnh Nhân</h3>
+                <div class="form-row">
+                    <div class="form-group">
+                        <label>Mã bệnh nhân:</label>
+                        <input type="text" id="patientId" readonly>
+                    </div>
+                    <div class="form-group">
+                        <label>Họ và tên:</label>
+                        <input type="text" id="patientName" readonly>
+                    </div>
+                    <div class="form-group">
+                        <label>Ngày sinh:</label>
+                        <input type="text" id="patientDob" readonly>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Form cập nhật -->
+            <form id="medicalRecordForm">
+                <!-- Thông tin khám bệnh -->
+                <div class="card">
+                    <h3>Thông Tin Khám Bệnh</h3>
+                    <div class="form-section">
+                        <div class="form-row">
+                            <div class="form-group">
+                                <label>Ngày khám:</label>
+                                <input type="date" name="visitDate" required>
+                            </div>
+                            <div class="form-group">
+                                <label>Khoa:</label>
+                                <select name="department" required>
+                                    <option value="">Chọn khoa</option>
+                                </select>
+                            </div>
+                            <div class="form-group">
+                                <label>Bác sĩ khám:</label>
+                                <input type="text" id="doctorName" readonly>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Triệu chứng & Chẩn đoán -->
+                    <div class="form-section">
+                        <h4>Triệu Chứng & Chẩn Đoán</h4>
+                        <div class="form-group">
+                            <label>Lý do khám:</label>
+                            <textarea name="reason" rows="2" required></textarea>
+                        </div>
+                        <div class="form-group">
+                            <label>Triệu chứng:</label>
+                            <textarea name="symptoms" rows="3" required></textarea>
+                        </div>
+                        <div class="form-group">
+                            <label>Chẩn đoán:</label>
+                            <textarea name="diagnosis" rows="2" required></textarea>
+                        </div>
+                        <div class="form-group">
+                            <label>Mức độ ưu tiên:</label>
+                            <select name="priority">
+                                <option value="normal">Bình thường</option>
+                                <option value="priority">Ưu tiên</option>
+                                <option value="emergency">Khẩn cấp</option>
+                            </select>
+                        </div>
+                    </div>
+
+                    <!-- Đơn thuốc -->
+                    <div class="form-section">
+                        <h4>Đơn Thuốc</h4>
+                        <div id="prescriptionItems">
+                            <!-- Prescription items will be added here -->
+                        </div>
+                        <button type="button" class="btn-add btn-add-prescription">+ Thêm Thuốc</button>
+                    </div>
+
+                    <!-- Chỉ định xét nghiệm -->
+                    <div class="form-section">
+                        <h4>Chỉ Định Xét Nghiệm</h4>
+                        <div id="testItems">
+                            <!-- Test items will be added here -->
+                        </div>
+                        <button type="button" class="btn-add btn-add-test">+ Thêm Xét Nghiệm</button>
+                    </div>
+
+                    <!-- Tải lên kết quả -->
+                    <div class="form-section">
+                        <h4>Tải Lên Kết Quả</h4>
+                        <div class="file-upload">
+                            <p>Kéo thả file hoặc click để tải lên</p>
+                            <input type="file" multiple style="display: none">
+                        </div>
+                        <div class="uploaded-files">
+                            <!-- Uploaded files will be listed here -->
+                        </div>
+                    </div>
+
+                    <!-- Kế hoạch điều trị -->
+                    <div class="form-section">
+                        <h4>Kế Hoạch Điều Trị</h4>
+                        <div class="form-group">
+                            <label>Hướng điều trị:</label>
+                            <textarea name="recommendations" rows="3" required></textarea>
+                        </div>
+                        <div class="form-row">
+                            <div class="form-group">
+                                <label>Yêu cầu tái khám:</label>
+                                <select name="followUpRequired" required>
+                                    <option value="false">Không</option>
+                                    <option value="true">Có</option>
+                                </select>
+                            </div>
+                            <div class="form-group">
+                                <label>Ngày tái khám:</label>
+                                <input type="date" name="followUpDate">
+                            </div>
+                            <div class="form-group">
+                                <label>Ghi chú tái khám:</label>
+                                <input type="text" name="followUpNotes" placeholder="Hướng dẫn tái khám">
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Nút lưu -->
+                    <div style="text-align: center; margin-top: 20px;">
+                        <button type="submit" style="width: 200px;">Lưu Hồ Sơ</button>
+                        <button type="button" onclick="history.back()" style="width: 200px; margin-left: 10px; background: #f44336;">Hủy</button>
+                    </div>
+                </div>
+            </form>
+
+            <!-- Lịch sử khám -->
+            <div class="card">
+                <h3>Lịch Sử Khám Bệnh</h3>
+                <div id="medicalHistory">
+                    <!-- Medical history items will be added here -->
+                </div>
+            </div>
+        </div>
+    </div>
+    <script src="../assets/js/medical-record.js"></script>
+</body>
+</html>

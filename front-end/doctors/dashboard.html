@@ -1,0 +1,223 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Trang Chính - Bác Sĩ</title>
+    <link rel="stylesheet" href="../assets/css/style.css">
+    <style>
+        .status-pill {
+            padding: 5px 10px;
+            border-radius: 15px;
+            font-size: 12px;
+            font-weight: bold;
+        }
+        .status-waiting {
+            background: #fff3e0;
+            color: #e65100;
+        }
+        .status-in-progress {
+            background: #e3f2fd;
+            color: #1565c0;
+        }
+        .status-completed {
+            background: #e8f5e9;
+            color: #2e7d32;
+        }
+        .quick-stats {
+            display: grid;
+            grid-template-columns: repeat(4, 1fr);
+            gap: 15px;
+            margin-bottom: 20px;
+        }
+        .stat-card {
+            background: #f5f5f5;
+            padding: 15px;
+            border-radius: 5px;
+            text-align: center;
+        }
+        .stat-number {
+            font-size: 24px;
+            font-weight: bold;
+            color: #00796b;
+            margin: 5px 0;
+        }
+        .action-buttons {
+            display: flex;
+            gap: 10px;
+        }
+        .btn-small {
+            padding: 5px 10px;
+            font-size: 12px;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="sidebar">
+            <img src="../assets/images/logo.png" alt="Logo" class="logo">
+            <h3>Bác Sĩ</h3>
+            <ul>
+                <li><a href="dashboard.html">Trang Chính</a></li>
+                <li><a href="patients.html">Danh Sách Bệnh Nhân</a></li>
+                <li><a href="schedule.html">Lịch Khám</a></li>
+                <li><a href="edit-record.html">Cập Nhật Hồ Sơ</a></li>
+                <li><a href="../index.html">Đăng Xuất</a></li>
+            </ul>
+        </div>
+        <div class="main-content">
+            <h2>Xin Chào, BS. Trần Văn B</h2>
+
+            <!-- Thống kê nhanh -->
+            <div class="quick-stats">
+                <div class="stat-card">
+                    <div>Bệnh Nhân Hôm Nay</div>
+                    <div class="stat-number">12</div>
+                    <div>3 đang chờ</div>
+                </div>
+                <div class="stat-card">
+                    <div>Đã Khám Tuần Này</div>
+                    <div class="stat-number">45</div>
+                    <div>+5 so với tuần trước</div>
+                </div>
+                <div class="stat-card">
+                    <div>Tổng Số Bệnh Nhân</div>
+                    <div class="stat-number">320</div>
+                    <div>Tháng này</div>
+                </div>
+                <div class="stat-card">
+                    <div>Thời Gian Khám TB</div>
+                    <div class="stat-number">15</div>
+                    <div>phút/bệnh nhân</div>
+                </div>
+            </div>
+
+            <!-- Bệnh nhân đang chờ -->
+            <div class="card">
+                <h3>Bệnh Nhân Đang Chờ</h3>
+                <table>
+                    <thead>
+                        <tr>
+                            <th>STT</th>
+                            <th>Giờ Hẹn</th>
+                            <th>Họ Tên</th>
+                            <th>Loại Khám</th>
+                            <th>Trạng Thái</th>
+                            <th>Thao Tác</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr>
+                            <td>1</td>
+                            <td>09:00</td>
+                            <td>Nguyễn Văn A</td>
+                            <td>Khám định kỳ</td>
+                            <td><span class="status-pill status-in-progress">Đang khám</span></td>
+                            <td>
+                                <div class="action-buttons">
+                                    <button class="btn-small">Xem hồ sơ</button>
+                                    <button class="btn-small">Kết thúc</button>
+                                </div>
+                            </td>
+                        </tr>
+                        <tr>
+                            <td>2</td>
+                            <td>09:30</td>
+                            <td>Trần Thị B</td>
+                            <td>Tái khám</td>
+                            <td><span class="status-pill status-waiting">Đang chờ</span></td>
+                            <td>
+                                <div class="action-buttons">
+                                    <button class="btn-small">Xem hồ sơ</button>
+                                    <button class="btn-small">Bắt đầu</button>
+                                </div>
+                            </td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+
+            <!-- Lịch hẹn hôm nay -->
+            <div class="card">
+                <h3>Lịch Hẹn Hôm Nay</h3>
+                <table>
+                    <thead>
+                        <tr>
+                            <th>Giờ</th>
+                            <th>Bệnh Nhân</th>
+                            <th>Dịch Vụ</th>
+                            <th>Ghi Chú</th>
+                            <th>Trạng Thái</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr>
+                            <td>08:30</td>
+                            <td>Lê Văn C</td>
+                            <td>Khám tổng quát</td>
+                            <td>Bệnh nhân mới</td>
+                            <td><span class="status-pill status-completed">Hoàn thành</span></td>
+                        </tr>
+                        <tr>
+                            <td>09:00</td>
+                            <td>Nguyễn Văn A</td>
+                            <td>Khám định kỳ</td>
+                            <td>-</td>
+                            <td><span class="status-pill status-in-progress">Đang khám</span></td>
+                        </tr>
+                        <tr>
+                            <td>09:30</td>
+                            <td>Trần Thị B</td>
+                            <td>Tái khám</td>
+                            <td>Theo dõi viêm họng</td>
+                            <td><span class="status-pill status-waiting">Đang chờ</span></td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+
+            <!-- Bệnh nhân gần đây -->
+            <div class="card">
+                <h3>Bệnh Nhân Gần Đây</h3>
+                <table>
+                    <thead>
+                        <tr>
+                            <th>Ngày Khám</th>
+                            <th>Bệnh Nhân</th>
+                            <th>Chẩn Đoán</th>
+                            <th>Tái Khám</th>
+                            <th>Thao Tác</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr>
+                            <td>15/04/2025</td>
+                            <td>Phạm Văn D</td>
+                            <td>Viêm họng cấp</td>
+                            <td>22/04/2025</td>
+                            <td>
+                                <div class="action-buttons">
+                                    <button class="btn-small">Xem hồ sơ</button>
+                                    <button class="btn-small">Cập nhật</button>
+                                </div>
+                            </td>
+                        </tr>
+                        <tr>
+                            <td>15/04/2025</td>
+                            <td>Hoàng Thị E</td>
+                            <td>Đau dạ dày</td>
+                            <td>29/04/2025</td>
+                            <td>
+                                <div class="action-buttons">
+                                    <button class="btn-small">Xem hồ sơ</button>
+                                    <button class="btn-small">Cập nhật</button>
+                                </div>
+                            </td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+</body>
+</html>

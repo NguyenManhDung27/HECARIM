@@ -1,0 +1,46 @@
+{% extends "base.html" %}
+
+{% block title %}Dashboard{% endblock %}
+
+{% block content %}
+<h1 class="mb-4">Dashboard</h1>
+
+<div class="grid">
+    <!-- Patient Management Card -->
+    <div class="card">
+        <h2>Patient Management</h2>
+        <p>Manage patient profiles and personal information</p>
+        <div class="mt-4">
+            <a href="/patients" class="btn btn-primary">View Patients</a>
+            <a href="/patients/new" class="btn btn-primary">Add Patient</a>
+        </div>
+    </div>
+
+    <!-- Health Metrics Card -->
+    <div class="card">
+        <h2>Health Metrics</h2>
+        <p>Track vital signs and health indicators</p>
+        <div class="mt-4">
+            <a href="/metrics" class="btn btn-primary">View Metrics</a>
+        </div>
+    </div>
+
+    <!-- Medical History Card -->
+    <div class="card">
+        <h2>Medical History</h2>
+        <p>View and manage patient medical records</p>
+        <div class="mt-4">
+            <a href="/history" class="btn btn-primary">View History</a>
+        </div>
+    </div>
+
+    <!-- Appointments Card -->
+    <div class="card">
+        <h2>Appointments</h2>
+        <p>Schedule and manage patient appointments</p>
+        <div class="mt-4">
+            <a href="/appointments" class="btn btn-primary">Manage Appointments</a>
+        </div>
+    </div>
+</div>
+{% endblock %}

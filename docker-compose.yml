@@ -1,0 +1,57 @@
+version: '3.8'
+
+services:
+  mongodb:
+    image: mongo:latest
+    container_name: hecarim-mongodb
+    restart: always
+    environment:
+      MONGO_INITDB_ROOT_USERNAME: ${MONGO_USER}
+      MONGO_INITDB_ROOT_PASSWORD: ${MONGO_PASSWORD}
+    volumes:
+      - mongodb_data:/data/db
+    networks:
+      - hecarim-network
+    ports:
+      - "27017:27017"
+
+  backend:
+    build:
+      context: .
+      target: backend
+    container_name: hecarim-backend
+    restart: always
+    depends_on:
+      - mongodb
+    environment:
+      - NODE_ENV=production
+      - MONGODB_URI=mongodb://${MONGO_USER}:${MONGO_PASSWORD}@mongodb:27017/hecarim
+      - JWT_SECRET=${JWT_SECRET}
+      - PORT=5000
+      - CORS_ORIGIN=http://localhost
+    volumes:
+      - ./uploads:/app/backend/uploads
+    networks:
+      - hecarim-network
+    ports:
+      - "5000:5000"
+
+  frontend:
+    build:
+      context: .
+      target: frontend
+    container_name: hecarim-frontend
+    restart: always
+    depends_on:
+      - backend
+    networks:
+      - hecarim-network
+    ports:
+      - "80:80"
+
+networks:
+  hecarim-network:
+    driver: bridge
+
+volumes:
+  mongodb_data:

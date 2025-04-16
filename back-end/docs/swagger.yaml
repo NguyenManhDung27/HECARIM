@@ -1,0 +1,363 @@
+openapi: 3.0.0
+info:
+  title: Hospital Management System API
+  version: 1.0.0
+  description: API documentation for the Hospital Management System
+
+servers:
+  - url: http://localhost:5000/api
+    description: Development server
+
+components:
+  securitySchemes:
+    BearerAuth:
+      type: http
+      scheme: bearer
+      bearerFormat: JWT
+
+  schemas:
+    User:
+      type: object
+      properties:
+        _id:
+          type: string
+        username:
+          type: string
+        role:
+          type: string
+          enum: [doctor, receptionist]
+        status:
+          type: string
+          enum: [active, inactive, locked]
+
+    Patient:
+      type: object
+      properties:
+        patientId:
+          type: string
+        personalInfo:
+          type: object
+          properties:
+            fullName:
+              type: string
+            gender:
+              type: string
+              enum: [male, female, other]
+            dateOfBirth:
+              type: string
+              format: date
+            idNumber:
+              type: string
+            address:
+              type: string
+            phone:
+              type: string
+            email:
+              type: string
+        healthInfo:
+          type: object
+          properties:
+            bloodType:
+              type: string
+            allergies:
+              type: array
+              items:
+                type: string
+            chronicDiseases:
+              type: array
+              items:
+                type: string
+        insurance:
+          type: object
+          properties:
+            provider:
+              type: string
+            policyNumber:
+              type: string
+            expiryDate:
+              type: string
+              format: date
+
+    Doctor:
+      type: object
+      properties:
+        doctorId:
+          type: string
+        personalInfo:
+          type: object
+          properties:
+            fullName:
+              type: string
+            gender:
+              type: string
+            dateOfBirth:
+              type: string
+              format: date
+        professionalInfo:
+          type: object
+          properties:
+            specialization:
+              type: string
+            qualification:
+              type: array
+              items:
+                type: string
+            licenseNumber:
+              type: string
+            experience:
+              type: number
+
+    Appointment:
+      type: object
+      properties:
+        appointmentId:
+          type: string
+        patientId:
+          type: string
+        doctorId:
+          type: string
+        date:
+          type: string
+          format: date
+        timeSlot:
+          type: object
+          properties:
+            start:
+              type: string
+            end:
+              type: string
+        status:
+          type: string
+          enum: [scheduled, completed, cancelled, no-show]
+        type:
+          type: string
+          enum: [new, follow-up]
+        reason:
+          type: string
+
+    MedicalRecord:
+      type: object
+      properties:
+        recordId:
+          type: string
+        patientId:
+          type: string
+        doctorId:
+          type: string
+        visitDate:
+          type: string
+          format: date
+        symptoms:
+          type: array
+          items:
+            type: string
+        diagnosis:
+          type: array
+          items:
+            type: string
+        treatment:
+          type: object
+          properties:
+            medications:
+              type: array
+              items:
+                type: object
+                properties:
+                  medicationId:
+                    type: string
+                  name:
+                    type: string
+                  dosage:
+                    type: string
+                  instructions:
+                    type: string
+            procedures:
+              type: array
+              items:
+                type: object
+                properties:
+                  name:
+                    type: string
+                  notes:
+                    type: string
+
+paths:
+  /auth/login:
+    post:
+      summary: Login to the system
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                username:
+                  type: string
+                password:
+                  type: string
+      responses:
+        '200':
+          description: Login successful
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  token:
+                    type: string
+                  user:
+                    $ref: '#/components/schemas/User'
+
+  /patients:
+    get:
+      summary: Get list of patients
+      security:
+        - BearerAuth: []
+      parameters:
+        - in: query
+          name: search
+          schema:
+            type: string
+        - in: query
+          name: page
+          schema:
+            type: integer
+        - in: query
+          name: limit
+          schema:
+            type: integer
+      responses:
+        '200':
+          description: List of patients
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  data:
+                    type: array
+                    items:
+                      $ref: '#/components/schemas/Patient'
+                  pagination:
+                    type: object
+                    properties:
+                      total:
+                        type: integer
+                      page:
+                        type: integer
+                      pages:
+                        type: integer
+
+    post:
+      summary: Create new patient
+      security:
+        - BearerAuth: []
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/Patient'
+      responses:
+        '201':
+          description: Patient created successfully
+
+  /appointments:
+    get:
+      summary: Get list of appointments
+      security:
+        - BearerAuth: []
+      parameters:
+        - in: query
+          name: date
+          schema:
+            type: string
+            format: date
+        - in: query
+          name: doctorId
+          schema:
+            type: string
+        - in: query
+          name: status
+          schema:
+            type: string
+      responses:
+        '200':
+          description: List of appointments
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/Appointment'
+
+    post:
+      summary: Create new appointment
+      security:
+        - BearerAuth: []
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/Appointment'
+      responses:
+        '201':
+          description: Appointment created successfully
+
+  /medical-records:
+    get:
+      summary: Get list of medical records
+      security:
+        - BearerAuth: []
+      parameters:
+        - in: query
+          name: patientId
+          schema:
+            type: string
+      responses:
+        '200':
+          description: List of medical records
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/MedicalRecord'
+
+    post:
+      summary: Create new medical record
+      security:
+        - BearerAuth: []
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/MedicalRecord'
+      responses:
+        '201':
+          description: Medical record created successfully
+
+  /medical-records/{recordId}/attachments:
+    post:
+      summary: Upload attachments to medical record
+      security:
+        - BearerAuth: []
+      parameters:
+        - in: path
+          name: recordId
+          required: true
+          schema:
+            type: string
+      requestBody:
+        content:
+          multipart/form-data:
+            schema:
+              type: object
+              properties:
+                files:
+                  type: array
+                  items:
+                    type: string
+                    format: binary
+      responses:
+        '201':
+          description: Files uploaded successfully

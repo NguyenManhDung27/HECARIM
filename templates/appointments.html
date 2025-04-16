@@ -1,0 +1,244 @@
+{% extends "base.html" %}
+
+{% block title %}Appointments{% endblock %}
+
+{% block content %}
+<div class="mb-4">
+    <h1>Appointments</h1>
+    <button class="btn btn-primary" onclick="showAddAppointmentForm()">Schedule New Appointment</button>
+</div>
+
+<div class="grid">
+    <!-- Upcoming Appointments -->
+    <div class="card">
+        <h2>Upcoming Appointments</h2>
+        <div id="upcomingAppointments">
+            <!-- Upcoming appointments will be loaded here -->
+        </div>
+    </div>
+
+    <!-- Past Appointments -->
+    <div class="card">
+        <h2>Past Appointments</h2>
+        <div id="pastAppointments">
+            <!-- Past appointments will be loaded here -->
+        </div>
+    </div>
+</div>
+
+<!-- Add Appointment Form Modal -->
+<div id="appointmentModal" class="modal" style="display: none;">
+    <div class="modal-content card">
+        <h2>Schedule New Appointment</h2>
+        <form id="appointmentForm" onsubmit="handleAppointmentSubmit(event)">
+            <div class="form-group">
+                <label class="form-label" for="appointmentDate">Date</label>
+                <input type="date" class="form-control" id="appointmentDate" required>
+            </div>
+
+            <div class="form-group">
+                <label class="form-label" for="appointmentTime">Time</label>
+                <input type="time" class="form-control" id="appointmentTime" required>
+            </div>
+
+            <div class="form-group">
+                <label class="form-label" for="doctorName">Doctor</label>
+                <select class="form-control" id="doctorName" required>
+                    <option value="">Select Doctor</option>
+                    <option value="Dr. John Smith">Dr. John Smith</option>
+                    <option value="Dr. Sarah Johnson">Dr. Sarah Johnson</option>
+                    <option value="Dr. Michael Brown">Dr. Michael Brown</option>
+                </select>
+            </div>
+
+            <div class="form-group">
+                <label class="form-label" for="purpose">Purpose</label>
+                <textarea class="form-control" id="purpose" required></textarea>
+            </div>
+
+            <div class="form-group">
+                <button type="submit" class="btn btn-primary">Schedule</button>
+                <button type="button" class="btn btn-primary" onclick="hideAddAppointmentForm()">Cancel</button>
+            </div>
+        </form>
+    </div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<style>
+.modal {
+    display: none;
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background-color: rgba(0,0,0,0.5);
+}
+
+.modal-content {
+    position: relative;
+    margin: 15% auto;
+    padding: 20px;
+    width: 80%;
+    max-width: 500px;
+}
+
+.appointment-card {
+    padding: 1rem;
+    margin-bottom: 1rem;
+    border: 1px solid var(--border-color);
+    border-radius: 4px;
+}
+
+.appointment-card h3 {
+    margin-bottom: 0.5rem;
+}
+
+.appointment-status {
+    display: inline-block;
+    padding: 0.25rem 0.5rem;
+    border-radius: 4px;
+    font-size: 0.875rem;
+    margin-top: 0.5rem;
+}
+
+.status-scheduled {
+    background-color: #cce5ff;
+    color: #004085;
+}
+
+.status-completed {
+    background-color: #d4edda;
+    color: #155724;
+}
+
+.status-cancelled {
+    background-color: #f8d7da;
+    color: #721c24;
+}
+</style>
+
+<script>
+let appointments = [];
+
+document.addEventListener('DOMContentLoaded', function() {
+    loadAppointments();
+    // Set minimum date for appointment scheduling
+    document.getElementById('appointmentDate').min = new Date().toISOString().split('T')[0];
+});
+
+function loadAppointments() {
+    // TODO: Implement API call to fetch appointments
+    // For now, using sample data
+    appointments = generateSampleAppointments();
+    displayAppointments();
+}
+
+function generateSampleAppointments() {
+    const appointments = [];
+    const doctors = ['Dr. John Smith', 'Dr. Sarah Johnson', 'Dr. Michael Brown'];
+    const purposes = ['Regular Checkup', 'Follow-up', 'Consultation', 'Annual Physical'];
+    const statuses = ['scheduled', 'completed', 'cancelled'];
+
+    // Generate future appointments
+    for (let i = 0; i < 3; i++) {
+        const date = new Date();
+        date.setDate(date.getDate() + i * 3);
+        appointments.push({
+            date: date.toISOString().split('T')[0],
+            time: '10:00',
+            doctorName: doctors[i % doctors.length],
+            purpose: purposes[i % purposes.length],
+            status: 'scheduled'
+        });
+    }
+
+    // Generate past appointments
+    for (let i = 0; i < 3; i++) {
+        const date = new Date();
+        date.setDate(date.getDate() - (i + 1) * 7);
+        appointments.push({
+            date: date.toISOString().split('T')[0],
+            time: '14:00',
+            doctorName: doctors[i % doctors.length],
+            purpose: purposes[i % purposes.length],
+            status: statuses[1 + (i % 2)] // alternate between completed and cancelled
+        });
+    }
+
+    return appointments;
+}
+
+function displayAppointments() {
+    const now = new Date();
+    const upcoming = appointments.filter(a => new Date(`${a.date}T${a.time}`) > now);
+    const past = appointments.filter(a => new Date(`${a.date}T${a.time}`) <= now);
+
+    document.getElementById('upcomingAppointments').innerHTML = upcoming
+        .map(appointment => createAppointmentCard(appointment))
+        .join('');
+
+    document.getElementById('pastAppointments').innerHTML = past
+        .map(appointment => createAppointmentCard(appointment))
+        .join('');
+}
+
+function createAppointmentCard(appointment) {
+    return `
+        <div class="appointment-card">
+            <h3>${appointment.date} at ${appointment.time}</h3>
+            <p><strong>Doctor:</strong> ${appointment.doctorName}</p>
+            <p><strong>Purpose:</strong> ${appointment.purpose}</p>
+            <span class="appointment-status status-${appointment.status}">
+                ${appointment.status.charAt(0).toUpperCase() + appointment.status.slice(1)}
+            </span>
+            ${appointment.status === 'scheduled' ? `
+                <div style="margin-top: 1rem;">
+                    <button class="btn btn-primary" onclick="updateAppointmentStatus('${appointment.date}', 'completed')">Mark Completed</button>
+                    <button class="btn btn-primary" onclick="updateAppointmentStatus('${appointment.date}', 'cancelled')">Cancel</button>
+                </div>
+            ` : ''}
+        </div>
+    `;
+}
+
+function showAddAppointmentForm() {
+    document.getElementById('appointmentModal').style.display = 'block';
+    document.getElementById('appointmentDate').value = new Date().toISOString().split('T')[0];
+}
+
+function hideAddAppointmentForm() {
+    document.getElementById('appointmentModal').style.display = 'none';
+}
+
+async function handleAppointmentSubmit(event) {
+    event.preventDefault();
+
+    const appointmentData = {
+        date: document.getElementById('appointmentDate').value,
+        time: document.getElementById('appointmentTime').value,
+        doctorName: document.getElementById('doctorName').value,
+        purpose: document.getElementById('purpose').value,
+        status: 'scheduled'
+    };
+
+    // TODO: Implement API call to save appointment
+    console.log('Scheduling appointment:', appointmentData);
+    appointments.push(appointmentData);
+    
+    hideAddAppointmentForm();
+    displayAppointments();
+}
+
+function updateAppointmentStatus(date, newStatus) {
+    // TODO: Implement API call to update appointment status
+    const appointment = appointments.find(a => a.date === date);
+    if (appointment) {
+        appointment.status = newStatus;
+        displayAppointments();
+    }
+}
+</script>
+{% endblock %}

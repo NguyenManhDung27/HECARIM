@@ -1,0 +1,188 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Trang Chính - Lễ Tân</title>
+    <link rel="stylesheet" href="../assets/css/style.css">
+    <style>
+        .quick-stats {
+            display: grid;
+            grid-template-columns: repeat(4, 1fr);
+            gap: 15px;
+            margin-bottom: 20px;
+        }
+        .stat-box {
+            background: #f5f5f5;
+            padding: 15px;
+            border-radius: 5px;
+            text-align: center;
+        }
+        .stat-number {
+            font-size: 24px;
+            font-weight: bold;
+            color: #00796b;
+            margin: 5px 0;
+        }
+        .quick-actions {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 15px;
+            margin-bottom: 20px;
+        }
+        .action-card {
+            background: white;
+            padding: 20px;
+            border-radius: 5px;
+            text-align: center;
+            cursor: pointer;
+            transition: transform 0.2s;
+            border: 1px solid #e0e0e0;
+        }
+        .action-card:hover {
+            transform: translateY(-5px);
+        }
+        .doctor-status {
+            display: flex;
+            align-items: center;
+            margin-bottom: 10px;
+            padding: 10px;
+            background: white;
+            border-radius: 5px;
+        }
+        .status-indicator {
+            width: 10px;
+            height: 10px;
+            border-radius: 50%;
+            margin-right: 10px;
+        }
+        .status-available { background: #4caf50; }
+        .status-busy { background: #f44336; }
+        .status-away { background: #ffc107; }
+        .status-off { background: #9e9e9e; }
+        .notification {
+            padding: 10px;
+            margin-bottom: 10px;
+            border-radius: 5px;
+            border-left: 4px solid;
+        }
+        .notification.urgent {
+            background: #fff3e0;
+            border-left-color: #ff9800;
+        }
+        .notification.info {
+            background: #e3f2fd;
+            border-left-color: #2196f3;
+        }
+        .time-slot {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 10px;
+            margin-bottom: 5px;
+            background: #f5f5f5;
+            border-radius: 5px;
+        }
+        .action-buttons {
+            display: flex;
+            gap: 5px;
+        }
+        .btn-small {
+            padding: 3px 8px;
+            font-size: 12px;
+            border-radius: 3px;
+            cursor: pointer;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="sidebar">
+            <img src="../assets/images/logo.png" alt="Logo" class="logo">
+            <h3>Nhân Viên Lễ Tân</h3>
+            <ul>
+                <li><a href="dashboard.html">Trang Chính</a></li>
+                <li><a href="schedule.html">Sắp Xếp Lịch Khám</a></li>
+                <li><a href="patient-registration.html">Đăng Ký Bệnh Nhân</a></li>
+                <li><a href="../index.html">Đăng Xuất</a></li>
+            </ul>
+        </div>
+        <div class="main-content">
+            <h2>Xin Chào, <span id="receptionistName"></span></h2>
+
+            <!-- Thống kê nhanh -->
+            <div class="quick-stats">
+                <div class="stat-box">
+                    <div>Cuộc Hẹn Hôm Nay</div>
+                    <div class="stat-number" id="todayAppointments">0</div>
+                    <div><span id="waitingPatients">0</span> đang chờ</div>
+                </div>
+                <div class="stat-box">
+                    <div>Bệnh Nhân Mới</div>
+                    <div class="stat-number" id="newPatients">0</div>
+                    <div>Tuần này</div>
+                </div>
+                <div class="stat-box">
+                    <div>Tổng Lịch Hẹn</div>
+                    <div class="stat-number" id="monthlyAppointments">0</div>
+                    <div>Tháng này</div>
+                </div>
+                <div class="stat-box">
+                    <div>Bác Sĩ Làm Việc</div>
+                    <div class="stat-number" id="activeDoctors">0</div>
+                    <div>Hôm nay</div>
+                </div>
+            </div>
+
+            <!-- Hành động nhanh -->
+            <div class="quick-actions">
+                <div class="action-card" onclick="window.location.href='schedule.html'">
+                    <h3>Đặt Lịch Hẹn</h3>
+                    <p>Tạo lịch hẹn mới cho bệnh nhân</p>
+                </div>
+                <div class="action-card" onclick="window.location.href='patient-registration.html'">
+                    <h3>Đăng Ký Bệnh Nhân</h3>
+                    <p>Thêm hồ sơ bệnh nhân mới</p>
+                </div>
+                <div class="action-card" onclick="window.location.href='search.html'">
+                    <h3>Tìm Kiếm Hồ Sơ</h3>
+                    <p>Tra cứu thông tin bệnh nhân</p>
+                </div>
+            </div>
+
+            <div style="display: grid; grid-template-columns: 2fr 1fr; gap: 20px;">
+                <!-- Lịch hẹn hôm nay -->
+                <div class="card">
+                    <h3>Lịch Hẹn Hôm Nay</h3>
+                    <div id="appointmentsList">
+                        <!-- Lịch hẹn sẽ được thêm vào đây động -->
+                    </div>
+                    <button onclick="window.location.href='schedule.html'" style="width: 100%; margin-top: 10px;">
+                        Xem Tất Cả
+                    </button>
+                </div>
+
+                <!-- Thông tin phụ -->
+                <div>
+                    <!-- Trạng thái bác sĩ -->
+                    <div class="card">
+                        <h3>Trạng Thái Bác Sĩ</h3>
+                        <div id="doctorStatus">
+                            <!-- Trạng thái bác sĩ sẽ được thêm vào đây động -->
+                        </div>
+                    </div>
+
+                    <!-- Thông báo quan trọng -->
+                    <div class="card">
+                        <h3>Thông Báo</h3>
+                        <div id="notifications">
+                            <!-- Thông báo sẽ được thêm vào đây động -->
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    <script src="../assets/js/receptionist-dashboard.js"></script>
+</body>
+</html>

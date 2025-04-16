@@ -1,0 +1,125 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Trang Chính - Bệnh Nhân</title>
+    <link rel="stylesheet" href="../assets/css/style.css">
+</head>
+<body>
+    <div class="container">
+        <div class="sidebar">
+            <img src="../assets/images/logo.png" alt="Logo" class="logo">
+            <h3>Bệnh Nhân</h3>
+            <ul>
+                <li><a href="dashboard.html">Trang Chính</a></li>
+                <li><a href="profile.html">Thông Tin Cá Nhân</a></li>
+                <li><a href="medical-records.html">Hồ Sơ Khám Bệnh</a></li>
+                <li><a href="../index.html">Đăng Xuất</a></li>
+            </ul>
+        </div>
+        <div class="main-content">
+            <h2>Xin Chào, Nguyễn Văn A</h2>
+            
+            <!-- Thông tin cuộc hẹn sắp tới -->
+            <div class="card">
+                <h3>Cuộc Hẹn Sắp Tới</h3>
+                <table>
+                    <thead>
+                        <tr>
+                            <th>Ngày</th>
+                            <th>Giờ</th>
+                            <th>Bác Sĩ</th>
+                            <th>Khoa</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr>
+                            <td>20/04/2025</td>
+                            <td>09:30</td>
+                            <td>BS. Trần Văn B</td>
+                            <td>Nội Tổng Quát</td>
+                        </tr>
+                    </tbody>
+                </table>
+                <button onclick="window.location.href='schedule.html'">Xem Tất Cả Lịch Hẹn</button>
+            </div>
+
+            <!-- Tóm tắt thông tin cá nhân -->
+            <div class="card">
+                <h3>Thông Tin Cá Nhân</h3>
+                <table>
+                    <tr>
+                        <td><strong>Họ và tên:</strong></td>
+                        <td>Nguyễn Văn A</td>
+                        <td><strong>Ngày sinh:</strong></td>
+                        <td>01/01/1990</td>
+                    </tr>
+                    <tr>
+                        <td><strong>Mã bệnh nhân:</strong></td>
+                        <td>BN001</td>
+                        <td><strong>Nhóm máu:</strong></td>
+                        <td>O+</td>
+                    </tr>
+                    <tr>
+                        <td><strong>Số điện thoại:</strong></td>
+                        <td>0123456789</td>
+                        <td><strong>Email:</strong></td>
+                        <td>nguyenvana@email.com</td>
+                    </tr>
+                </table>
+                <button onclick="window.location.href='profile.html'">Cập Nhật Thông Tin</button>
+            </div>
+
+            <!-- Tóm tắt hồ sơ bệnh án gần đây -->
+            <div class="card">
+                <h3>Hồ Sơ Khám Bệnh Gần Đây</h3>
+                <table>
+                    <thead>
+                        <tr>
+                            <th>Ngày Khám</th>
+                            <th>Bác Sĩ</th>
+                            <th>Chẩn Đoán</th>
+                            <th>Tình Trạng</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr>
+                            <td>15/04/2025</td>
+                            <td>BS. Trần Văn B</td>
+                            <td>Viêm họng cấp</td>
+                            <td>Đang điều trị</td>
+                        </tr>
+                        <tr>
+                            <td>10/04/2025</td>
+                            <td>BS. Lê Thị C</td>
+                            <td>Khám định kỳ</td>
+                            <td>Hoàn thành</td>
+                        </tr>
+                    </tbody>
+                </table>
+                <button onclick="window.location.href='medical-records.html'">Xem Tất Cả Hồ Sơ</button>
+            </div>
+
+            <!-- Thống kê -->
+            <div class="card">
+                <h3>Thống Kê</h3>
+                <table>
+                    <tr>
+                        <td><strong>Số lần khám:</strong></td>
+                        <td>15</td>
+                        <td><strong>Lần khám gần nhất:</strong></td>
+                        <td>15/04/2025</td>
+                    </tr>
+                    <tr>
+                        <td><strong>Số đơn thuốc:</strong></td>
+                        <td>8</td>
+                        <td><strong>Tình trạng bảo hiểm:</strong></td>
+                        <td>Còn hiệu lực</td>
+                    </tr>
+                </table>
+            </div>
+        </div>
+    </div>
+</body>
+</html>

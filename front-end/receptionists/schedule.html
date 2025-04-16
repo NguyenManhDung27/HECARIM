@@ -1,0 +1,205 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Quản Lý Lịch Khám - Lễ Tân</title>
+    <link rel="stylesheet" href="../assets/css/style.css">
+    <style>
+        .schedule-container {
+            display: grid;
+            grid-template-columns: 350px 1fr;
+            gap: 20px;
+        }
+        .time-slot {
+            padding: 10px;
+            margin: 5px 0;
+            background: #f5f5f5;
+            border-radius: 5px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        .doctor-schedule {
+            margin-bottom: 20px;
+            padding: 15px;
+            background: #fff;
+            border-radius: 5px;
+            box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+        }
+        .status-tag {
+            padding: 5px 10px;
+            border-radius: 15px;
+            font-size: 12px;
+        }
+        .status-available { background: #e8f5e9; color: #2e7d32; }
+        .status-scheduled { background: #fff3e0; color: #e65100; }
+        .status-completed { background: #e0e0e0; color: #616161; }
+        .status-cancelled { background: #ffebee; color: #c62828; }
+        .status-no-show { background: #f3e5f5; color: #6a1b9a; }
+        .quick-actions {
+            display: flex;
+            gap: 10px;
+            margin-bottom: 20px;
+        }
+        .patient-info {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 10px;
+            margin: 15px 0;
+        }
+        .hint {
+            font-size: 12px;
+            color: #666;
+            margin-top: 5px;
+        }
+        .conflict-warning {
+            color: #f44336;
+            font-size: 12px;
+            margin-top: 5px;
+            display: none;
+        }
+        .search-results {
+            position: absolute;
+            background: white;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+            max-height: 200px;
+            overflow-y: auto;
+            width: 100%;
+            z-index: 1000;
+            display: none;
+        }
+        .search-result-item {
+            padding: 10px;
+            cursor: pointer;
+            border-bottom: 1px solid #eee;
+        }
+        .search-result-item:hover {
+            background: #f5f5f5;
+        }
+        .action-buttons {
+            display: flex;
+            gap: 5px;
+        }
+        .btn-status {
+            padding: 3px 8px;
+            font-size: 12px;
+            border-radius: 3px;
+            cursor: pointer;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="sidebar">
+            <img src="../assets/images/logo.png" alt="Logo" class="logo">
+            <h3>Nhân Viên Lễ Tân</h3>
+            <ul>
+                <li><a href="dashboard.html">Trang Chính</a></li>
+                <li><a href="schedule.html">Sắp Xếp Lịch Khám</a></li>
+                <li><a href="patient-registration.html">Đăng Ký Bệnh Nhân</a></li>
+                <li><a href="../index.html">Đăng Xuất</a></li>
+            </ul>
+        </div>
+        <div class="main-content">
+            <h2>Quản Lý Lịch Khám</h2>
+
+            <div class="quick-actions">
+                <button onclick="window.location.href='patient-registration.html'" class="btn-add">+ Thêm Bệnh Nhân Mới</button>
+                <button id="btnToday">Xem Lịch Hẹn Hôm Nay</button>
+                <button id="btnReport">Báo Cáo</button>
+            </div>
+
+            <div class="schedule-container">
+                <!-- Form đặt lịch -->
+                <div class="card">
+                    <h3>Đặt Lịch Khám</h3>
+                    <form id="appointmentForm">
+                        <div class="form-group">
+                            <label>Loại Đặt Lịch</label>
+                            <select name="type" required>
+                                <option value="new">Khám Mới</option>
+                                <option value="follow-up">Tái Khám</option>
+                            </select>
+                        </div>
+
+                        <div class="form-group">
+                            <label>Tìm Bệnh Nhân</label>
+                            <input type="text" id="patientSearch" placeholder="Nhập tên hoặc mã bệnh nhân...">
+                            <div id="searchResults" class="search-results"></div>
+                        </div>
+
+                        <div class="patient-info">
+                            <input type="hidden" name="patientId" required>
+                            <div class="form-group">
+                                <label>Họ và tên</label>
+                                <input type="text" name="patientName" readonly required>
+                            </div>
+                            <div class="form-group">
+                                <label>Số điện thoại</label>
+                                <input type="tel" name="patientPhone" readonly>
+                            </div>
+                        </div>
+
+                        <div class="form-group">
+                            <label>Chuyên Khoa</label>
+                            <select name="department" required>
+                                <option value="">Chọn chuyên khoa</option>
+                            </select>
+                        </div>
+
+                        <div class="form-group">
+                            <label>Bác Sĩ</label>
+                            <select name="doctorId" required>
+                                <option value="">Chọn bác sĩ</option>
+                            </select>
+                            <div class="hint">* Chọn bác sĩ để xem lịch trống</div>
+                        </div>
+
+                        <div class="form-group">
+                            <label>Ngày Khám</label>
+                            <input type="date" name="appointmentDate" required>
+                        </div>
+
+                        <div class="form-group">
+                            <label>Chọn Giờ Khám</label>
+                            <select name="timeSlot" required>
+                                <option value="">Chọn giờ khám</option>
+                            </select>
+                            <div class="conflict-warning" id="conflictWarning">* Khung giờ này đã có lịch hẹn</div>
+                        </div>
+
+                        <div class="form-group">
+                            <label>Lý Do Khám</label>
+                            <textarea name="reason" placeholder="Triệu chứng, lý do khám" required></textarea>
+                        </div>
+
+                        <button type="submit">Xác Nhận Đặt Lịch</button>
+                    </form>
+                </div>
+
+                <!-- Lịch khám -->
+                <div>
+                    <div class="card" style="margin-bottom: 20px;">
+                        <div style="display: flex; justify-content: space-between; align-items: center;">
+                            <h3>Lịch Khám <span id="currentDate"></span></h3>
+                            <div>
+                                <button id="prevDate">&#8592;</button>
+                                <button id="today">Hôm nay</button>
+                                <button id="nextDate">&#8594;</button>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div id="doctorSchedules" class="doctor-schedules">
+                        <!-- Lịch theo bác sĩ sẽ được thêm vào đây động -->
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script src="../assets/js/schedule.js"></script>
+</body>
+</html>
