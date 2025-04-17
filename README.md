@@ -182,7 +182,7 @@ This project is licensed under the MIT License - see the [LICENSE](LICENSE) file
 
 ## Support
 
-For support, please contact [support@your-domain.com](mailto:support@your-domain.com).
+
 =======
 B1: mở Bash đến thư mục => python app.py
 B2: mở command prompt chạy lệnh start http://localhost:5000
