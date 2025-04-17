@@ -1,0 +1,179 @@
+{% extends "base_dashboard.html" %}
+
+{% block title %}Bảng điều khiển Lễ tân{% endblock %}
+
+{% block sidebar_menu %}
+<li class="nav-item">
+    <a href="/receptionist/dashboard" class="nav-link">
+        Tổng quan
+    </a>
+</li>
+<li class="nav-item">
+    <a href="/receptionist/appointments" class="nav-link">
+        Quản lý lịch hẹn
+    </a>
+</li>
+<li class="nav-item">
+    <a href="/receptionist/patients/register" class="nav-link">
+        Đăng ký bệnh nhân mới
+    </a>
+</li>
+<li class="nav-item">
+    <a href="/receptionist/patients" class="nav-link">
+        Danh sách bệnh nhân
+    </a>
+</li>
+<li class="nav-item">
+    <a href="/receptionist/billing" class="nav-link">
+        Thanh toán
+    </a>
+</li>
+<li class="nav-item">
+    <a href="/receptionist/profile" class="nav-link">
+        Thông tin cá nhân
+    </a>
+</li>
+{% endblock %}
+
+{% block page_title %}Tổng quan{% endblock %}
+
+{% block page_actions %}
+<a href="/receptionist/appointments/new" class="btn btn-primary">
+    + Đặt lịch hẹn mới
+</a>
+{% endblock %}
+
+{% block content %}
+<div class="card">
+    <div class="card-header">
+        <h2 class="card-title">Lịch hẹn hôm nay</h2>
+    </div>
+    <div class="table-container">
+        <table class="data-table">
+            <thead>
+                <tr>
+                    <th>Giờ</th>
+                    <th>Mã BN</th>
+                    <th>Tên bệnh nhân</th>
+                    <th>Bác sĩ</th>
+                    <th>Loại khám</th>
+                    <th>Trạng thái</th>
+                    <th>Thao tác</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for appointment in todays_appointments %}
+                <tr>
+                    <td>{{ appointment.time }}</td>
+                    <td>{{ appointment.patient_id }}</td>
+                    <td>{{ appointment.patient_name }}</td>
+                    <td>{{ appointment.doctor_name }}</td>
+                    <td>{{ appointment.type }}</td>
+                    <td>
+                        <span class="badge badge-{{ appointment.status_class }}">
+                            {{ appointment.status }}
+                        </span>
+                    </td>
+                    <td>
+                        <button class="btn btn-secondary" onclick="updateStatus('{{ appointment.id }}')">
+                            Cập nhật
+                        </button>
+                    </td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+</div>
+
+<div class="card">
+    <div class="card-header">
+        <h2 class="card-title">Hóa đơn chờ thanh toán</h2>
+    </div>
+    <div class="table-container">
+        <table class="data-table">
+            <thead>
+                <tr>
+                    <th>Mã HĐ</th>
+                    <th>Mã BN</th>
+                    <th>Tên bệnh nhân</th>
+                    <th>Tổng tiền</th>
+                    <th>Thao tác</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for invoice in pending_invoices %}
+                <tr>
+                    <td>{{ invoice.id }}</td>
+                    <td>{{ invoice.patient_id }}</td>
+                    <td>{{ invoice.patient_name }}</td>
+                    <td>{{ invoice.total_amount }}</td>
+                    <td>
+                        <a href="/receptionist/billing/{{ invoice.id }}" class="btn btn-primary">
+                            Xử lý
+                        </a>
+                    </td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+</div>
+
+<div class="card">
+    <div class="card-header">
+        <h2 class="card-title">Thống kê hôm nay</h2>
+    </div>
+    <div style="padding: 1rem;">
+        <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 1rem;">
+            <div>
+                <strong>Số lịch hẹn:</strong>
+                <p>{{ daily_stats.total_appointments }}</p>
+            </div>
+            <div>
+                <strong>Bệnh nhân đã đến:</strong>
+                <p>{{ daily_stats.checked_in }}</p>
+            </div>
+            <div>
+                <strong>Bệnh nhân mới:</strong>
+                <p>{{ daily_stats.new_patients }}</p>
+            </div>
+            <div>
+                <strong>Hóa đơn đã xử lý:</strong>
+                <p>{{ daily_stats.processed_invoices }}</p>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_scripts %}
+<script>
+    async function updateStatus(appointmentId) {
+        try {
+            const response = await fetch(`/receptionist/appointments/${appointmentId}/status`, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify({
+                    status: 'checked_in'
+                })
+            });
+
+            if (response.ok) {
+                window.location.reload();
+            } else {
+                alert('Có lỗi xảy ra khi cập nhật trạng thái.');
+            }
+        } catch (error) {
+            console.error('Error:', error);
+            alert('Có lỗi xảy ra khi cập nhật trạng thái.');
+        }
+    }
+
+    document.addEventListener('DOMContentLoaded', function() {
+        // Add any necessary event listeners or dashboard-specific functionality
+    });
+</script>
+{% endblock %}

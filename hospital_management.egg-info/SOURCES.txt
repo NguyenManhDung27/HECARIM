@@ -1,0 +1,10 @@
+README.md
+setup.py
+backend/__init__.py
+backend/run.py
+backend/app/__init__.py
+hospital_management.egg-info/PKG-INFO
+hospital_management.egg-info/SOURCES.txt
+hospital_management.egg-info/dependency_links.txt
+hospital_management.egg-info/requires.txt
+hospital_management.egg-info/top_level.txt

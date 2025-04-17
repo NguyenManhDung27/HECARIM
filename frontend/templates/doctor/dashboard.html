@@ -1,0 +1,149 @@
+{% extends "base_dashboard.html" %}
+
+{% block title %}Bảng điều khiển Bác sĩ{% endblock %}
+
+{% block sidebar_menu %}
+<li class="nav-item">
+    <a href="/doctor/dashboard" class="nav-link">
+        Tổng quan
+    </a>
+</li>
+<li class="nav-item">
+    <a href="/doctor/appointments" class="nav-link">
+        Lịch khám bệnh
+    </a>
+</li>
+<li class="nav-item">
+    <a href="/doctor/patients" class="nav-link">
+        Danh sách bệnh nhân
+    </a>
+</li>
+<li class="nav-item">
+    <a href="/doctor/medical-records" class="nav-link">
+        Hồ sơ bệnh án
+    </a>
+</li>
+<li class="nav-item">
+    <a href="/doctor/prescriptions" class="nav-link">
+        Kê đơn thuốc
+    </a>
+</li>
+<li class="nav-item">
+    <a href="/doctor/profile" class="nav-link">
+        Thông tin cá nhân
+    </a>
+</li>
+{% endblock %}
+
+{% block page_title %}Tổng quan{% endblock %}
+
+{% block content %}
+<div class="card">
+    <div class="card-header">
+        <h2 class="card-title">Lịch khám hôm nay</h2>
+    </div>
+    <div class="table-container">
+        <table class="data-table">
+            <thead>
+                <tr>
+                    <th>Giờ</th>
+                    <th>Mã BN</th>
+                    <th>Tên bệnh nhân</th>
+                    <th>Loại khám</th>
+                    <th>Trạng thái</th>
+                    <th>Thao tác</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for appointment in todays_appointments %}
+                <tr>
+                    <td>{{ appointment.time }}</td>
+                    <td>{{ appointment.patient_id }}</td>
+                    <td>{{ appointment.patient_name }}</td>
+                    <td>{{ appointment.type }}</td>
+                    <td>
+                        <span class="badge badge-{{ appointment.status_class }}">
+                            {{ appointment.status }}
+                        </span>
+                    </td>
+                    <td>
+                        <a href="/doctor/examination/{{ appointment.id }}" class="btn btn-primary">
+                            Khám bệnh
+                        </a>
+                    </td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+</div>
+
+<div class="card">
+    <div class="card-header">
+        <h2 class="card-title">Bệnh nhân cần theo dõi</h2>
+    </div>
+    <div class="table-container">
+        <table class="data-table">
+            <thead>
+                <tr>
+                    <th>Mã BN</th>
+                    <th>Tên bệnh nhân</th>
+                    <th>Chẩn đoán</th>
+                    <th>Ngày khám gần nhất</th>
+                    <th>Thao tác</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for patient in monitored_patients %}
+                <tr>
+                    <td>{{ patient.id }}</td>
+                    <td>{{ patient.name }}</td>
+                    <td>{{ patient.diagnosis }}</td>
+                    <td>{{ patient.last_visit }}</td>
+                    <td>
+                        <a href="/doctor/patient/{{ patient.id }}" class="btn btn-secondary">
+                            Xem chi tiết
+                        </a>
+                    </td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+</div>
+
+<div class="card">
+    <div class="card-header">
+        <h2 class="card-title">Thống kê trong tháng</h2>
+    </div>
+    <div style="padding: 1rem;">
+        <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 1rem;">
+            <div>
+                <strong>Tổng số bệnh nhân đã khám:</strong>
+                <p>{{ monthly_stats.total_patients }}</p>
+            </div>
+            <div>
+                <strong>Số ca tái khám:</strong>
+                <p>{{ monthly_stats.follow_ups }}</p>
+            </div>
+            <div>
+                <strong>Số đơn thuốc đã kê:</strong>
+                <p>{{ monthly_stats.prescriptions }}</p>
+            </div>
+            <div>
+                <strong>Trung bình bệnh nhân/ngày:</strong>
+                <p>{{ monthly_stats.avg_patients_per_day }}</p>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_scripts %}
+<script>
+    // Additional JavaScript for doctor dashboard functionality
+    document.addEventListener('DOMContentLoaded', function() {
+        // Add any necessary event listeners or dashboard-specific functionality
+    });
+</script>
+{% endblock %}

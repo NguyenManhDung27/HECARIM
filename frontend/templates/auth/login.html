@@ -1,0 +1,103 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Đăng nhập - Hệ thống Quản lý Bệnh viện</title>
+    <link rel="stylesheet" href="/static/css/auth.css">
+</head>
+<body>
+    <div class="auth-container">
+        <div class="auth-header">
+            <h1>Đăng nhập</h1>
+            <p>Vui lòng đăng nhập để tiếp tục</p>
+        </div>
+
+        <form id="loginForm" onsubmit="handleLogin(event)">
+            <div class="form-group">
+                <label for="username">Tên đăng nhập</label>
+                <input 
+                    type="text" 
+                    id="username" 
+                    name="username" 
+                    required 
+                    autocomplete="username"
+                    placeholder="Nhập tên đăng nhập">
+            </div>
+
+            <div class="form-group">
+                <label for="password">Mật khẩu</label>
+                <input 
+                    type="password" 
+                    id="password" 
+                    name="password" 
+                    required 
+                    autocomplete="current-password"
+                    placeholder="Nhập mật khẩu">
+            </div>
+
+            <div id="errorMessage" class="error-message"></div>
+            <div id="successMessage" class="success-message"></div>
+
+            <button type="submit" class="btn btn-primary">Đăng nhập</button>
+        </form>
+
+        <div class="form-footer">
+            <p>Chưa có tài khoản? Vui lòng liên hệ với quản trị viên</p>
+        </div>
+    </div>
+
+    <script>
+        async function handleLogin(event) {
+            event.preventDefault();
+            
+            const errorMessage = document.getElementById('errorMessage');
+            const successMessage = document.getElementById('successMessage');
+            errorMessage.style.display = 'none';
+            successMessage.style.display = 'none';
+
+            const username = document.getElementById('username').value;
+            const password = document.getElementById('password').value;
+
+            try {
+                const response = await fetch('/auth/login', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify({ username, password }),
+                });
+
+                const data = await response.json();
+
+                if (response.ok) {
+                    successMessage.textContent = 'Đăng nhập thành công!';
+                    successMessage.style.display = 'block';
+                    
+                    // Redirect based on user role
+                    const role = data.user.role;
+                    switch (role) {
+                        case 'patient':
+                            window.location.href = '/patient/dashboard';
+                            break;
+                        case 'doctor':
+                            window.location.href = '/doctor/dashboard';
+                            break;
+                        case 'receptionist':
+                            window.location.href = '/receptionist/dashboard';
+                            break;
+                        default:
+                            window.location.href = '/';
+                    }
+                } else {
+                    errorMessage.textContent = data.error || 'Đăng nhập thất bại. Vui lòng thử lại.';
+                    errorMessage.style.display = 'block';
+                }
+            } catch (error) {
+                errorMessage.textContent = 'Có lỗi xảy ra. Vui lòng thử lại sau.';
+                errorMessage.style.display = 'block';
+            }
+        }
+    </script>
+</body>
+</html>
