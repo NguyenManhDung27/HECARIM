@@ -158,7 +158,7 @@
             <select id="departmentFilter" onchange="applyFilters()">
                 <option value="">Tất cả</option>
                 {% for dept in departments %}
-                <option value="{{ dept.id }}">{{ dept.name }}</option>
+                <option value="{{ dept }}">{{ dept }}</option>
                 {% endfor %}
             </select>
         </div>

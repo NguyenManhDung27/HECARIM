@@ -14,7 +14,7 @@ from bson import ObjectId
 from datetime import datetime, timedelta
 import math
 
-receptionist_api = Blueprint('receptionist_api', __name__)
+receptionist_api = Blueprint('receptionist/api', __name__)
 
 @receptionist_api.route('/appointments')
 @login_required
@@ -216,3 +216,71 @@ def update_appointment_status(appointment_id):
 def get_department_name(department_id):
     department = mongo.db.departments.find_one({'_id': department_id})
     return department['name'] if department else 'Unknown'
+
+@receptionist_api.route('/search-patients', methods=['GET'])
+@login_required
+@role_required('receptionist')
+def search_patients():
+    print("Hàm search_patients đã được gọi!")  # Thêm dòng này
+    # Lấy từ khóa tìm kiếm từ query parameter
+    query = request.args.get('q', '').strip()
+
+    # Nếu từ khóa rỗng hoặc quá ngắn, trả về danh sách rỗng
+    if len(query) < 2:
+        return jsonify([])
+
+    # Tìm kiếm bệnh nhân trong cơ sở dữ liệu MongoDB
+    patients = mongo.db.patients.find({
+        '$or': [
+            {'name': {'$regex': query, '$options': 'i'}},  # Tìm theo tên (không phân biệt hoa thường)
+            {'patientId': {'$regex': query, '$options': 'i'}}  # Tìm theo mã bệnh nhân
+        ]
+    }).limit(10)  # Giới hạn kết quả trả về tối đa 10 bệnh nhân
+
+    # Chuyển đổi kết quả thành danh sách JSON
+    results = [{
+        'id': str(patient['_id']),
+        'patientId': patient.get('patientId', ''),
+        'name': patient['personalInfo'].get('fullName', 'Không rõ'),
+        'phone': patient['personalInfo'].get('phone', 'Không rõ')
+    } for patient in patients]
+    if not results:
+        return jsonify({'message': 'Không tìm thấy bệnh nhân', 'patients': []})
+    # Trả về danh sách bệnh nhân dưới dạng JSON
+    return jsonify(results)
+
+@receptionist_api.route('/doctors', methods=['GET'])
+@login_required
+@role_required('receptionist')
+def search_doctors():
+    # Lấy department từ query parameter
+    department_name = request.args.get('department', '').strip()
+
+    # Nếu không có department, trả về danh sách rỗng
+    if not department_name:
+        return jsonify([])
+
+    try:
+        # Tìm danh sách bác sĩ theo khoa
+        doctors = mongo.db.doctors.find(
+            {'professionalInfo.department': {'$regex': department_name, '$options': 'i'}},
+            {
+                '_id': 1,
+                'personalInfo.fullName': 1,
+                'professionalInfo.specialization': 1,
+                'personalInfo.phone': 1
+            }
+        )
+
+        # Chuyển đổi kết quả thành danh sách JSON
+        results = [{
+            'id': str(doctor['_id']),
+            'name': doctor['personalInfo']['fullName'],
+            'specialization': doctor['professionalInfo'].get('specialization', 'Không rõ'),
+            'phone': doctor['personalInfo'].get('phone', 'Không rõ')
+        } for doctor in doctors]
+
+        return jsonify(results)
+    except Exception as e:
+        print(f"Lỗi khi tìm bác sĩ: {e}")
+        return jsonify({'error': 'Có lỗi xảy ra khi tìm bác sĩ'}), 500

@@ -87,7 +87,7 @@
                 <select id="department" name="department" required onchange="loadDoctors(this.value)">
                     <option value="">Chọn khoa</option>
                     {% for dept in departments %}
-                    <option value="{{ dept.id }}">{{ dept.name }}</option>
+                    <option value="{{ dept }}">{{ dept}}</option>
                     {% endfor %}
                 </select>
             </div>
@@ -190,6 +190,7 @@ async function searchPatient(query) {
     debounceTimer = setTimeout(async () => {
         try {
             const response = await fetch(`/receptionist/api/search-patients?q=${encodeURIComponent(query)}`);
+            // ?q=${encodeURIComponent(query)}
             if (!response.ok) throw new Error('Search failed');
             
             const data = await response.json();
@@ -214,6 +215,8 @@ async function searchPatient(query) {
 function selectPatient(patient) {
     selectedPatient = patient;
     document.getElementById('patientId').value = patient.patientId;
+    console,console.log(patient);
+    
     document.getElementById('patientSearchResults').style.display = 'none';
     
     // Display patient info
@@ -226,6 +229,7 @@ function selectPatient(patient) {
 async function loadDoctors(departmentId) {
     const doctorSelect = document.getElementById('doctorId');
     doctorSelect.disabled = true;
+    console.log('Loading doctors for department:', departmentId);
     doctorSelect.innerHTML = '<option value="">Chọn bác sĩ</option>';
     
     if (!departmentId) return;

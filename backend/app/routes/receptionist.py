@@ -75,16 +75,10 @@ def dashboard():
 @login_required
 @role_required('receptionist')
 def new_appointment():
-    # Get list of departments for the form
-    departments = list(mongo.db.departments.find({'status': 'active'}))
-    formatted_departments = [{
-        'id': str(dept['_id']),
-        'name': dept['name']
-    } for dept in departments]
-
-    return render_template('receptionist/appointment_form.html',
-                         departments=formatted_departments,
-                         min_date=datetime.now().strftime('%Y-%m-%d'))
+    print("Loading departments...")
+    departments = mongo.db.doctors.distinct('professionalInfo.department')
+    # Render file appointments.html và truyền dữ liệu vào
+    return render_template('receptionist/appointment_form.html', departments=departments)
 
 @receptionist_bp.route('/appointments/<appointment_id>/status', methods=['POST'])
 @login_required
@@ -159,3 +153,36 @@ def get_status_class(status):
 def format_currency(amount):
     """Format amount in VND"""
     return f"{amount:,.0f} ₫"
+
+
+@receptionist_bp.route('/appointments')
+@login_required
+@role_required('receptionist')
+def appointment_dashboard():
+    # Lấy danh sách lịch hẹn từ MongoDB
+    appointments = list(mongo.db.appointments.find().sort('timeSlot.start', 1))
+
+    # Định dạng dữ liệu lịch hẹn để hiển thị trên giao diện
+    formatted_appointments = [{
+        'id': str(appt['_id']),
+        'time': appt['timeSlot']['start'].strftime('%H:%M %d/%m/%Y'),
+        'patient_name': get_patient_name(appt['patientId']),
+        'doctor_name': get_doctor_name(appt['doctorId']),
+        'type': format_appointment_type(appt['type']),
+        'status': format_appointment_status(appt['status']),
+        'status_class': get_status_class(appt['status'])
+    } for appt in appointments]
+    departments = mongo.db.doctors.distinct('professionalInfo.department')
+    print(departments)
+    # Render file appointments.html và truyền dữ liệu vào
+    return render_template('receptionist/appointments.html', appointments=formatted_appointments, departments=departments)
+
+# @receptionist_bp.route('/appointments/new')
+# @login_required
+# @role_required('receptionist')
+# def load_departments():
+#     print("Loading departments...")
+#     departments = mongo.db.doctors.distinct('professionalInfo.department')
+#     print(departments)
+#     # Render file appointments.html và truyền dữ liệu vào
+#     return render_template('receptionist/appointments.html', departments=departments)
