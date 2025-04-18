@@ -1,6 +1,11 @@
+import sys
 import os
+sys.path.append(os.path.abspath(os.path.dirname(__file__)))
+sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), '..')))
+
 from backend.app import create_app
-from flask import send_from_directory
+from flask import send_from_directory, send_file
+
 
 # Get environment configuration
 env = os.getenv('FLASK_ENV', 'development')
@@ -14,7 +19,8 @@ def send_static(path):
 # Add route for the root URL to serve the login page
 @app.route('/')
 def index():
-    return send_from_directory('../frontend/templates/auth', 'login.html')
+    path = os.path.abspath(os.path.join(os.path.dirname(__file__), '..', 'frontend', 'templates', 'auth', 'login.html'))
+    return send_file(path)
 
 if __name__ == '__main__':
     # Set host to 0.0.0.0 to make it accessible from outside the container
