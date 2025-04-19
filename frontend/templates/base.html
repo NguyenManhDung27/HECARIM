@@ -45,7 +45,7 @@
                 <div class="header-left">
                     <nav class="breadcrumb">
                         <span class="breadcrumb-item">
-                            <a href="{{ url_for('main.index') }}">Trang chủ</a>
+                            <a href="#">Trang chủ</a>
                         </span>
                         {% block breadcrumb %}{% endblock %}
                     </nav>
@@ -76,22 +76,22 @@
                         
                         <div class="user-menu-dropdown">
                             {% if current_user.role == 'doctor' %}
-                            <a href="{{ url_for('doctor.profile') }}" class="user-menu-item">
+                            <a href="#" class="user-menu-item">
                                 <i class="fas fa-user"></i>
                                 Thông tin cá nhân
                             </a>
                             {% elif current_user.role == 'patient' %}
-                            <a href="{{ url_for('patient.profile') }}" class="user-menu-item">
+                            <a href="#" class="user-menu-item">
                                 <i class="fas fa-user"></i>
                                 Thông tin cá nhân
                             </a>
                             {% elif current_user.role == 'receptionist' %}
-                            <a href="{{ url_for('receptionist.profile') }}" class="user-menu-item">
+                            <a href="#" class="user-menu-item">
                                 <i class="fas fa-user"></i>
                                 Thông tin cá nhân
                             </a>
                             {% endif %}
-                            <a href="{{ url_for('auth.logout') }}" class="user-menu-item">
+                            <a href="#" action="/auth/logout" class="user-menu-item" onclick="handleLogout()">
                                 <i class="fas fa-sign-out-alt"></i>
                                 Đăng xuất
                             </a>
@@ -130,7 +130,7 @@
         </main>
         {% else %}
         <main class="main-content auth-page">
-            {% block content %}{% endblock %}
+            {% block contenta %}{% endblock %}
         </main>
         {% endif %}
     </div>
@@ -159,6 +159,37 @@
         document.querySelectorAll('.alert .btn-close').forEach(button => {
             button.addEventListener('click', function() {
                 this.closest('.alert').remove();
+            });
+        });
+        async function handleLogout() {
+            console.log('Logout button clicked');
+            try {
+                const response = await fetch('/auth/logout', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    }
+                });
+
+                if (response.ok) {
+                    window.location.href = '/';
+                } else {
+                    console.error('Logout failed');
+                }
+            } catch (error) {
+                console.error('Error during logout:', error);
+            }
+        }
+
+        // Add active class to current nav item
+        document.addEventListener('DOMContentLoaded', function() {
+            const currentPath = window.location.pathname;
+            const navLinks = document.querySelectorAll('.nav-link');
+            
+            navLinks.forEach(link => {
+                if (link.getAttribute('href') === currentPath) {
+                    link.classList.add('active');
+                }
             });
         });
     </script>

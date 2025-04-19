@@ -9,6 +9,7 @@ doctor_bp = Blueprint('doctor', __name__)
 @doctor_bp.route('/dashboard')
 @login_required
 def dashboard():
+    print("ham")
     # Get today's appointments
     today_appointments = mongo.db.appointments.find({
         'doctor_id': current_user.user_data.get('staff_id'),
@@ -45,7 +46,9 @@ def dashboard():
                           '$lt': datetime.now().replace(hour=23, minute=59, second=59)}
         })
     }
-
+    pritn(stats)
+    print(today_appointments)
+    print(monitored_patients)
     return render_template('doctor/dashboard.html',
                          stats=stats,
                          appointments=list(today_appointments),

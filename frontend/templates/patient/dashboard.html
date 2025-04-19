@@ -109,23 +109,24 @@
         <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 1rem;">
             <div>
                 <strong>Chiều cao:</strong>
-                <p>{{ health_info.height }} cm</p>
+                <p>{{ health_info.height if health_info else 'Chưa có thông tin' }} cm</p>
             </div>
             <div>
                 <strong>Cân nặng:</strong>
-                <p>{{ health_info.weight }} kg</p>
+                <p>{{ health_info.weight if health_info else 'Chưa có thông tin' }} kg</p>
             </div>
             <div>
                 <strong>Nhóm máu:</strong>
-                <p>{{ health_info.blood_type }}</p>
+                <p>BMI: {{ health_info.bmi if health_info else 'Chưa có thông tin' }}</p>
             </div>
             <div>
                 <strong>Dị ứng:</strong>
-                <p>{{ health_info.allergies|join(', ') or 'Không' }}</p>
+                <p>{{ health_info.allergies|join(', ') if health_info and health_info.allergies else 'Không' }}</p>
             </div>
-        </div>
-    </div>
-</div>
+        </div> <!-- 🔧 thêm dòng này -->
+    </div> <!-- 🔧 thêm dòng này -->
+</div> <!-- 🔧 thêm dòng này -->
+
 {% endblock %}
 
 {% block extra_scripts %}

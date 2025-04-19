@@ -4,31 +4,31 @@
 
 {% block sidebar_menu %}
 <div class="nav-item">
-    <a href="{{ url_for('doctor.dashboard') }}" class="nav-link active">
+    <a href="#" class="nav-link active">
         <i class="fas fa-home"></i>
         Tổng quan
     </a>
 </div>
 <div class="nav-item">
-    <a href="{{ url_for('doctor.medical_records') }}" class="nav-link">
+    <a href="#" class="nav-link">
         <i class="fas fa-file-medical"></i>
         Hồ sơ bệnh án
     </a>
 </div>
 <div class="nav-item">
-    <a href="{{ url_for('doctor.prescriptions') }}" class="nav-link">
+    <a href="#" class="nav-link">
         <i class="fas fa-prescription"></i>
         Kê đơn thuốc
     </a>
 </div>
 <div class="nav-item">
-    <a href="{{ url_for('doctor.patients') }}" class="nav-link">
+    <a href="#" class="nav-link">
         <i class="fas fa-users"></i>
         Danh sách bệnh nhân
     </a>
 </div>
 <div class="nav-item">
-    <a href="{{ url_for('doctor.profile') }}" class="nav-link">
+    <a href="#" class="nav-link">
         <i class="fas fa-user"></i>
         Thông tin cá nhân
     </a>
@@ -119,7 +119,7 @@
                         </td>
                         <td>
                             {% if appointment.status != 'completed' %}
-                            <a href="{{ url_for('doctor.examination', appointment_id=appointment._id) }}" 
+                            <a href="#" 
                                class="btn btn-primary btn-sm">
                                 <i class="fas fa-stethoscope"></i>
                                 Khám bệnh
@@ -163,7 +163,7 @@
                         <td>{{ patient.diagnosis }}</td>
                         <td>{{ patient.lastVisit.strftime('%d/%m/%Y') if patient.lastVisit else 'Chưa có' }}</td>
                         <td>
-                            <a href="{{ url_for('doctor.patient_details', patient_id=patient._id) }}" 
+                            <a href="#" 
                                class="btn btn-secondary btn-sm">
                                 <i class="fas fa-eye"></i>
                                 Chi tiết

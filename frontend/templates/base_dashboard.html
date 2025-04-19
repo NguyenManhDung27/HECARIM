@@ -54,6 +54,7 @@
 
     <script>
         async function handleLogout() {
+            console.log('Logout button clicked');
             try {
                 const response = await fetch('/auth/logout', {
                     method: 'POST',
