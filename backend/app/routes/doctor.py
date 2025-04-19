@@ -9,47 +9,66 @@ doctor_bp = Blueprint('doctor', __name__)
 @doctor_bp.route('/dashboard')
 @login_required
 def dashboard():
-    print("ham")
-    # Get today's appointments
-    today_appointments = mongo.db.appointments.find({
-        'doctor_id': current_user.user_data.get('staff_id'),
-        'date': {'$gte': datetime.now().replace(hour=0, minute=0, second=0),
-                 '$lt': datetime.now().replace(hour=23, minute=59, second=59)}
-    })
-
-    # Get monitored patients
-    monitored_patients = mongo.db.patients.find({
-        'monitoring_doctor_id': current_user.user_data.get('staff_id')
-    }).limit(5)
-
     stats = {
-        'total_appointments': mongo.db.appointments.count_documents({
-            'doctor_id': current_user.user_data.get('staff_id'),
-            'date': {'$gte': datetime.now().replace(hour=0, minute=0, second=0),
-                    '$lt': datetime.now().replace(hour=23, minute=59, second=59)}
-        }),
-        'completed_appointments': mongo.db.appointments.count_documents({
-            'doctor_id': current_user.user_data.get('staff_id'),
-            'date': {'$gte': datetime.now().replace(hour=0, minute=0, second=0),
-                    '$lt': datetime.now().replace(hour=23, minute=59, second=59)},
-            'status': 'completed'
-        }),
-        'waiting_appointments': mongo.db.appointments.count_documents({
-            'doctor_id': current_user.user_data.get('staff_id'),
-            'date': {'$gte': datetime.now().replace(hour=0, minute=0, second=0),
-                    '$lt': datetime.now().replace(hour=23, minute=59, second=59)},
-            'status': 'waiting'
-        }),
-        'prescriptions': mongo.db.prescriptions.count_documents({
-            'doctor_id': current_user.user_data.get('staff_id'),
-            'created_at': {'$gte': datetime.now().replace(hour=0, minute=0, second=0),
-                          '$lt': datetime.now().replace(hour=23, minute=59, second=59)}
-        })
+        'total_appointments': 12,
+        'checked_in': 5,
+        'waiting': 4,
+        'completed': 3
     }
-    return render_template('doctor/dashboard.html',
-                         stats=stats,
-                         appointments=list(today_appointments),
-                         monitored_patients=list(monitored_patients))
+
+    waiting_list = []
+    recent_activities = []
+
+    today = datetime.today()
+
+    return render_template(
+        'receptionist/dashboard.html',
+        stats=stats,
+        waiting_list=waiting_list,
+        recent_activities=recent_activities,
+        notifications_count=3,  # hoặc context processor như đã nói
+        today=today
+    )
+    # Get today's appointments
+    # today_appointments = mongo.db.appointments.find({
+    #     'doctor_id': current_user.user_data.get('staff_id'),
+    #     'date': {'$gte': datetime.now().replace(hour=0, minute=0, second=0),
+    #              '$lt': datetime.now().replace(hour=23, minute=59, second=59)}
+    # })
+
+    # # Get monitored patients
+    # monitored_patients = mongo.db.patients.find({
+    #     'monitoring_doctor_id': current_user.user_data.get('staff_id')
+    # }).limit(5)
+
+    # stats = {
+    #     'total_appointments': mongo.db.appointments.count_documents({
+    #         'doctor_id': current_user.user_data.get('staff_id'),
+    #         'date': {'$gte': datetime.now().replace(hour=0, minute=0, second=0),
+    #                 '$lt': datetime.now().replace(hour=23, minute=59, second=59)}
+    #     }),
+    #     'completed_appointments': mongo.db.appointments.count_documents({
+    #         'doctor_id': current_user.user_data.get('staff_id'),
+    #         'date': {'$gte': datetime.now().replace(hour=0, minute=0, second=0),
+    #                 '$lt': datetime.now().replace(hour=23, minute=59, second=59)},
+    #         'status': 'completed'
+    #     }),
+    #     'waiting_appointments': mongo.db.appointments.count_documents({
+    #         'doctor_id': current_user.user_data.get('staff_id'),
+    #         'date': {'$gte': datetime.now().replace(hour=0, minute=0, second=0),
+    #                 '$lt': datetime.now().replace(hour=23, minute=59, second=59)},
+    #         'status': 'waiting'
+    #     }),
+    #     'prescriptions': mongo.db.prescriptions.count_documents({
+    #         'doctor_id': current_user.user_data.get('staff_id'),
+    #         'created_at': {'$gte': datetime.now().replace(hour=0, minute=0, second=0),
+    #                       '$lt': datetime.now().replace(hour=23, minute=59, second=59)}
+    #     })
+    # }
+    # return render_template('doctor/dashboard.html',
+    #                      stats=stats,
+    #                      appointments=list(today_appointments),
+    #                      monitored_patients=list(monitored_patients))
 
 @doctor_bp.route('/medical-records')
 @login_required
