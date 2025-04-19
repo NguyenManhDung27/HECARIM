@@ -1,5 +1,5 @@
-from flask import Blueprint, render_template
-from flask_login import login_required, current_user
+from flask import Blueprint, app, redirect, render_template, url_for
+from flask_login import login_required, current_user, logout_user
 from datetime import datetime
 
 receptionist_bp = Blueprint('receptionist', __name__)
@@ -27,3 +27,9 @@ def dashboard():
         notifications_count=3,  # hoặc context processor như đã nói
         today=today
     )
+
+# @app.route('/auth/logout', methods=['POST'])
+# @login_required
+# def logout():
+#     logout_user()
+#     return redirect(url_for('auth.login'))

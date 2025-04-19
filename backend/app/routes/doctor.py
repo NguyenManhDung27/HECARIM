@@ -46,9 +46,6 @@ def dashboard():
                           '$lt': datetime.now().replace(hour=23, minute=59, second=59)}
         })
     }
-    pritn(stats)
-    print(today_appointments)
-    print(monitored_patients)
     return render_template('doctor/dashboard.html',
                          stats=stats,
                          appointments=list(today_appointments),
