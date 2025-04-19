@@ -1,0 +1,487 @@
+{% extends "base_dashboard.html" %}
+
+{% block title %}Quản lý lịch hẹn{% endblock %}
+
+{% block page_title %}Quản lý lịch hẹn{% endblock %}
+
+{% block page_actions %}
+<a href="/receptionist/appointments/new" class="btn btn-primary">
+    + Đặt lịch hẹn mới
+</a>
+{% endblock %}
+
+{% block extra_css %}
+<style>
+.filters {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+    gap: 1rem;
+    margin-bottom: 1.5rem;
+}
+
+.search-box {
+    position: relative;
+    margin-bottom: 1.5rem;
+}
+
+.search-box input {
+    width: 100%;
+    padding: 0.75rem;
+    padding-left: 2.5rem;
+    border: 1px solid var(--gray-300);
+    border-radius: 4px;
+}
+
+.search-box::before {
+    content: '🔍';
+    position: absolute;
+    left: 0.75rem;
+    top: 50%;
+    transform: translateY(-50%);
+    font-size: 1.2rem;
+}
+
+.status-badge {
+    display: inline-block;
+    padding: 0.25rem 0.75rem;
+    border-radius: 9999px;
+    font-size: 0.875rem;
+    font-weight: 500;
+}
+
+.status-scheduled { background-color: #fef9c3; color: #854d0e; }
+.status-confirmed { background-color: #dcfce7; color: #166534; }
+.status-checked-in { background-color: #e0f2fe; color: #075985; }
+.status-in-progress { background-color: #ddd6fe; color: #5b21b6; }
+.status-completed { background-color: #bbf7d0; color: #15803d; }
+.status-cancelled { background-color: #fee2e2; color: #991b1b; }
+.status-missed { background-color: #fecaca; color: #991b1b; }
+
+.actions button {
+    padding: 0.5rem;
+    border: none;
+    background: none;
+    cursor: pointer;
+    color: var(--gray-500);
+}
+
+.actions button:hover {
+    color: var(--primary-color);
+}
+
+.pagination {
+    display: flex;
+    justify-content: center;
+    gap: 0.5rem;
+    margin-top: 1.5rem;
+}
+
+.pagination button {
+    padding: 0.5rem 1rem;
+    border: 1px solid var(--gray-300);
+    background: var(--white);
+    border-radius: 4px;
+    cursor: pointer;
+}
+
+.pagination button:disabled {
+    opacity: 0.5;
+    cursor: not-allowed;
+}
+
+.pagination button.active {
+    background: var(--primary-color);
+    color: var(--white);
+    border-color: var(--primary-color);
+}
+
+#appointmentModal {
+    display: none;
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background: rgba(0, 0, 0, 0.5);
+    z-index: 1000;
+}
+
+.modal-content {
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    background: var(--white);
+    padding: 2rem;
+    border-radius: 8px;
+    width: 90%;
+    max-width: 500px;
+}
+
+.modal-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 1.5rem;
+}
+
+.modal-close {
+    background: none;
+    border: none;
+    font-size: 1.5rem;
+    cursor: pointer;
+    padding: 0.5rem;
+}
+
+.modal-body {
+    margin-bottom: 1.5rem;
+}
+
+.modal-footer {
+    display: flex;
+    justify-content: flex-end;
+    gap: 1rem;
+}
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="card">
+    <!-- Filters -->
+    <div class="filters">
+        <div class="form-group">
+            <label for="dateFilter">Ngày</label>
+            <input type="date" id="dateFilter" onchange="applyFilters()">
+        </div>
+        <div class="form-group">
+            <label for="departmentFilter">Khoa</label>
+            <select id="departmentFilter" onchange="applyFilters()">
+                <option value="">Tất cả</option>
+                {% for dept in departments %}
+                <option value="{{ dept }}">{{ dept }}</option>
+                {% endfor %}
+            </select>
+        </div>
+        <div class="form-group">
+            <label for="statusFilter">Trạng thái</label>
+            <select id="statusFilter" onchange="applyFilters()">
+                <option value="">Tất cả</option>
+                <option value="scheduled">Đã đặt lịch</option>
+                <option value="confirmed">Đã xác nhận</option>
+                <option value="checked_in">Đã tiếp nhận</option>
+                <option value="in_progress">Đang khám</option>
+                <option value="completed">Đã hoàn thành</option>
+                <option value="cancelled">Đã hủy</option>
+                <option value="missed">Vắng mặt</option>
+            </select>
+        </div>
+    </div>
+
+    <!-- Search -->
+    <div class="search-box">
+        <input type="text" 
+               id="searchInput" 
+               placeholder="Tìm kiếm theo mã BN, tên bệnh nhân hoặc bác sĩ..."
+               onkeyup="debounceSearch()">
+    </div>
+
+    <!-- Appointments Table -->
+    <div class="table-container">
+        <table class="data-table">
+            <thead>
+                <tr>
+                    <th>Ngày giờ</th>
+                    <th>Mã BN</th>
+                    <th>Tên bệnh nhân</th>
+                    <th>Bác sĩ</th>
+                    <th>Khoa</th>
+                    <th>Loại khám</th>
+                    <th>Trạng thái</th>
+                    <th>Thao tác</th>
+                </tr>
+            </thead>
+            <tbody id="appointmentsTableBody">
+                <!-- Will be populated by JavaScript -->
+            </tbody>
+        </table>
+    </div>
+
+    <!-- Pagination -->
+    <div class="pagination" id="pagination">
+        <!-- Will be populated by JavaScript -->
+    </div>
+</div>
+
+<!-- Appointment Details Modal -->
+<div id="appointmentModal">
+    <div class="modal-content">
+        <div class="modal-header">
+            <h3>Chi tiết lịch hẹn</h3>
+            <button class="modal-close" onclick="closeModal()">&times;</button>
+        </div>
+        <div class="modal-body">
+            <div id="appointmentDetails">
+                <!-- Will be populated by JavaScript -->
+            </div>
+            <div class="form-group" style="margin-top: 1rem;">
+                <label for="statusUpdate">Cập nhật trạng thái</label>
+                <select id="statusUpdate">
+                    <option value="confirmed">Đã xác nhận</option>
+                    <option value="checked_in">Đã tiếp nhận</option>
+                    <option value="cancelled">Hủy lịch hẹn</option>
+                    <option value="missed">Vắng mặt</option>
+                </select>
+            </div>
+        </div>
+        <div class="modal-footer">
+            <button class="btn btn-secondary" onclick="closeModal()">Đóng</button>
+            <button class="btn btn-primary" onclick="updateAppointmentStatus()">
+                Cập nhật
+                <span class="loading"></span>
+            </button>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_scripts %}
+<script>
+let currentPage = 1;
+let totalPages = 1;
+let currentAppointment = null;
+let searchDebounceTimer;
+
+const PAGE_SIZE = 10;
+
+// Initial load
+document.addEventListener('DOMContentLoaded', function() {
+    const today = new Date();
+    document.getElementById('dateFilter').value = today.toISOString().split('T')[0];
+    loadAppointments();
+});
+
+function debounceSearch() {
+    clearTimeout(searchDebounceTimer);
+    searchDebounceTimer = setTimeout(() => {
+        loadAppointments();
+    }, 300);
+}
+
+async function loadAppointments() {
+    const date = document.getElementById('dateFilter').value;
+    const department = document.getElementById('departmentFilter').value;
+    const status = document.getElementById('statusFilter').value;
+    const search = document.getElementById('searchInput').value;
+
+    try {
+        const response = await fetch(`/receptionist/api/appointments?` + new URLSearchParams({
+            date,
+            department,
+            status,
+            search,
+            page: currentPage,
+            page_size: PAGE_SIZE
+        }));
+
+        if (!response.ok) throw new Error('Failed to load appointments');
+
+        const data = await response.json();
+        renderAppointments(data.appointments);
+        renderPagination(data.total_pages);
+    } catch (error) {
+        console.error('Error loading appointments:', error);
+        alert('Có lỗi khi tải danh sách lịch hẹn');
+    }
+}
+
+function renderAppointments(appointments) {
+    const tbody = document.getElementById('appointmentsTableBody');
+    tbody.innerHTML = '';
+
+    appointments.forEach(appt => {
+        const tr = document.createElement('tr');
+        tr.innerHTML = `
+            <td>${formatDateTime(appt.timeSlot.start)}</td>
+            <td>${appt.patientId}</td>
+            <td>${appt.patientName}</td>
+            <td>${appt.doctorName}</td>
+            <td>${appt.department}</td>
+            <td>${formatAppointmentType(appt.type)}</td>
+            <td>
+                <span class="status-badge status-${appt.status}">
+                    ${formatStatus(appt.status)}
+                </span>
+            </td>
+            <td class="actions">
+                <button onclick="viewAppointment('${appt.id}')" title="Xem chi tiết">
+                    👁️
+                </button>
+                ${appt.status === 'scheduled' ? `
+                    <button onclick="confirmAppointment('${appt.id}')" title="Xác nhận">
+                        ✓
+                    </button>
+                ` : ''}
+                ${['scheduled', 'confirmed'].includes(appt.status) ? `
+                    <button onclick="cancelAppointment('${appt.id}')" title="Hủy lịch hẹn">
+                        ❌
+                    </button>
+                ` : ''}
+            </td>
+        `;
+        tbody.appendChild(tr);
+    });
+}
+
+function renderPagination(totalPages) {
+    const pagination = document.getElementById('pagination');
+    pagination.innerHTML = '';
+
+    // Previous button
+    const prevButton = document.createElement('button');
+    prevButton.textContent = '←';
+    prevButton.disabled = currentPage === 1;
+    prevButton.onclick = () => {
+        if (currentPage > 1) {
+            currentPage--;
+            loadAppointments();
+        }
+    };
+    pagination.appendChild(prevButton);
+
+    // Page buttons
+    for (let i = 1; i <= totalPages; i++) {
+        const button = document.createElement('button');
+        button.textContent = i;
+        button.classList.toggle('active', i === currentPage);
+        button.onclick = () => {
+            currentPage = i;
+            loadAppointments();
+        };
+        pagination.appendChild(button);
+    }
+
+    // Next button
+    const nextButton = document.createElement('button');
+    nextButton.textContent = '→';
+    nextButton.disabled = currentPage === totalPages;
+    nextButton.onclick = () => {
+        if (currentPage < totalPages) {
+            currentPage++;
+            loadAppointments();
+        }
+    };
+    pagination.appendChild(nextButton);
+}
+
+async function viewAppointment(id) {
+    try {
+        const response = await fetch(`/receptionist/api/appointments/${id}`);
+        if (!response.ok) throw new Error('Failed to load appointment details');
+
+        const appointment = await response.json();
+        currentAppointment = appointment;
+
+        const details = document.getElementById('appointmentDetails');
+        details.innerHTML = `
+            <p><strong>Mã lịch hẹn:</strong> ${appointment.id}</p>
+            <p><strong>Bệnh nhân:</strong> ${appointment.patientName}</p>
+            <p><strong>Bác sĩ:</strong> ${appointment.doctorName}</p>
+            <p><strong>Khoa:</strong> ${appointment.department}</p>
+            <p><strong>Ngày giờ:</strong> ${formatDateTime(appointment.timeSlot.start)}</p>
+            <p><strong>Loại khám:</strong> ${formatAppointmentType(appointment.type)}</p>
+            <p><strong>Lý do khám:</strong> ${appointment.reason || 'Không có'}</p>
+            <p><strong>Ghi chú:</strong> ${appointment.notes || 'Không có'}</p>
+        `;
+
+        document.getElementById('statusUpdate').value = appointment.status;
+        document.getElementById('appointmentModal').style.display = 'block';
+    } catch (error) {
+        console.error('Error loading appointment details:', error);
+        alert('Có lỗi khi tải chi tiết lịch hẹn');
+    }
+}
+
+async function updateAppointmentStatus() {
+    if (!currentAppointment) return;
+
+    const newStatus = document.getElementById('statusUpdate').value;
+    const button = document.querySelector('.modal-footer .btn-primary');
+    const loading = button.querySelector('.loading');
+
+    try {
+        button.disabled = true;
+        loading.style.display = 'inline-block';
+
+        const response = await fetch(`/receptionist/api/appointments/${currentAppointment.id}/status`, {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json'
+            },
+            body: JSON.stringify({ status: newStatus })
+        });
+
+        if (!response.ok) throw new Error('Failed to update status');
+
+        closeModal();
+        loadAppointments();
+    } catch (error) {
+        console.error('Error updating appointment status:', error);
+        alert('Có lỗi khi cập nhật trạng thái');
+    } finally {
+        button.disabled = false;
+        loading.style.display = 'none';
+    }
+}
+
+function closeModal() {
+    document.getElementById('appointmentModal').style.display = 'none';
+    currentAppointment = null;
+}
+
+function formatDateTime(datetime) {
+    return new Date(datetime).toLocaleDateString('vi-VN', {
+        year: 'numeric',
+        month: '2-digit',
+        day: '2-digit',
+        hour: '2-digit',
+        minute: '2-digit'
+    });
+}
+
+function formatAppointmentType(type) {
+    const types = {
+        regular: 'Khám thường',
+        follow_up: 'Tái khám',
+        emergency: 'Cấp cứu'
+    };
+    return types[type] || type;
+}
+
+function formatStatus(status) {
+    const statuses = {
+        scheduled: 'Đã đặt lịch',
+        confirmed: 'Đã xác nhận',
+        checked_in: 'Đã tiếp nhận',
+        in_progress: 'Đang khám',
+        completed: 'Đã hoàn thành',
+        cancelled: 'Đã hủy',
+        missed: 'Vắng mặt'
+    };
+    return statuses[status] || status;
+}
+
+// Event listeners for filters
+function applyFilters() {
+    currentPage = 1;
+    loadAppointments();
+}
+
+// Close modal when clicking outside
+window.onclick = function(event) {
+    const modal = document.getElementById('appointmentModal');
+    if (event.target === modal) {
+        closeModal();
+    }
+}
+</script>
+{% endblock %}

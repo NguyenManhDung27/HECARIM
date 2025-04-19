@@ -1,0 +1,481 @@
+{% extends "base.html" %}
+
+{% block title %}Lịch khám bệnh{% endblock %}
+
+{% block extra_css %}
+<style>
+    .calendar {
+        background: var(--white);
+        border-radius: var(--border-radius-md);
+        padding: var(--spacing-md);
+    }
+
+    .calendar-header {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        margin-bottom: var(--spacing-md);
+    }
+
+    .calendar-nav {
+        display: flex;
+        align-items: center;
+        gap: var(--spacing-sm);
+    }
+
+    .calendar-grid {
+        display: grid;
+        grid-template-columns: repeat(7, 1fr);
+        gap: var(--spacing-xs);
+    }
+
+    .calendar-weekday {
+        text-align: center;
+        font-weight: 600;
+        color: var(--text-light);
+        padding: var(--spacing-sm);
+    }
+
+    .calendar-day {
+        aspect-ratio: 1;
+        border: 1px solid var(--gray-200);
+        border-radius: var(--border-radius-sm);
+        padding: var(--spacing-xs);
+        cursor: pointer;
+        transition: all 0.3s ease;
+    }
+
+    .calendar-day:hover {
+        background-color: var(--gray-100);
+    }
+
+    .calendar-day.today {
+        border-color: var(--primary);
+        background-color: var(--primary-light);
+        color: var(--white);
+    }
+
+    .calendar-day.selected {
+        background-color: var(--primary);
+        color: var(--white);
+        border-color: var(--primary);
+    }
+
+    .calendar-day.has-appointments {
+        background-color: var(--gray-100);
+    }
+
+    .calendar-day.has-appointments::after {
+        content: '';
+        display: block;
+        width: 4px;
+        height: 4px;
+        background-color: var(--primary);
+        border-radius: 50%;
+        margin: 2px auto 0;
+    }
+
+    .time-slots {
+        display: grid;
+        grid-template-columns: repeat(auto-fill, minmax(120px, 1fr));
+        gap: var(--spacing-sm);
+        margin-top: var(--spacing-md);
+    }
+
+    .time-slot {
+        padding: var(--spacing-sm);
+        border: 1px solid var(--gray-200);
+        border-radius: var(--border-radius-sm);
+        text-align: center;
+        cursor: pointer;
+        transition: all 0.3s ease;
+    }
+
+    .time-slot:hover {
+        background-color: var(--gray-100);
+    }
+
+    .time-slot.booked {
+        background-color: var(--gray-200);
+        cursor: not-allowed;
+    }
+
+    .time-slot.selected {
+        background-color: var(--primary);
+        color: var(--white);
+        border-color: var(--primary);
+    }
+</style>
+{% endblock %}
+
+{% block sidebar_menu %}
+<div class="nav-item">
+    <a href="{{ url_for('doctor.dashboard') }}" class="nav-link">
+        <i class="fas fa-home"></i>
+        Tổng quan
+    </a>
+</div>
+<div class="nav-item">
+    <a href="{{ url_for('doctor.appointments') }}" class="nav-link active">
+        <i class="fas fa-calendar-alt"></i>
+        Lịch khám bệnh
+    </a>
+</div>
+<div class="nav-item">
+    <a href="{{ url_for('doctor.patients') }}" class="nav-link">
+        <i class="fas fa-users"></i>
+        Danh sách bệnh nhân
+    </a>
+</div>
+<div class="nav-item">
+    <a href="{{ url_for('doctor.medical_records') }}" class="nav-link">
+        <i class="fas fa-file-medical"></i>
+        Hồ sơ bệnh án
+    </a>
+</div>
+<div class="nav-item">
+    <a href="{{ url_for('doctor.prescriptions') }}" class="nav-link">
+        <i class="fas fa-prescription"></i>
+        Kê đơn thuốc
+    </a>
+</div>
+{% endblock %}
+
+{% block page_title %}Lịch khám bệnh{% endblock %}
+
+{% block content %}
+<div class="row">
+    <!-- Calendar Section -->
+    <div class="col-md-8">
+        <div class="card">
+            <div class="card-body">
+                <!-- Calendar Navigation -->
+                <div class="calendar-header">
+                    <div class="calendar-nav">
+                        <button class="btn btn-outline-primary" onclick="previousMonth()">
+                            <i class="fas fa-chevron-left"></i>
+                        </button>
+                        <h3 class="mb-0" id="currentMonth"></h3>
+                        <button class="btn btn-outline-primary" onclick="nextMonth()">
+                            <i class="fas fa-chevron-right"></i>
+                        </button>
+                    </div>
+                    <button class="btn btn-primary" onclick="goToToday()">
+                        Hôm nay
+                    </button>
+                </div>
+
+                <!-- Calendar Grid -->
+                <div class="calendar">
+                    <div class="calendar-grid" id="weekdays">
+                        <div class="calendar-weekday">CN</div>
+                        <div class="calendar-weekday">T2</div>
+                        <div class="calendar-weekday">T3</div>
+                        <div class="calendar-weekday">T4</div>
+                        <div class="calendar-weekday">T5</div>
+                        <div class="calendar-weekday">T6</div>
+                        <div class="calendar-weekday">T7</div>
+                    </div>
+                    <div class="calendar-grid" id="calendar"></div>
+                </div>
+
+                <!-- Time Slots -->
+                <div class="time-slots" id="timeSlots"></div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Appointments List -->
+    <div class="col-md-4">
+        <div class="card">
+            <div class="card-header">
+                <h3 class="card-title mb-0" id="appointmentsDate">Lịch hẹn</h3>
+            </div>
+            <div class="card-body">
+                <div id="appointmentsList"></div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Appointment Modal -->
+<div class="modal" id="appointmentModal">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">Chi tiết lịch hẹn</h5>
+                <button type="button" class="modal-close">
+                    <i class="fas fa-times"></i>
+                </button>
+            </div>
+            <div class="modal-body">
+                <form id="appointmentForm">
+                    <div class="form-group mb-3">
+                        <label class="form-label">Bệnh nhân</label>
+                        <select class="form-select" name="patient_id" required>
+                            <option value="">Chọn bệnh nhân...</option>
+                            {% for patient in patients %}
+                            <option value="{{ patient._id }}">
+                                {{ patient.personalInfo.fullName }} ({{ patient.patientId }})
+                            </option>
+                            {% endfor %}
+                        </select>
+                    </div>
+                    <div class="form-group mb-3">
+                        <label class="form-label">Loại khám</label>
+                        <select class="form-select" name="type" required>
+                            <option value="new">Khám lần đầu</option>
+                            <option value="follow_up">Tái khám</option>
+                        </select>
+                    </div>
+                    <div class="form-group mb-3">
+                        <label class="form-label">Lý do khám</label>
+                        <textarea class="form-control" 
+                                  name="reason" 
+                                  rows="3" 
+                                  required></textarea>
+                    </div>
+                    <div class="form-group mb-3">
+                        <label class="form-label">Triệu chứng</label>
+                        <textarea class="form-control" 
+                                  name="symptoms" 
+                                  rows="3"></textarea>
+                    </div>
+                    <div class="form-group mb-3">
+                        <label class="form-label">Ghi chú</label>
+                        <textarea class="form-control" 
+                                  name="notes" 
+                                  rows="3"></textarea>
+                    </div>
+                </form>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-dismiss="modal">
+                    Hủy
+                </button>
+                <button type="button" class="btn btn-primary" onclick="saveAppointment()">
+                    Lưu lịch hẹn
+                </button>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_scripts %}
+<script>
+    let currentDate = new Date();
+    let selectedDate = null;
+    let selectedTimeSlot = null;
+    let appointments = {};
+
+    // Initialize calendar
+    function initCalendar() {
+        updateCalendarHeader();
+        renderCalendar();
+        loadAppointments();
+    }
+
+    // Update calendar header
+    function updateCalendarHeader() {
+        const months = ['Tháng 1', 'Tháng 2', 'Tháng 3', 'Tháng 4', 'Tháng 5', 'Tháng 6',
+                       'Tháng 7', 'Tháng 8', 'Tháng 9', 'Tháng 10', 'Tháng 11', 'Tháng 12'];
+        document.getElementById('currentMonth').textContent = 
+            `${months[currentDate.getMonth()]} ${currentDate.getFullYear()}`;
+    }
+
+    // Render calendar
+    function renderCalendar() {
+        const calendar = document.getElementById('calendar');
+        calendar.innerHTML = '';
+
+        const firstDay = new Date(currentDate.getFullYear(), currentDate.getMonth(), 1);
+        const lastDay = new Date(currentDate.getFullYear(), currentDate.getMonth() + 1, 0);
+        
+        // Add empty cells for days before first day of month
+        for (let i = 0; i < firstDay.getDay(); i++) {
+            const emptyDay = document.createElement('div');
+            emptyDay.className = 'calendar-day';
+            calendar.appendChild(emptyDay);
+        }
+
+        // Add days of month
+        for (let date = 1; date <= lastDay.getDate(); date++) {
+            const dayEl = document.createElement('div');
+            dayEl.className = 'calendar-day';
+            dayEl.textContent = date;
+
+            const currentDateStr = `${currentDate.getFullYear()}-${currentDate.getMonth() + 1}-${date}`;
+            
+            if (appointments[currentDateStr]) {
+                dayEl.classList.add('has-appointments');
+            }
+
+            if (date === new Date().getDate() && 
+                currentDate.getMonth() === new Date().getMonth() &&
+                currentDate.getFullYear() === new Date().getFullYear()) {
+                dayEl.classList.add('today');
+            }
+
+            if (selectedDate && date === selectedDate.getDate() &&
+                currentDate.getMonth() === selectedDate.getMonth() &&
+                currentDate.getFullYear() === selectedDate.getFullYear()) {
+                dayEl.classList.add('selected');
+            }
+
+            dayEl.addEventListener('click', () => selectDate(date));
+            calendar.appendChild(dayEl);
+        }
+    }
+
+    // Load appointments for current month
+    function loadAppointments() {
+        const year = currentDate.getFullYear();
+        const month = currentDate.getMonth() + 1;
+        
+        fetch(`/api/appointments/${year}/${month}`)
+            .then(response => response.json())
+            .then(data => {
+                appointments = data;
+                renderCalendar();
+            });
+    }
+
+    // Select date
+    function selectDate(date) {
+        selectedDate = new Date(currentDate.getFullYear(), currentDate.getMonth(), date);
+        renderCalendar();
+        renderTimeSlots();
+        loadDayAppointments();
+    }
+
+    // Render time slots
+    function renderTimeSlots() {
+        const timeSlotsContainer = document.getElementById('timeSlots');
+        timeSlotsContainer.innerHTML = '';
+
+        // Generate time slots from 8:00 to 17:00
+        for (let hour = 8; hour < 17; hour++) {
+            for (let minute of ['00', '30']) {
+                const timeSlot = document.createElement('div');
+                timeSlot.className = 'time-slot';
+                timeSlot.textContent = `${hour}:${minute}`;
+
+                // Check if slot is booked
+                const timeStr = `${hour}:${minute}`;
+                if (appointments[getDateString(selectedDate)]?.includes(timeStr)) {
+                    timeSlot.classList.add('booked');
+                } else {
+                    timeSlot.addEventListener('click', () => selectTimeSlot(timeStr));
+                }
+
+                timeSlotsContainer.appendChild(timeSlot);
+            }
+        }
+    }
+
+    // Select time slot
+    function selectTimeSlot(time) {
+        const modal = document.getElementById('appointmentModal');
+        modal.classList.add('show');
+        selectedTimeSlot = time;
+    }
+
+    // Load appointments for selected day
+    function loadDayAppointments() {
+        const dateStr = getDateString(selectedDate);
+        const appointmentsContainer = document.getElementById('appointmentsList');
+        document.getElementById('appointmentsDate').textContent = 
+            `Lịch hẹn ngày ${selectedDate.getDate()}/${selectedDate.getMonth() + 1}/${selectedDate.getFullYear()}`;
+
+        fetch(`/api/appointments/day/${dateStr}`)
+            .then(response => response.json())
+            .then(appointments => {
+                appointmentsContainer.innerHTML = appointments.length ? 
+                    appointments.map(apt => `
+                        <div class="card mb-2">
+                            <div class="card-body">
+                                <div class="d-flex justify-content-between align-items-center">
+                                    <div>
+                                        <h5 class="mb-1">${apt.time_slot}</h5>
+                                        <p class="mb-0">${apt.patient_name}</p>
+                                        <small class="text-muted">${apt.type}</small>
+                                    </div>
+                                    <div>
+                                        <span class="badge badge-${getStatusColor(apt.status)}">
+                                            ${apt.status}
+                                        </span>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    `).join('') :
+                    '<p class="text-center text-muted">Không có lịch hẹn</p>';
+            });
+    }
+
+    // Navigation functions
+    function previousMonth() {
+        currentDate = new Date(currentDate.getFullYear(), currentDate.getMonth() - 1);
+        initCalendar();
+    }
+
+    function nextMonth() {
+        currentDate = new Date(currentDate.getFullYear(), currentDate.getMonth() + 1);
+        initCalendar();
+    }
+
+    function goToToday() {
+        currentDate = new Date();
+        selectedDate = currentDate;
+        initCalendar();
+        renderTimeSlots();
+        loadDayAppointments();
+    }
+
+    // Utility functions
+    function getDateString(date) {
+        return `${date.getFullYear()}-${date.getMonth() + 1}-${date.getDate()}`;
+    }
+
+    function getStatusColor(status) {
+        switch (status) {
+            case 'completed': return 'success';
+            case 'waiting': return 'warning';
+            case 'cancelled': return 'danger';
+            default: return 'secondary';
+        }
+    }
+
+    // Save appointment
+    function saveAppointment() {
+        const form = document.getElementById('appointmentForm');
+        const formData = new FormData(form);
+        
+        fetch('/api/appointments', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+            },
+            body: JSON.stringify({
+                date: getDateString(selectedDate),
+                time_slot: selectedTimeSlot,
+                ...Object.fromEntries(formData)
+            })
+        })
+        .then(response => response.json())
+        .then(result => {
+            if (result.success) {
+                document.getElementById('appointmentModal').classList.remove('show');
+                loadAppointments();
+                loadDayAppointments();
+            } else {
+                alert('Có lỗi xảy ra khi đặt lịch hẹn');
+            }
+        });
+    }
+
+    // Initialize
+    initCalendar();
+</script>
+{% endblock %}

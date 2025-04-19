@@ -1,0 +1,146 @@
+{% extends "base.html" %}
+
+{% block title %}Thông tin cá nhân{% endblock %}
+
+{% block page_title %}Thông tin cá nhân{% endblock %}
+
+{% block content %}
+<div class="row">
+    <div class="col-md-8">
+        <div class="card">
+            <div class="card-body">
+                <div class="row">
+                    <div class="col-md-4">
+                        <div class="text-center mb-4">
+                            <div class="avatar-circle">
+                                {{ current_user.username[0] | upper }}
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col-md-8">
+                        <h3>{{ current_user.username }}</h3>
+                        <p class="text-muted">{{ current_user.role | title }}</p>
+                        
+                        <div class="mt-4">
+                            <h5>Thông tin cá nhân</h5>
+                            {% if current_user.role == 'doctor' %}
+                                <p><strong>Chuyên khoa:</strong> {{ doctor.professionalInfo.specialization }}</p>
+                                <p><strong>Kinh nghiệm:</strong> {{ doctor.professionalInfo.experience }} năm</p>
+                            {% endif %}
+                            
+                            <p><strong>Email:</strong> {{ personal_info.email }}</p>
+                            <p><strong>Số điện thoại:</strong> {{ personal_info.phone }}</p>
+                            <p><strong>Địa chỉ:</strong> {{ personal_info.address }}</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="col-md-4">
+        <div class="card mb-4">
+            <div class="card-header">
+                <h5 class="card-title mb-0">Đổi mật khẩu</h5>
+            </div>
+            <div class="card-body">
+                <form id="passwordForm">
+                    <div class="form-group mb-3">
+                        <label class="form-label">Mật khẩu hiện tại</label>
+                        <input type="password" class="form-control" name="current_password" required>
+                    </div>
+                    <div class="form-group mb-3">
+                        <label class="form-label">Mật khẩu mới</label>
+                        <input type="password" class="form-control" name="new_password" required>
+                    </div>
+                    <div class="form-group mb-3">
+                        <label class="form-label">Xác nhận mật khẩu mới</label>
+                        <input type="password" class="form-control" name="confirm_password" required>
+                    </div>
+                    <button type="submit" class="btn btn-primary w-100">
+                        Cập nhật mật khẩu
+                    </button>
+                </form>
+            </div>
+        </div>
+
+        <div class="card">
+            <div class="card-header">
+                <h5 class="card-title mb-0">Cài đặt tài khoản</h5>
+            </div>
+            <div class="card-body">
+                <div class="form-check form-switch mb-3">
+                    <input class="form-check-input" type="checkbox" id="emailNotifications">
+                    <label class="form-check-label" for="emailNotifications">
+                        Thông báo qua email
+                    </label>
+                </div>
+                <div class="form-check form-switch mb-3">
+                    <input class="form-check-input" type="checkbox" id="smsNotifications">
+                    <label class="form-check-label" for="smsNotifications">
+                        Thông báo qua SMS
+                    </label>
+                </div>
+                <div class="form-check form-switch">
+                    <input class="form-check-input" type="checkbox" id="twoFactorAuth">
+                    <label class="form-check-label" for="twoFactorAuth">
+                        Xác thực hai lớp
+                    </label>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_scripts %}
+<script>
+    // Handle password change
+    document.getElementById('passwordForm').addEventListener('submit', function(e) {
+        e.preventDefault();
+        
+        const formData = new FormData(this);
+        const data = Object.fromEntries(formData);
+        
+        if (data.new_password !== data.confirm_password) {
+            alert('Mật khẩu mới không khớp');
+            return;
+        }
+        
+        fetch('/auth/change-password', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+            },
+            body: JSON.stringify(data)
+        })
+        .then(response => response.json())
+        .then(result => {
+            if (result.success) {
+                alert('Đã cập nhật mật khẩu');
+                this.reset();
+            } else {
+                alert(result.message || 'Có lỗi xảy ra');
+            }
+        });
+    });
+
+    // Handle notification settings
+    const notificationToggles = ['emailNotifications', 'smsNotifications', 'twoFactorAuth'];
+    
+    notificationToggles.forEach(id => {
+        document.getElementById(id).addEventListener('change', function() {
+            fetch('/auth/update-settings', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify({
+                    setting: id,
+                    value: this.checked
+                })
+            });
+        });
+    });
+</script>
+{% endblock %}

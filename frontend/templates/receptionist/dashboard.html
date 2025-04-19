@@ -1,0 +1,280 @@
+{% extends "base.html" %}
+
+{% block title %}Bảng điều khiển Lễ tân{% endblock %}
+
+{% block sidebar_menu %}
+<div class="nav-item">
+    <a href="{{ url_for('receptionist.dashboard') }}" class="nav-link active">
+        <i class="fas fa-home"></i>
+        Tổng quan
+    </a>
+</div>
+<div class="nav-item">
+    <a href="{{ url_for('receptionist.appointments') }}" class="nav-link">
+        <i class="fas fa-calendar-alt"></i>
+        Quản lý lịch hẹn
+    </a>
+</div>
+<div class="nav-item">
+    <a href="{{ url_for('receptionist.patients') }}" class="nav-link">
+        <i class="fas fa-users"></i>
+        Quản lý bệnh nhân
+    </a>
+</div>
+<div class="nav-item">
+    <a href="{{ url_for('receptionist.billing') }}" class="nav-link">
+        <i class="fas fa-file-invoice-dollar"></i>
+        Thanh toán
+    </a>
+</div>
+{% endblock %}
+
+{% block page_title %}Tổng quan{% endblock %}
+
+{% block content %}
+<!-- Quick Actions -->
+<div class="row mb-4">
+    <div class="col-md-3">
+        <div class="card">
+            <div class="card-body text-center">
+                <button class="btn btn-lg btn-primary w-100" onclick="showNewAppointmentModal()">
+                    <i class="fas fa-calendar-plus"></i>
+                    <span class="d-block mt-2">Đặt lịch hẹn</span>
+                </button>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-3">
+        <div class="card">
+            <div class="card-body text-center">
+                <button class="btn btn-lg btn-success w-100" onclick="showNewPatientModal()">
+                    <i class="fas fa-user-plus"></i>
+                    <span class="d-block mt-2">Đăng ký bệnh nhân</span>
+                </button>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-3">
+        <div class="card">
+            <div class="card-body text-center">
+                <button class="btn btn-lg btn-warning w-100" onclick="showCheckInModal()">
+                    <i class="fas fa-clipboard-check"></i>
+                    <span class="d-block mt-2">Check-in bệnh nhân</span>
+                </button>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-3">
+        <div class="card">
+            <div class="card-body text-center">
+                <button class="btn btn-lg btn-info w-100" onclick="showPaymentModal()">
+                    <i class="fas fa-cash-register"></i>
+                    <span class="d-block mt-2">Thanh toán</span>
+                </button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Today's Stats -->
+<div class="row mb-4">
+    <div class="col-md-3">
+        <div class="card">
+            <div class="card-body">
+                <h3 class="card-title text-primary">Tổng lịch hẹn</h3>
+                <div class="d-flex justify-content-between align-items-center">
+                    <h2 class="mb-0">{{ stats.total_appointments }}</h2>
+                    <i class="fas fa-calendar fa-2x text-primary"></i>
+                </div>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-3">
+        <div class="card">
+            <div class="card-body">
+                <h3 class="card-title text-success">Đã check-in</h3>
+                <div class="d-flex justify-content-between align-items-center">
+                    <h2 class="mb-0">{{ stats.checked_in }}</h2>
+                    <i class="fas fa-check-circle fa-2x text-success"></i>
+                </div>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-3">
+        <div class="card">
+            <div class="card-body">
+                <h3 class="card-title text-warning">Đang chờ</h3>
+                <div class="d-flex justify-content-between align-items-center">
+                    <h2 class="mb-0">{{ stats.waiting }}</h2>
+                    <i class="fas fa-clock fa-2x text-warning"></i>
+                </div>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-3">
+        <div class="card">
+            <div class="card-body">
+                <h3 class="card-title text-info">Đã hoàn thành</h3>
+                <div class="d-flex justify-content-between align-items-center">
+                    <h2 class="mb-0">{{ stats.completed }}</h2>
+                    <i class="fas fa-flag-checkered fa-2x text-info"></i>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Waiting List -->
+<div class="card mb-4">
+    <div class="card-header">
+        <h3 class="card-title mb-0">
+            <i class="fas fa-user-clock"></i>
+            Danh sách chờ khám
+        </h3>
+    </div>
+    <div class="card-body">
+        <div class="table-container">
+            <table class="table">
+                <thead>
+                    <tr>
+                        <th>STT</th>
+                        <th>Giờ hẹn</th>
+                        <th>Mã BN</th>
+                        <th>Họ và tên</th>
+                        <th>Bác sĩ</th>
+                        <th>Trạng thái</th>
+                        <th>Thao tác</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for appointment in waiting_list %}
+                    <tr>
+                        <td>{{ loop.index }}</td>
+                        <td>{{ appointment.time_slot.strftime('%H:%M') }}</td>
+                        <td>{{ appointment.patient_id }}</td>
+                        <td>{{ appointment.patient_name }}</td>
+                        <td>{{ appointment.doctor_name }}</td>
+                        <td>
+                            <span class="badge badge-{{ appointment.status_class }}">
+                                {{ appointment.status_text }}
+                            </span>
+                        </td>
+                        <td>
+                            {% if appointment.status == 'waiting' %}
+                            <button type="button" 
+                                    class="btn btn-success btn-sm"
+                                    onclick="checkIn('{{ appointment._id }}')">
+                                <i class="fas fa-check"></i>
+                                Check-in
+                            </button>
+                            {% endif %}
+                            <button type="button" 
+                                    class="btn btn-primary btn-sm"
+                                    onclick="viewAppointment('{{ appointment._id }}')">
+                                <i class="fas fa-eye"></i>
+                                Chi tiết
+                            </button>
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>
+
+<!-- Recent Activities -->
+<div class="card">
+    <div class="card-header">
+        <h3 class="card-title mb-0">
+            <i class="fas fa-history"></i>
+            Hoạt động gần đây
+        </h3>
+    </div>
+    <div class="card-body">
+        <div class="timeline">
+            {% for activity in recent_activities %}
+            <div class="timeline-item">
+                <div class="timeline-marker 
+                           {% if activity.type == 'check_in' %}bg-success
+                           {% elif activity.type == 'appointment' %}bg-primary
+                           {% elif activity.type == 'payment' %}bg-info
+                           {% else %}bg-secondary{% endif %}">
+                    <i class="fas 
+                           {% if activity.type == 'check_in' %}fa-check
+                           {% elif activity.type == 'appointment' %}fa-calendar
+                           {% elif activity.type == 'payment' %}fa-dollar-sign
+                           {% else %}fa-circle{% endif %}">
+                    </i>
+                </div>
+                <div class="timeline-content">
+                    <div class="d-flex justify-content-between">
+                        <h4 class="timeline-title">{{ activity.title }}</h4>
+                        <small class="text-muted">{{ activity.time.strftime('%H:%M') }}</small>
+                    </div>
+                    <p>{{ activity.description }}</p>
+                </div>
+            </div>
+            {% endfor %}
+        </div>
+    </div>
+</div>
+
+<!-- Modal templates will be added here -->
+{% include 'receptionist/modals/new_appointment.html' %}
+{% include 'receptionist/modals/new_patient.html' %}
+{% include 'receptionist/modals/check_in.html' %}
+{% include 'receptionist/modals/payment.html' %}
+{% endblock %}
+
+{% block extra_scripts %}
+<script>
+    function showNewAppointmentModal() {
+        document.getElementById('newAppointmentModal').classList.add('show');
+    }
+
+    function showNewPatientModal() {
+        document.getElementById('newPatientModal').classList.add('show');
+    }
+
+    function showCheckInModal() {
+        document.getElementById('checkInModal').classList.add('show');
+    }
+
+    function showPaymentModal() {
+        document.getElementById('paymentModal').classList.add('show');
+    }
+
+    function checkIn(appointmentId) {
+        if (confirm('Xác nhận check-in cho bệnh nhân này?')) {
+            fetch(`/api/appointments/${appointmentId}/check-in`, {
+                method: 'POST'
+            })
+            .then(response => response.json())
+            .then(result => {
+                if (result.success) {
+                    window.location.reload();
+                } else {
+                    alert('Có lỗi xảy ra khi check-in');
+                }
+            });
+        }
+    }
+
+    function viewAppointment(appointmentId) {
+        window.location.href = `/receptionist/appointments/${appointmentId}`;
+    }
+
+    // Close modals when clicking outside
+    document.addEventListener('click', function(event) {
+        if (event.target.classList.contains('modal')) {
+            event.target.classList.remove('show');
+        }
+    });
+
+    // Auto-refresh waiting list every 5 minutes
+    setInterval(function() {
+        window.location.reload();
+    }, 300000);
+</script>
+{% endblock %}

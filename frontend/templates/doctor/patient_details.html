@@ -1,0 +1,206 @@
+{% extends "base.html" %}
+
+{% block title %}Chi tiết Bệnh nhân{% endblock %}
+
+{% block content %}
+<div class="row">
+    <!-- Patient Information -->
+    <div class="col-md-4">
+        <div class="card mb-4">
+            <div class="card-header d-flex justify-content-between align-items-center">
+                <h5 class="card-title mb-0">Thông tin bệnh nhân</h5>
+                <a href="#" class="btn btn-sm btn-primary" onclick="editPatient()">
+                    <i class="fas fa-edit"></i>
+                </a>
+            </div>
+            <div class="card-body">
+                <div class="text-center mb-4">
+                    <div class="patient-avatar">
+                        {{ patient.personalInfo.fullName[0] | upper }}
+                    </div>
+                    <h4 class="mt-2">{{ patient.personalInfo.fullName }}</h4>
+                    <p class="text-muted mb-0">Mã BN: {{ patient.patientId }}</p>
+                </div>
+
+                <div class="patient-info">
+                    <p><strong>Giới tính:</strong> {{ patient.personalInfo.gender }}</p>
+                    <p><strong>Ngày sinh:</strong> {{ patient.personalInfo.dateOfBirth.strftime('%d/%m/%Y') }}</p>
+                    <p><strong>CCCD/CMND:</strong> {{ patient.personalInfo.idNumber }}</p>
+                    <p><strong>Địa chỉ:</strong> {{ patient.personalInfo.address }}</p>
+                    <p><strong>Điện thoại:</strong> {{ patient.personalInfo.phone }}</p>
+                    <p><strong>Email:</strong> {{ patient.personalInfo.email }}</p>
+                </div>
+
+                <hr>
+
+                <div class="health-info">
+                    <h6>Thông tin sức khỏe</h6>
+                    <p><strong>Nhóm máu:</strong> {{ patient.healthInfo.bloodType }}</p>
+                    <p><strong>Chiều cao:</strong> {{ patient.healthInfo.height }} cm</p>
+                    <p><strong>Cân nặng:</strong> {{ patient.healthInfo.weight }} kg</p>
+                    <p>
+                        <strong>Dị ứng:</strong><br>
+                        {% if patient.healthInfo.allergies %}
+                            <ul class="list-unstyled ps-3">
+                            {% for allergy in patient.healthInfo.allergies %}
+                                <li>- {{ allergy }}</li>
+                            {% endfor %}
+                            </ul>
+                        {% else %}
+                            <span class="text-muted">Không</span>
+                        {% endif %}
+                    </p>
+                    <p>
+                        <strong>Bệnh mãn tính:</strong><br>
+                        {% if patient.healthInfo.chronicDiseases %}
+                            <ul class="list-unstyled ps-3">
+                            {% for disease in patient.healthInfo.chronicDiseases %}
+                                <li>- {{ disease }}</li>
+                            {% endfor %}
+                            </ul>
+                        {% else %}
+                            <span class="text-muted">Không</span>
+                        {% endif %}
+                    </p>
+                </div>
+
+                <hr>
+
+                <div class="insurance-info">
+                    <h6>Thông tin bảo hiểm</h6>
+                    {% if patient.insurance %}
+                        <p><strong>Công ty:</strong> {{ patient.insurance.provider }}</p>
+                        <p><strong>Số thẻ:</strong> {{ patient.insurance.policyNumber }}</p>
+                        <p><strong>Hết hạn:</strong> {{ patient.insurance.expiryDate.strftime('%d/%m/%Y') }}</p>
+                    {% else %}
+                        <p class="text-muted">Không có thông tin bảo hiểm</p>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+
+        <div class="card">
+            <div class="card-header">
+                <h5 class="card-title mb-0">Liên hệ khẩn cấp</h5>
+            </div>
+            <div class="card-body">
+                <p><strong>Họ tên:</strong> {{ patient.personalInfo.emergencyContact.name }}</p>
+                <p><strong>Mối quan hệ:</strong> {{ patient.personalInfo.emergencyContact.relationship }}</p>
+                <p><strong>Điện thoại:</strong> {{ patient.personalInfo.emergencyContact.phone }}</p>
+            </div>
+        </div>
+    </div>
+
+    <!-- Medical History -->
+    <div class="col-md-8">
+        <div class="card mb-4">
+            <div class="card-header d-flex justify-content-between align-items-center">
+                <h5 class="card-title mb-0">Lịch sử khám bệnh</h5>
+                <div>
+                    <button class="btn btn-primary" onclick="newExamination()">
+                        <i class="fas fa-plus"></i>
+                        Thêm lượt khám
+                    </button>
+                </div>
+            </div>
+            <div class="card-body">
+                {% if medical_history %}
+                <div class="timeline">
+                    {% for visit in medical_history %}
+                    <div class="timeline-item">
+                        <div class="timeline-marker"></div>
+                        <div class="timeline-content">
+                            <div class="card">
+                                <div class="card-header">
+                                    <div class="d-flex justify-content-between align-items-center">
+                                        <h6 class="mb-0">{{ visit.diagnosisDate.strftime('%d/%m/%Y') }}</h6>
+                                        <span class="text-muted">BS. {{ visit.doctorName }}</span>
+                                    </div>
+                                </div>
+                                <div class="card-body">
+                                    <p><strong>Triệu chứng:</strong></p>
+                                    <ul>
+                                        {% for symptom in visit.symptoms %}
+                                        <li>{{ symptom }}</li>
+                                        {% endfor %}
+                                    </ul>
+                                    <p><strong>Chẩn đoán:</strong> {{ visit.diagnosis }}</p>
+                                    <p><strong>Điều trị:</strong> {{ visit.treatment }}</p>
+                                    {% if visit.notes %}
+                                    <p><strong>Ghi chú:</strong> {{ visit.notes }}</p>
+                                    {% endif %}
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    {% endfor %}
+                </div>
+                {% else %}
+                <p class="text-center text-muted">Chưa có lịch sử khám bệnh</p>
+                {% endif %}
+            </div>
+        </div>
+
+        <!-- Prescriptions -->
+        <div class="card">
+            <div class="card-header">
+                <h5 class="card-title mb-0">Đơn thuốc</h5>
+            </div>
+            <div class="card-body">
+                {% if prescriptions %}
+                <div class="table-container">
+                    <table class="table">
+                        <thead>
+                            <tr>
+                                <th>Ngày</th>
+                                <th>Thuốc</th>
+                                <th>Bác sĩ</th>
+                                <th>Trạng thái</th>
+                                <th></th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for prescription in prescriptions %}
+                            <tr>
+                                <td>{{ prescription.issueDate.strftime('%d/%m/%Y') }}</td>
+                                <td>{{ prescription.medications | length }} loại</td>
+                                <td>{{ prescription.doctorName }}</td>
+                                <td>
+                                    <span class="badge badge-{{ 'success' if prescription.status == 'dispensed' else 'warning' }}">
+                                        {{ 'Đã phát' if prescription.status == 'dispensed' else 'Chưa phát' }}
+                                    </span>
+                                </td>
+                                <td>
+                                    <button class="btn btn-sm btn-primary" onclick="viewPrescription('{{ prescription._id }}')">
+                                        <i class="fas fa-eye"></i>
+                                    </button>
+                                </td>
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+                {% else %}
+                <p class="text-center text-muted">Chưa có đơn thuốc</p>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_scripts %}
+<script>
+    function editPatient() {
+        // Implementation for editing patient info
+    }
+
+    function newExamination() {
+        window.location.href = "{{ url_for('doctor.examination', patient_id=patient._id) }}";
+    }
+
+    function viewPrescription(prescriptionId) {
+        window.location.href = "{{ url_for('doctor.prescriptions') }}/" + prescriptionId;
+    }
+</script>
+{% endblock %}

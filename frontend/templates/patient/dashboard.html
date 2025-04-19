@@ -1,0 +1,135 @@
+{% extends "base_dashboard.html" %}
+
+{% block title %}Bảng điều khiển Bệnh nhân{% endblock %}
+
+{% block sidebar_menu %}
+<li class="nav-item">
+    <a href="/patient/dashboard" class="nav-link">
+        Tổng quan
+    </a>
+</li>
+<li class="nav-item">
+    <a href="/patient/appointments" class="nav-link">
+        Lịch hẹn khám
+    </a>
+</li>
+<li class="nav-item">
+    <a href="/patient/medical-history" class="nav-link">
+        Lịch sử khám bệnh
+    </a>
+</li>
+<li class="nav-item">
+    <a href="/patient/prescriptions" class="nav-link">
+        Đơn thuốc
+    </a>
+</li>
+<li class="nav-item">
+    <a href="/patient/profile" class="nav-link">
+        Thông tin cá nhân
+    </a>
+</li>
+{% endblock %}
+
+{% block page_title %}Tổng quan{% endblock %}
+
+{% block content %}
+<div class="card">
+    <div class="card-header">
+        <h2 class="card-title">Lịch hẹn sắp tới</h2>
+    </div>
+    <div class="table-container">
+        <table class="data-table">
+            <thead>
+                <tr>
+                    <th>Ngày</th>
+                    <th>Giờ</th>
+                    <th>Bác sĩ</th>
+                    <th>Khoa</th>
+                    <th>Trạng thái</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for appointment in upcoming_appointments %}
+                <tr>
+                    <td>{{ appointment.date }}</td>
+                    <td>{{ appointment.time }}</td>
+                    <td>{{ appointment.doctor_name }}</td>
+                    <td>{{ appointment.department }}</td>
+                    <td>
+                        <span class="badge badge-{{ appointment.status_class }}">
+                            {{ appointment.status }}
+                        </span>
+                    </td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+</div>
+
+<div class="card">
+    <div class="card-header">
+        <h2 class="card-title">Đơn thuốc hiện tại</h2>
+    </div>
+    <div class="table-container">
+        <table class="data-table">
+            <thead>
+                <tr>
+                    <th>Ngày kê đơn</th>
+                    <th>Tên thuốc</th>
+                    <th>Liều lượng</th>
+                    <th>Hướng dẫn</th>
+                    <th>Trạng thái</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for prescription in current_prescriptions %}
+                <tr>
+                    <td>{{ prescription.date }}</td>
+                    <td>{{ prescription.medication_name }}</td>
+                    <td>{{ prescription.dosage }}</td>
+                    <td>{{ prescription.instructions }}</td>
+                    <td>
+                        <span class="badge badge-{{ prescription.status_class }}">
+                            {{ prescription.status }}
+                        </span>
+                    </td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+</div>
+
+<div class="card">
+    <div class="card-header">
+        <h2 class="card-title">Thông tin sức khỏe</h2>
+    </div>
+    <div style="padding: 1rem;">
+        <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 1rem;">
+            <div>
+                <strong>Chiều cao:</strong>
+                <p>{{ health_info.height }} cm</p>
+            </div>
+            <div>
+                <strong>Cân nặng:</strong>
+                <p>{{ health_info.weight }} kg</p>
+            </div>
+            <div>
+                <strong>Nhóm máu:</strong>
+                <p>{{ health_info.blood_type }}</p>
+            </div>
+            <div>
+                <strong>Dị ứng:</strong>
+                <p>{{ health_info.allergies|join(', ') or 'Không' }}</p>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_scripts %}
+<script>
+    // Add any additional JavaScript for the patient dashboard here
+</script>
+{% endblock %}

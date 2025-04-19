@@ -1,0 +1,234 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Đăng nhập - Hệ thống Quản lý Y tế</title>
+
+    <!-- Google Fonts -->
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&family=Montserrat:wght@500;600;700&display=swap" rel="stylesheet">
+    
+    <!-- Font Awesome -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+    
+    <!-- Base CSS -->
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/base.css') }}">
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/components.css') }}">
+    
+    <style>
+        body {
+            min-height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            background-color: var(--bg);
+            padding: var(--spacing-md);
+        }
+
+        .login-container {
+            width: 100%;
+            max-width: 400px;
+        }
+
+        .login-header {
+            text-align: center;
+            margin-bottom: var(--spacing-xl);
+        }
+
+        .login-logo {
+            font-size: 2rem;
+            color: var(--primary);
+            margin-bottom: var(--spacing-sm);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: var(--spacing-sm);
+        }
+
+        .login-logo i {
+            font-size: 2.5rem;
+        }
+
+        .login-subtitle {
+            color: var(--text-light);
+        }
+
+        .login-card {
+            background-color: var(--white);
+            border-radius: var(--border-radius-lg);
+            box-shadow: var(--shadow-lg);
+            padding: var(--spacing-xl);
+        }
+
+        .login-tabs {
+            display: flex;
+            margin-bottom: var(--spacing-lg);
+            border-bottom: 2px solid var(--gray-200);
+        }
+
+        .login-tab {
+            flex: 1;
+            text-align: center;
+            padding: var(--spacing-sm);
+            color: var(--text-light);
+            cursor: pointer;
+            position: relative;
+        }
+
+        .login-tab.active {
+            color: var(--primary);
+            font-weight: 500;
+        }
+
+        .login-tab.active::after {
+            content: '';
+            position: absolute;
+            bottom: -2px;
+            left: 0;
+            width: 100%;
+            height: 2px;
+            background-color: var(--primary);
+        }
+
+        .error-message {
+            color: var(--danger);
+            font-size: 0.875rem;
+            margin-top: var(--spacing-xs);
+            display: none;
+        }
+
+        .error-message.show {
+            display: block;
+        }
+    </style>
+</head>
+<body>
+    <div class="login-container">
+        <!-- Login Header -->
+        <div class="login-header">
+            <div class="login-logo">
+                <i class="fas fa-hospital"></i>
+                <span>MediCare</span>
+            </div>
+            <p class="login-subtitle">Hệ thống Quản lý Y tế</p>
+        </div>
+
+        <!-- Login Card -->
+        <div class="login-card">
+            <!-- Login Tabs -->
+            <div class="login-tabs">
+                <div class="login-tab active" data-role="doctor">Bác sĩ</div>
+                <div class="login-tab" data-role="receptionist">Lễ tân</div>
+                <div class="login-tab" data-role="patient">Bệnh nhân</div>
+            </div>
+
+            <!-- Login Form -->
+            <form id="loginForm" action="{{ url_for('auth.login_post') }}" method="POST">
+                <input type="hidden" name="role" id="roleInput" value="doctor">
+                
+                <!-- Username Field -->
+                <div class="form-group mb-3">
+                    <label class="form-label" for="username">Tên đăng nhập</label>
+                    <div class="input-group">
+                        <i class="fas fa-user"></i>
+                        <input type="text" 
+                               id="username" 
+                               name="username" 
+                               class="form-control" 
+                               required 
+                               autocomplete="username">
+                    </div>
+                    <div class="error-message" id="usernameError"></div>
+                </div>
+
+                <!-- Password Field -->
+                <div class="form-group mb-3">
+                    <label class="form-label" for="password">Mật khẩu</label>
+                    <div class="input-group">
+                        <i class="fas fa-lock"></i>
+                        <input type="password" 
+                               id="password" 
+                               name="password" 
+                               class="form-control" 
+                               required 
+                               autocomplete="current-password">
+                    </div>
+                    <div class="error-message" id="passwordError"></div>
+                    <a href="#" class="forgot-password">Quên mật khẩu?</a>
+                </div>
+
+                <!-- Submit Button -->
+                <div class="form-group">
+                    <button type="submit" class="btn btn-primary w-100">
+                        <i class="fas fa-sign-in-alt"></i>
+                        Đăng nhập
+                    </button>
+                </div>
+
+                <!-- Flash Messages -->
+                {% with messages = get_flashed_messages(with_categories=true) %}
+                    {% if messages %}
+                        {% for category, message in messages %}
+                            <div class="alert alert-{{ category }} mt-3">
+                                {{ message }}
+                            </div>
+                        {% endfor %}
+                    {% endif %}
+                {% endwith %}
+            </form>
+        </div>
+    </div>
+
+    <script>
+        // Handle tab switching
+        const tabs = document.querySelectorAll('.login-tab');
+        const roleInput = document.getElementById('roleInput');
+
+        tabs.forEach(tab => {
+            tab.addEventListener('click', () => {
+                // Remove active class from all tabs
+                tabs.forEach(t => t.classList.remove('active'));
+                // Add active class to clicked tab
+                tab.classList.add('active');
+                // Update hidden role input
+                roleInput.value = tab.dataset.role;
+            });
+        });
+
+        // Form validation
+        const loginForm = document.getElementById('loginForm');
+        const username = document.getElementById('username');
+        const password = document.getElementById('password');
+        const usernameError = document.getElementById('usernameError');
+        const passwordError = document.getElementById('passwordError');
+
+        loginForm.addEventListener('submit', (e) => {
+            let isValid = true;
+
+            // Reset error messages
+            usernameError.textContent = '';
+            passwordError.textContent = '';
+            usernameError.classList.remove('show');
+            passwordError.classList.remove('show');
+
+            // Validate username
+            if (username.value.trim() === '') {
+                usernameError.textContent = 'Vui lòng nhập tên đăng nhập';
+                usernameError.classList.add('show');
+                isValid = false;
+            }
+
+            // Validate password
+            if (password.value === '') {
+                passwordError.textContent = 'Vui lòng nhập mật khẩu';
+                passwordError.classList.add('show');
+                isValid = false;
+            }
+
+            if (!isValid) {
+                e.preventDefault();
+            }
+        });
+    </script>
+</body>
+</html>

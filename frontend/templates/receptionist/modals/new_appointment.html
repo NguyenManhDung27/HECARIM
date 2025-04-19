@@ -1,0 +1,225 @@
+<!-- New Appointment Modal -->
+<div class="modal" id="newAppointmentModal">
+    <div class="modal-dialog modal-lg">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">Đặt lịch hẹn mới</h5>
+                <button type="button" class="modal-close">
+                    <i class="fas fa-times"></i>
+                </button>
+            </div>
+            <div class="modal-body">
+                <form id="appointmentForm">
+                    <!-- Patient Selection -->
+                    <div class="form-group mb-3">
+                        <label class="form-label">Bệnh nhân</label>
+                        <div class="input-group">
+                            <input type="text" 
+                                   class="form-control" 
+                                   id="patientSearch" 
+                                   placeholder="Tìm theo mã BN hoặc tên...">
+                            <button class="btn btn-primary" type="button" onclick="searchPatient()">
+                                <i class="fas fa-search"></i>
+                            </button>
+                        </div>
+                        <div id="patientSearchResults" class="dropdown-menu" style="width: 100%"></div>
+                        <input type="hidden" name="patient_id" id="selectedPatientId">
+                    </div>
+
+                    <div id="selectedPatientInfo" class="alert alert-info" style="display: none;">
+                        <!-- Selected patient info will be displayed here -->
+                    </div>
+
+                    <!-- Doctor Selection -->
+                    <div class="form-group mb-3">
+                        <label class="form-label">Bác sĩ</label>
+                        <select class="form-select" name="doctor_id" required onchange="loadDoctorSchedule(this.value)">
+                            <option value="">Chọn bác sĩ...</option>
+                            {% for doctor in doctors %}
+                            <option value="{{ doctor._id }}">
+                                {{ doctor.personalInfo.fullName }} - {{ doctor.professionalInfo.specialization }}
+                            </option>
+                            {% endfor %}
+                        </select>
+                    </div>
+
+                    <!-- Appointment Date -->
+                    <div class="form-group mb-3">
+                        <label class="form-label">Ngày khám</label>
+                        <input type="date" 
+                               class="form-control" 
+                               name="appointment_date" 
+                               required 
+                               min="{{ today.strftime('%Y-%m-%d') }}"
+                               onchange="loadTimeSlots()">
+                    </div>
+
+                    <!-- Time Slots -->
+                    <div class="form-group mb-3">
+                        <label class="form-label">Giờ khám</label>
+                        <div class="time-slots" id="timeSlots">
+                            <!-- Time slots will be loaded here -->
+                        </div>
+                        <input type="hidden" name="time_slot" id="selectedTimeSlot">
+                    </div>
+
+                    <!-- Appointment Type -->
+                    <div class="form-group mb-3">
+                        <label class="form-label">Loại khám</label>
+                        <select class="form-select" name="type" required>
+                            <option value="new">Khám lần đầu</option>
+                            <option value="follow_up">Tái khám</option>
+                        </select>
+                    </div>
+
+                    <!-- Reason -->
+                    <div class="form-group mb-3">
+                        <label class="form-label">Lý do khám</label>
+                        <textarea class="form-control" name="reason" rows="3" required></textarea>
+                    </div>
+
+                    <!-- Notes -->
+                    <div class="form-group mb-3">
+                        <label class="form-label">Ghi chú</label>
+                        <textarea class="form-control" name="notes" rows="3"></textarea>
+                    </div>
+                </form>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" onclick="closeModal('newAppointmentModal')">
+                    Hủy
+                </button>
+                <button type="button" class="btn btn-primary" onclick="saveAppointment()">
+                    Đặt lịch
+                </button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+    function searchPatient() {
+        const searchTerm = document.getElementById('patientSearch').value;
+        const resultsContainer = document.getElementById('patientSearchResults');
+
+        if (searchTerm.length < 2) {
+            resultsContainer.style.display = 'none';
+            return;
+        }
+
+        fetch(`/api/patients/search?q=${encodeURIComponent(searchTerm)}`)
+            .then(response => response.json())
+            .then(patients => {
+                resultsContainer.innerHTML = patients.map(patient => `
+                    <a class="dropdown-item" href="#" onclick="selectPatient('${patient._id}', '${patient.patientId}', '${patient.personalInfo.fullName}')">
+                        ${patient.patientId} - ${patient.personalInfo.fullName}
+                    </a>
+                `).join('');
+                resultsContainer.style.display = 'block';
+            });
+    }
+
+    function selectPatient(id, patientId, name) {
+        document.getElementById('selectedPatientId').value = id;
+        document.getElementById('patientSearch').value = `${patientId} - ${name}`;
+        document.getElementById('patientSearchResults').style.display = 'none';
+        
+        document.getElementById('selectedPatientInfo').innerHTML = `
+            <strong>Bệnh nhân đã chọn:</strong> ${name} (${patientId})
+            <button type="button" class="btn-close float-end" onclick="clearSelectedPatient()"></button>
+        `;
+        document.getElementById('selectedPatientInfo').style.display = 'block';
+    }
+
+    function clearSelectedPatient() {
+        document.getElementById('selectedPatientId').value = '';
+        document.getElementById('patientSearch').value = '';
+        document.getElementById('selectedPatientInfo').style.display = 'none';
+    }
+
+    function loadDoctorSchedule(doctorId) {
+        // Reset time slots
+        document.getElementById('timeSlots').innerHTML = '';
+        document.getElementById('selectedTimeSlot').value = '';
+        
+        // If no doctor is selected, return
+        if (!doctorId) return;
+
+        // Load doctor's schedule
+        const date = document.querySelector('input[name="appointment_date"]').value;
+        if (date) {
+            loadTimeSlots();
+        }
+    }
+
+    function loadTimeSlots() {
+        const doctorId = document.querySelector('select[name="doctor_id"]').value;
+        const date = document.querySelector('input[name="appointment_date"]').value;
+        const timeSlotsContainer = document.getElementById('timeSlots');
+
+        if (!doctorId || !date) {
+            timeSlotsContainer.innerHTML = '';
+            return;
+        }
+
+        fetch(`/api/doctors/${doctorId}/time-slots?date=${date}`)
+            .then(response => response.json())
+            .then(slots => {
+                timeSlotsContainer.innerHTML = `
+                    <div class="d-flex flex-wrap gap-2">
+                        ${slots.map(slot => `
+                            <div class="time-slot ${slot.available ? '' : 'booked'}"
+                                 onclick="${slot.available ? `selectTimeSlot('${slot.time}')` : ''}"
+                                 data-time="${slot.time}">
+                                ${slot.time}
+                            </div>
+                        `).join('')}
+                    </div>
+                `;
+            });
+    }
+
+    function selectTimeSlot(time) {
+        document.querySelectorAll('.time-slot').forEach(slot => {
+            slot.classList.remove('selected');
+        });
+        document.querySelector(`.time-slot[data-time="${time}"]`).classList.add('selected');
+        document.getElementById('selectedTimeSlot').value = time;
+    }
+
+    function saveAppointment() {
+        const form = document.getElementById('appointmentForm');
+        const formData = new FormData(form);
+
+        if (!formData.get('patient_id')) {
+            alert('Vui lòng chọn bệnh nhân');
+            return;
+        }
+
+        if (!formData.get('time_slot')) {
+            alert('Vui lòng chọn giờ khám');
+            return;
+        }
+
+        fetch('/api/appointments', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+            },
+            body: JSON.stringify(Object.fromEntries(formData))
+        })
+        .then(response => response.json())
+        .then(result => {
+            if (result.success) {
+                closeModal('newAppointmentModal');
+                window.location.reload();
+            } else {
+                alert('Có lỗi xảy ra khi đặt lịch hẹn');
+            }
+        });
+    }
+
+    function closeModal(modalId) {
+        document.getElementById(modalId).classList.remove('show');
+    }
+</script>
