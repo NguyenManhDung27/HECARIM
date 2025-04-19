@@ -4,31 +4,31 @@
 
 {% block sidebar_menu %}
 <div class="nav-item">
-    <a href="#" class="nav-link active">
+    <a href="{{ url_for('doctor.dashboard') }}" class="nav-link {% if request.endpoint == 'doctor.dashboard' %}active{% endif %}">
         <i class="fas fa-home"></i>
         Tổng quan
     </a>
 </div>
 <div class="nav-item">
-    <a href="#" class="nav-link">
+    <a href="{{ url_for('doctor.medical_records') }}" class="nav-link {% if request.endpoint == 'doctor.medical_records' %}active{% endif %}">
         <i class="fas fa-file-medical"></i>
         Hồ sơ bệnh án
     </a>
 </div>
 <div class="nav-item">
-    <a href="#" class="nav-link">
+    <a href="{{ url_for('doctor.prescriptions') }}" class="nav-link {% if request.endpoint == 'doctor.prescriptions' %}active{% endif %}">
         <i class="fas fa-prescription"></i>
         Kê đơn thuốc
     </a>
 </div>
 <div class="nav-item">
-    <a href="#" class="nav-link">
+    <a href="{{ url_for('doctor.patients') }}" class="nav-link {% if request.endpoint == 'doctor.patients' %}active{% endif %}">
         <i class="fas fa-users"></i>
         Danh sách bệnh nhân
     </a>
 </div>
 <div class="nav-item">
-    <a href="#" class="nav-link">
+    <a href="{{ url_for('doctor.profile') }}" class="nav-link {% if request.endpoint == 'doctor.profile' %}active{% endif %}">
         <i class="fas fa-user"></i>
         Thông tin cá nhân
     </a>
@@ -41,46 +41,54 @@
 <!-- Today's Stats -->
 <div class="row">
     <div class="col-md-3">
-        <div class="card">
+        <div class="card stats-card">
             <div class="card-body">
-                <h3 class="card-title text-primary">
-                    <i class="fas fa-calendar"></i>
-                    Lịch hẹn hôm nay
-                </h3>
-                <h2 class="mb-0">{{ stats.total_appointments }}</h2>
+                <div class="stats-icon">
+                    <i class="fas fa-calendar fa-2x text-primary"></i>
+                </div>
+                <div class="stats-info">
+                    <p class="stats-label">Lịch hẹn hôm nay</p>
+                    <h2 class="stats-value mb-0">{{ stats.total_appointments }}</h2>
+                </div>
             </div>
         </div>
     </div>
     <div class="col-md-3">
-        <div class="card">
+        <div class="card stats-card">
             <div class="card-body">
-                <h3 class="card-title text-success">
-                    <i class="fas fa-check-circle"></i>
-                    Đã khám
-                </h3>
-                <h2 class="mb-0">{{ stats.completed_appointments }}</h2>
+                <div class="stats-icon">
+                    <i class="fas fa-check-circle fa-2x text-success"></i>
+                </div>
+                <div class="stats-info">
+                    <p class="stats-label">Đã khám</p>
+                    <h2 class="stats-value mb-0">{{ stats.completed_appointments }}</h2>
+                </div>
             </div>
         </div>
     </div>
     <div class="col-md-3">
-        <div class="card">
+        <div class="card stats-card">
             <div class="card-body">
-                <h3 class="card-title text-warning">
-                    <i class="fas fa-clock"></i>
-                    Đang chờ
-                </h3>
-                <h2 class="mb-0">{{ stats.waiting_appointments }}</h2>
+                <div class="stats-icon">
+                    <i class="fas fa-clock fa-2x text-warning"></i>
+                </div>
+                <div class="stats-info">
+                    <p class="stats-label">Đang chờ</p>
+                    <h2 class="stats-value mb-0">{{ stats.waiting_appointments }}</h2>
+                </div>
             </div>
         </div>
     </div>
     <div class="col-md-3">
-        <div class="card">
+        <div class="card stats-card">
             <div class="card-body">
-                <h3 class="card-title text-info">
-                    <i class="fas fa-notes-medical"></i>
-                    Đơn thuốc
-                </h3>
-                <h2 class="mb-0">{{ stats.prescriptions }}</h2>
+                <div class="stats-icon">
+                    <i class="fas fa-notes-medical fa-2x text-info"></i>
+                </div>
+                <div class="stats-info">
+                    <p class="stats-label">Đơn thuốc</p>
+                    <h2 class="stats-value mb-0">{{ stats.prescriptions }}</h2>
+                </div>
             </div>
         </div>
     </div>
@@ -183,9 +191,38 @@
 
 {% block extra_scripts %}
 <script>
-    // Auto-refresh the page every 5 minutes
-    setTimeout(function() {
-        window.location.reload();
-    }, 300000);
+    // Function to update dashboard data
+    function updateDashboard() {
+        fetch('{{ url_for("doctor.get_today_appointments") }}')
+            .then(response => response.json())
+            .then(data => {
+                // Update appointments table
+                const tbody = document.querySelector('#appointmentsTable tbody');
+                tbody.innerHTML = data.map(appointment => `
+                    <tr>
+                        <td>${appointment.time}</td>
+                        <td>${appointment.patient_id}</td>
+                        <td>${appointment.patient_name}</td>
+                        <td>${appointment.type}</td>
+                        <td>
+                            <span class="badge badge-${appointment.status_class}">
+                                ${appointment.status}
+                            </span>
+                        </td>
+                        <td>
+                            ${appointment.status !== 'completed' ? `
+                            <a href="{{ url_for('doctor.examination', appointment_id='') }}${appointment._id}"
+                               class="btn btn-primary btn-sm">
+                                <i class="fas fa-stethoscope"></i>
+                                Khám bệnh
+                            </a>` : ''}
+                        </td>
+                    </tr>
+                `).join('');
+            });
+    }
+
+    // Update dashboard every 5 minutes
+    setInterval(updateDashboard, 300000);
 </script>
 {% endblock %}

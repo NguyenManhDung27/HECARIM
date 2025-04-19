@@ -1,136 +1,161 @@
-{% extends "base_dashboard.html" %}
+{% extends "base.html" %}
 
 {% block title %}Bảng điều khiển Bệnh nhân{% endblock %}
 
 {% block sidebar_menu %}
-<li class="nav-item">
-    <a href="/patient/dashboard" class="nav-link">
+<div class="nav-item">
+    <a href="{{ url_for('patient.dashboard') }}" class="nav-link {% if request.endpoint == 'patient.dashboard' %}active{% endif %}">
+        <i class="fas fa-home"></i>
         Tổng quan
     </a>
-</li>
-<li class="nav-item">
-    <a href="/patient/appointments" class="nav-link">
-        Lịch hẹn khám
+</div>
+<div class="nav-item">
+    <a href="#" class="nav-link">
+        <i class="fas fa-calendar-alt"></i>
+        Lịch hẹn
     </a>
-</li>
-<li class="nav-item">
-    <a href="/patient/medical-history" class="nav-link">
-        Lịch sử khám bệnh
+</div>
+<div class="nav-item">
+    <a href="#" class="nav-link">
+        <i class="fas fa-file-medical"></i>
+        Hồ sơ bệnh án
     </a>
-</li>
-<li class="nav-item">
-    <a href="/patient/prescriptions" class="nav-link">
+</div>
+<div class="nav-item">
+    <a href="#" class="nav-link">
+        <i class="fas fa-notes-medical"></i>
         Đơn thuốc
     </a>
-</li>
-<li class="nav-item">
-    <a href="/patient/profile" class="nav-link">
-        Thông tin cá nhân
-    </a>
-</li>
+</div>
 {% endblock %}
 
 {% block page_title %}Tổng quan{% endblock %}
 
 {% block content %}
-<div class="card">
-    <div class="card-header">
-        <h2 class="card-title">Lịch hẹn sắp tới</h2>
+<!-- Health Overview -->
+<div class="row">
+    <div class="col-md-8">
+        <div class="card health-card mb-4">
+            <div class="card-header">
+                <h2 class="card-title">Thông tin sức khỏe</h2>
+            </div>
+            <div class="card-body">
+                <div class="row">
+                    <div class="col-md-4">
+                        <div class="health-metric">
+                            <div class="metric-icon">
+                                <i class="fas fa-ruler text-primary"></i>
+                            </div>
+                            <div class="metric-info">
+                                <span class="metric-label">Chiều cao</span>
+                                <span class="metric-value">{{ health_info.height }} cm</span>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col-md-4">
+                        <div class="health-metric">
+                            <div class="metric-icon">
+                                <i class="fas fa-weight text-success"></i>
+                            </div>
+                            <div class="metric-info">
+                                <span class="metric-label">Cân nặng</span>
+                                <span class="metric-value">{{ health_info.weight }} kg</span>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col-md-4">
+                        <div class="health-metric">
+                            <div class="metric-icon">
+                                <i class="fas fa-calculator text-info"></i>
+                            </div>
+                            <div class="metric-info">
+                                <span class="metric-label">Chỉ số BMI</span>
+                                <span class="metric-value">{{ health_info.bmi }}</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="mt-4">
+                    <h3 class="section-title">Dị ứng</h3>
+                    <div class="allergies-list">
+                        {% if health_info.allergies %}
+                            {% for allergy in health_info.allergies %}
+                                <span class="badge badge-warning">{{ allergy }}</span>
+                            {% endfor %}
+                        {% else %}
+                            <p class="text-muted">Không có dị ứng</p>
+                        {% endif %}
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Upcoming Appointments -->
+        <div class="card mb-4">
+            <div class="card-header">
+                <h2 class="card-title">Lịch hẹn sắp tới</h2>
+            </div>
+            <div class="card-body">
+                <div class="upcoming-appointments">
+                    <p class="text-center text-muted">Không có lịch hẹn nào sắp tới</p>
+                </div>
+            </div>
+        </div>
     </div>
-    <div class="table-container">
-        <table class="data-table">
-            <thead>
-                <tr>
-                    <th>Ngày</th>
-                    <th>Giờ</th>
-                    <th>Bác sĩ</th>
-                    <th>Khoa</th>
-                    <th>Trạng thái</th>
-                </tr>
-            </thead>
-            <tbody>
-                {% for appointment in upcoming_appointments %}
-                <tr>
-                    <td>{{ appointment.date }}</td>
-                    <td>{{ appointment.time }}</td>
-                    <td>{{ appointment.doctor_name }}</td>
-                    <td>{{ appointment.department }}</td>
-                    <td>
-                        <span class="badge badge-{{ appointment.status_class }}">
-                            {{ appointment.status }}
-                        </span>
-                    </td>
-                </tr>
-                {% endfor %}
-            </tbody>
-        </table>
+
+    <div class="col-md-4">
+        <!-- Quick Actions -->
+        <div class="card mb-4">
+            <div class="card-header">
+                <h2 class="card-title">Thao tác nhanh</h2>
+            </div>
+            <div class="card-body">
+                <div class="quick-actions">
+                    <a href="#" class="btn btn-primary btn-block mb-3">
+                        <i class="fas fa-calendar-plus"></i>
+                        Đặt lịch khám
+                    </a>
+                    <a href="#" class="btn btn-outline-primary btn-block mb-3">
+                        <i class="fas fa-file-medical"></i>
+                        Xem hồ sơ bệnh án
+                    </a>
+                    <a href="#" class="btn btn-outline-primary btn-block">
+                        <i class="fas fa-notes-medical"></i>
+                        Xem đơn thuốc
+                    </a>
+                </div>
+            </div>
+        </div>
+
+        <!-- Recent Activities -->
+        <div class="card">
+            <div class="card-header">
+                <h2 class="card-title">Hoạt động gần đây</h2>
+            </div>
+            <div class="card-body p-0">
+                <div class="activity-list">
+                    <div class="activity-item">
+                        <div class="activity-icon bg-primary">
+                            <i class="fas fa-calendar-check text-white"></i>
+                        </div>
+                        <div class="activity-content">
+                            <p class="activity-text">Đã đặt lịch khám</p>
+                            <p class="activity-time">2 ngày trước</p>
+                        </div>
+                    </div>
+                    <div class="activity-item">
+                        <div class="activity-icon bg-success">
+                            <i class="fas fa-notes-medical text-white"></i>
+                        </div>
+                        <div class="activity-content">
+                            <p class="activity-text">Nhận đơn thuốc mới</p>
+                            <p class="activity-time">5 ngày trước</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
     </div>
 </div>
-
-<div class="card">
-    <div class="card-header">
-        <h2 class="card-title">Đơn thuốc hiện tại</h2>
-    </div>
-    <div class="table-container">
-        <table class="data-table">
-            <thead>
-                <tr>
-                    <th>Ngày kê đơn</th>
-                    <th>Tên thuốc</th>
-                    <th>Liều lượng</th>
-                    <th>Hướng dẫn</th>
-                    <th>Trạng thái</th>
-                </tr>
-            </thead>
-            <tbody>
-                {% for prescription in current_prescriptions %}
-                <tr>
-                    <td>{{ prescription.date }}</td>
-                    <td>{{ prescription.medication_name }}</td>
-                    <td>{{ prescription.dosage }}</td>
-                    <td>{{ prescription.instructions }}</td>
-                    <td>
-                        <span class="badge badge-{{ prescription.status_class }}">
-                            {{ prescription.status }}
-                        </span>
-                    </td>
-                </tr>
-                {% endfor %}
-            </tbody>
-        </table>
-    </div>
-</div>
-
-<div class="card">
-    <div class="card-header">
-        <h2 class="card-title">Thông tin sức khỏe</h2>
-    </div>
-    <div style="padding: 1rem;">
-        <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 1rem;">
-            <div>
-                <strong>Chiều cao:</strong>
-                <p>{{ health_info.height if health_info else 'Chưa có thông tin' }} cm</p>
-            </div>
-            <div>
-                <strong>Cân nặng:</strong>
-                <p>{{ health_info.weight if health_info else 'Chưa có thông tin' }} kg</p>
-            </div>
-            <div>
-                <strong>Nhóm máu:</strong>
-                <p>BMI: {{ health_info.bmi if health_info else 'Chưa có thông tin' }}</p>
-            </div>
-            <div>
-                <strong>Dị ứng:</strong>
-                <p>{{ health_info.allergies|join(', ') if health_info and health_info.allergies else 'Không' }}</p>
-            </div>
-        </div> <!-- 🔧 thêm dòng này -->
-    </div> <!-- 🔧 thêm dòng này -->
-</div> <!-- 🔧 thêm dòng này -->
-
-{% endblock %}
-
-{% block extra_scripts %}
-<script>
-    // Add any additional JavaScript for the patient dashboard here
-</script>
 {% endblock %}

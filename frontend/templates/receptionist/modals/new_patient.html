@@ -4,7 +4,7 @@
         <div class="modal-content">
             <div class="modal-header">
                 <h5 class="modal-title">Đăng ký bệnh nhân mới</h5>
-                <button type="button" class="modal-close">
+                <button type="button" class="modal-close" onclick="closeModal('newPatientModal')">
                     <i class="fas fa-times"></i>
                 </button>
             </div>
@@ -217,6 +217,10 @@
 
 <script>
     function savePatient() {
+        if (!validateForm()) {
+            return;
+        }
+
         const form = document.getElementById('patientForm');
         const formData = new FormData(form);
         const data = {
@@ -278,7 +282,65 @@
         });
     }
 
+    function showModal(modalId) {
+        const modal = document.getElementById(modalId);
+        modal.classList.add('show');
+        document.body.style.overflow = 'hidden';
+    }
+    
     function closeModal(modalId) {
-        document.getElementById(modalId).classList.remove('show');
+        const modal = document.getElementById(modalId);
+        modal.classList.remove('show');
+        document.body.style.overflow = '';
+    
+        // Reset form
+        if (modalId === 'newPatientModal') {
+            document.getElementById('patientForm').reset();
+            clearValidation();
+        }
+    }
+    
+    function clearValidation() {
+        // Remove any existing error messages
+        document.querySelectorAll('.error-message').forEach(el => el.remove());
+        document.querySelectorAll('.form-control.is-invalid').forEach(el => {
+            el.classList.remove('is-invalid');
+        });
+    }
+    
+    function validateForm() {
+        const form = document.getElementById('patientForm');
+        const requiredFields = form.querySelectorAll('[required]');
+        let isValid = true;
+    
+        clearValidation();
+    
+        requiredFields.forEach(field => {
+            if (!field.value.trim()) {
+                isValid = false;
+                field.classList.add('is-invalid');
+                
+                const errorDiv = document.createElement('div');
+                errorDiv.className = 'error-message';
+                errorDiv.textContent = 'Trường này là bắt buộc';
+                field.parentNode.appendChild(errorDiv);
+            }
+        });
+    
+        // Phone number validation
+        const phoneFields = form.querySelectorAll('input[type="tel"]');
+        phoneFields.forEach(field => {
+            if (field.value && !/^[0-9]{10,11}$/.test(field.value)) {
+                isValid = false;
+                field.classList.add('is-invalid');
+                
+                const errorDiv = document.createElement('div');
+                errorDiv.className = 'error-message';
+                errorDiv.textContent = 'Số điện thoại không hợp lệ';
+                field.parentNode.appendChild(errorDiv);
+            }
+        });
+    
+        return isValid;
     }
 </script>
