@@ -6,7 +6,6 @@ sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), '..')))
 from backend.app import create_app
 from flask import send_from_directory, send_file
 
-
 # Get environment configuration
 env = os.getenv('FLASK_ENV', 'development')
 app = create_app(env)

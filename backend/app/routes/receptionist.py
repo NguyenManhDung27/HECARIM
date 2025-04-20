@@ -1,6 +1,8 @@
-from flask import Blueprint, app, redirect, render_template, url_for
+from flask import Blueprint, app, jsonify, redirect, render_template, url_for
 from flask_login import login_required, current_user, logout_user
 from datetime import datetime
+
+from backend.app.utils.api_utils import handle_api_error
 
 receptionist_bp = Blueprint('receptionist', __name__)
 
@@ -33,3 +35,31 @@ def dashboard():
 # def logout():
 #     logout_user()
 #     return redirect(url_for('auth.login'))
+# @receptionist_bp.route('/api/patients', methods=['POST'])
+# @login_required
+# # @role_required('receptionist')
+# @handle_api_error
+# def create_patient():
+#     print("Hàm create_patient đã được gọi!")
+#     # data = request.get_json()
+
+#     # required_fields = ['fullName', 'dateOfBirth', 'gender', 'phone', 'address']
+#     # for field in required_fields:
+#     #     if not data.get(field):
+#     #         return api_error(f'{field} is required', 400)
+
+#     # patient = {
+#     #     'patientId': f"BN{int(datetime.now().timestamp())}",
+#     #     'personalInfo': {
+#     #         'fullName': data['fullName'],
+#     #         'dateOfBirth': data['dateOfBirth'],
+#     #         'gender': data['gender'],
+#     #         'phone': data['phone'],
+#     #         'address': data['address']
+#     #     },
+#     #     'createdAt': datetime.now(),
+#     #     'updatedAt': datetime.now()
+#     # }
+
+#     # mongo.db.patients.insert_one(patient)
+#     return jsonify({'message': 'Patient created successfully'})

@@ -32,6 +32,9 @@ def create_app(env="development"):
         from .routes.receptionist import receptionist_bp
         app.register_blueprint(receptionist_bp, url_prefix='/receptionist')
 
+        from .routes.receptionist_api import receptionist_api
+        app.register_blueprint(receptionist_api, url_prefix='/receptionist/api')
+
         from .routes.patient import patient_bp
         app.register_blueprint(patient_bp, url_prefix='/patient')
         

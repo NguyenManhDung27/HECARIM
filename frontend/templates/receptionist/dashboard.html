@@ -4,25 +4,25 @@
 
 {% block sidebar_menu %}
 <div class="nav-item">
-    <a href="{{ url_for('receptionist.dashboard') }}" class="nav-link {% if request.endpoint == 'receptionist.dashboard' %}active{% endif %}">
+    <a class="nav-link {% if request.endpoint == 'receptionist.dashboard' %}active{% endif %}">
         <i class="fas fa-home"></i>
         Tổng quan
     </a>
 </div>
 <div class="nav-item">
-    <a href="#" class="nav-link" onclick="showModal('newPatientModal')">
+    <a class="nav-link" onclick="showModal('newPatientModal')">
         <i class="fas fa-user-plus"></i>
         Đăng ký bệnh nhân
     </a>
 </div>
 <div class="nav-item">
-    <a href="#" class="nav-link" onclick="showModal('newAppointmentModal')">
+    <a class="nav-link" onclick="showModal('newAppointmentModal')">
         <i class="fas fa-calendar-plus"></i>
         Đặt lịch khám
     </a>
 </div>
 <div class="nav-item">
-    <a href="#" class="nav-link">
+    <a class="nav-link">
         <i class="fas fa-clock"></i>
         Lịch hẹn
     </a>
@@ -185,9 +185,9 @@
 
 {% block extra_scripts %}
 <script>
-    // Auto refresh waiting list every 30 seconds
-    setInterval(function() {
-        location.reload();
-    }, 30000);
+    // // Auto refresh waiting list every 30 seconds
+    // setInterval(function() {
+    //     location.reload();
+    // }, 30000);
 </script>
 {% endblock %}
