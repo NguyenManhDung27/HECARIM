@@ -30,6 +30,7 @@ def get_appointment(appointment_id):
 @handle_api_error
 def create_appointment():
     data = request.get_json()
+
     appointment_data = {
         'patientId': data['patient_id'],
         'doctorId': data['doctor_id'],
@@ -43,20 +44,16 @@ def create_appointment():
     }
     try:
         mongo.db.appointments.insert_one(appointment_data)
-        print("Dữ liệu đã được lưu thành công!")
     except Exception as e:
-        print(f"Lỗi khi lưu dữ liệu: {e}")
         return jsonify({'error': 'Internal Server Error'}), 500
-    print("Received JSON:", data)
     return jsonify({'success': True, "message": "Appointment created successfully"}), 200
 
 @receptionist_api.route('/patients/search', methods=['GET'])
 @login_required
 @role_required('receptionist')
 def search_patients():
-    print("Hàm search_patients đã được gọi!")
     query = request.args.get('q', '').strip()
-    
+    print("Query:", query)
     # Kiểm tra nếu query quá ngắn
     if len(query) < 2:
         return jsonify({'message': 'Query quá ngắn', 'patients': []}), 400
@@ -109,7 +106,6 @@ def search_doctors():
         } for doctor in doctors]
         return jsonify(results)
     except Exception as e:
-        print(f"Lỗi khi tìm bác sĩ: {e}")
         return jsonify({'error': 'Có lỗi xảy ra khi tìm bác sĩ'}), 500
 
 @receptionist_api.route('/patients', methods=['POST'])
@@ -120,7 +116,6 @@ def create_patient():
     data = request.get_json()
     existing_patient = mongo.db.patients.find_one({'personalInfo.idNumber': data['personalInfo']['idNumber']})
     if existing_patient:
-        print(f"Bệnh nhân với ID {data['personalInfo']['idNumber']} đã tồn tại!")
         return jsonify({'success': False, 'error': 'CCCD đã được đăng kí trước đó'}), 400
     patient = {
     'patientId': f"BN{int(datetime.now().timestamp())}",
@@ -146,9 +141,7 @@ def create_patient():
     }
     try:
         mongo.db.patients.insert_one(patient)
-        print("Dữ liệu đã được lưu thành công!")
     except Exception as e:
-        print(f"Lỗi khi lưu dữ liệu: {e}")
         return jsonify({'error': 'Internal Server Error'}), 500
     return jsonify({'success': True, 'message': 'Patient created successfully'}), 201
 
@@ -171,8 +164,6 @@ def get_time_slots():
     # Giới hạn thời gian làm việc: 7:00 - 18:00
     start_of_day = datetime.combine(date, time.min).replace(tzinfo=timezone.utc)
     end_of_day = datetime.combine(date, time.max).replace(tzinfo=timezone.utc)
-    print("Start of day:", start_of_day.isoformat())
-    print("End of day:", end_of_day.isoformat())
     # Truy vấn chỉ những lịch của bác sĩ và trong ngày cụ thể
     appointments = mongo.db.appointments.find({
         'doctorId': doctor_id,
@@ -183,7 +174,6 @@ def get_time_slots():
     })
 
     booked_times = [appt['timeSlot'] for appt in appointments]
-    print("Khung giờ đã đặt:", booked_times)
     start_of_day = datetime.combine(date, time(7, 0, tzinfo=timezone.utc))
     end_of_day = datetime.combine(date, time(18, 0, tzinfo=timezone.utc))
     # Tạo danh sách khung giờ mỗi 60 phút
@@ -206,6 +196,37 @@ def get_time_slots():
 def list_patients():
     pass
 
+@receptionist_api.route('/appointments/today', methods=['GET'])
+@login_required
+@role_required('receptionist')
+@handle_api_error
+def CheckInToday():
+    print("Hàm checkin search_patients đã được gọi!")
+    query = request.args.get('patient', '').strip()
+    print("Query:", query)
+
+    # Tìm bệnh nhân theo patientId (cho phép tìm gần đúng)
+    patient = mongo.db.patients.find_one({
+        'patientId': {'$regex': query, '$options': 'i'}
+    })
+
+    if not patient:
+        print("Không tìm thấy bệnh nhân")
+        return jsonify({'message': 'Không tìm thấy bệnh nhân', 'patients': []}), 404
+
+    # Format kết quả trả về
+    result = {
+        'id': str(patient['_id']),
+        'patientId': patient.get('patientId', 'Không rõ'),
+        'fullName': patient['personalInfo'].get('fullName', 'Không rõ'),
+        'idNumber': patient['personalInfo'].get('idNumber', 'Không rõ'),
+        'phone': patient['personalInfo'].get('phone', 'Không rõ'),
+        'address': patient['personalInfo'].get('address', 'Không rõ'),
+        'email': patient['personalInfo'].get('email', 'Không rõ'),
+    }
+
+    print("Kết quả:", result)
+    return jsonify({'patient': result}), 200
 
 # Helper
 

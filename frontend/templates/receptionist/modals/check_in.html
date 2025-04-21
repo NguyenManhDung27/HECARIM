@@ -140,13 +140,13 @@
             return;
         }
 
-        fetch(`/api/appointments/today?patient=${encodeURIComponent(searchTerm)}`)
+        fetch(`/receptionist/api/appointments/today?patient=${encodeURIComponent(searchTerm)}`)
             .then(response => response.json())
             .then(data => {
+                console.log(data);
                 document.getElementById('patientAppointments').style.display = 'block';
-                document.getElementById('checkInPatientName').textContent = data.patient.personalInfo.fullName;
+                document.getElementById('checkInPatientName').textContent = data.patient.fullName;
                 document.getElementById('checkInPatientId').textContent = `Mã BN: ${data.patient.patientId}`;
-
                 if (data.appointments.length > 0) {
                     document.getElementById('todayAppointments').innerHTML = data.appointments.map(apt => `
                         <div class="appointment-item mb-2">

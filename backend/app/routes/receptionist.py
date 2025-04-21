@@ -1,3 +1,4 @@
+from bson import ObjectId
 from flask import Blueprint, app, jsonify, redirect, render_template, url_for
 from flask_login import login_required, current_user, logout_user
 from datetime import datetime
@@ -17,12 +18,50 @@ def dashboard():
         'waiting': 4,
         'completed': 3
     }
+    today = datetime.today()
 
     waiting_list = []
     recent_activities = []
+    start_of_day = datetime.combine(today.date(), datetime.min.time())
+    end_of_day = datetime.combine(today.date(), datetime.max.time())
+    appointments = mongo.db.appointments.find({
+        'appointmentTime': {'$gte': start_of_day, '$lte': end_of_day},
+    })
+    for appt in appointments:
+        # Lấy thông tin bệnh nhân
+        patient = mongo.db.patients.find_one({'_id': ObjectId(appt['patientId'])})
+        doctor = mongo.db.doctors.find_one({'_id': ObjectId(appt['doctorId'])})
 
-    today = datetime.today()
+        # An toàn khi truy xuất thông tin
+        patient_name = patient['personalInfo']['fullName'] if patient else 'Không rõ'
+        doctor_name = doctor['personalInfo']['fullName'] if doctor else 'Không rõ'
 
+        waiting_list.append({
+            'name': patient_name,
+            'id': patient.get('patientId', '') if patient else '',
+            'check_in_time': appt.get('timeSlot'),
+            'doctor': doctor_name,
+            'status': 'Chờ khám',
+            'status_class': 'warning'  # hoặc tạo rule cho status_class theo trạng thái
+        })
+    print("Waiting list:", waiting_list)
+    # Truy vấn danh sách bác sĩ từ MongoDB
+    doctors = mongo.db.doctors.find({}, {
+        '_id': 1,
+        'personalInfo.fullName': 1,
+        'professionalInfo.specialization': 1
+    })
+
+    # Chuyển đổi ObjectId sang chuỗi và chuẩn bị dữ liệu
+    doctors_list = [{
+        '_id': str(doctor['_id']),
+        'personalInfo': {
+            'fullName': doctor['personalInfo']['fullName']
+        },
+        'professionalInfo': {
+            'specialization': doctor['professionalInfo'].get('specialization', 'Không rõ')
+        }
+    } for doctor in doctors]   
     return render_template(
         'receptionist/dashboard.html',
         stats=stats,
@@ -30,6 +69,7 @@ def dashboard():
         recent_activities=recent_activities,
         notifications_count=3,  # hoặc context processor như đã nói
         today=today,
+        doctors=doctors_list
     )
 
 # @app.route('/auth/logout', methods=['POST'])

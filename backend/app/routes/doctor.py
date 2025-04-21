@@ -22,7 +22,7 @@ def dashboard():
     today = datetime.today()
 
     return render_template(
-        'receptionist/dashboard.html',
+        'doctor/dashboard.html',
         stats=stats,
         waiting_list=waiting_list,
         recent_activities=recent_activities,

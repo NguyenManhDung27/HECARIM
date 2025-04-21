@@ -12,4 +12,4 @@ def dashboard():
         'bmi': 22.5,    # Ví dụ: chỉ số BMI
         'allergies': ['Dị ứng phấn hoa', 'Dị ứng thuốc']  # Ví dụ: danh sách dị ứng
     }
-    return render_template('patient/dashboard.html', health_info=health_info)
+    return render_template('patient/dashboard.html', health_info=health_info, notifications_count = 3)
