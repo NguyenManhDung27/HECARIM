@@ -1,8 +1,10 @@
 from flask import Blueprint, app, jsonify, redirect, render_template, url_for
 from flask_login import login_required, current_user, logout_user
 from datetime import datetime
+from backend.app import mongo  # Import the mongo object
 
 from backend.app.utils.api_utils import handle_api_error
+from backend.app.utils.auth_utils import role_required
 
 receptionist_bp = Blueprint('receptionist', __name__)
 
@@ -27,7 +29,7 @@ def dashboard():
         waiting_list=waiting_list,
         recent_activities=recent_activities,
         notifications_count=3,  # hoặc context processor như đã nói
-        today=today
+        today=today,
     )
 
 # @app.route('/auth/logout', methods=['POST'])

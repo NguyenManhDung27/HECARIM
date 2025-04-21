@@ -11,18 +11,10 @@ from backend.app.utils.api_utils import (
 )
 from backend.app import mongo
 from bson import ObjectId
-from datetime import datetime, timedelta
+from datetime import datetime, time, timedelta, timezone
 import math
 
 receptionist_api = Blueprint('receptionist/api', __name__)
-
-@receptionist_api.route('/appointments')
-@login_required
-@role_required('receptionist')
-@handle_api_error
-def list_appointments():
-    # ... (giữ nguyên nội dung list_appointments)
-    pass
 
 @receptionist_api.route('/appointments/<appointment_id>')
 @login_required
@@ -32,37 +24,65 @@ def get_appointment(appointment_id):
     # ... (giữ nguyên nội dung get_appointment)
     pass
 
-@receptionist_api.route('/appointments/<appointment_id>/status', methods=['POST'])
+@receptionist_api.route('/appointments', methods=['POST'])
 @login_required
 @role_required('receptionist')
 @handle_api_error
-def update_appointment_status(appointment_id):
-    # ... (giữ nguyên nội dung update_appointment_status)
-    pass
+def create_appointment():
+    data = request.get_json()
+    appointment_data = {
+        'patientId': data['patient_id'],
+        'doctorId': data['doctor_id'],
+        'appointmentTime': datetime.strptime(data['appointment_date'], '%Y-%m-%d'),
+        'timeSlot': data['time_slot'],
+        'status': 'scheduled',
+        'notes': data.get('notes', ''),
+        'reason': data.get('reason', ''),
+        'createdAt': datetime.now(),
+        'updatedAt': datetime.now()
+    }
+    try:
+        mongo.db.appointments.insert_one(appointment_data)
+        print("Dữ liệu đã được lưu thành công!")
+    except Exception as e:
+        print(f"Lỗi khi lưu dữ liệu: {e}")
+        return jsonify({'error': 'Internal Server Error'}), 500
+    print("Received JSON:", data)
+    return jsonify({'success': True, "message": "Appointment created successfully"}), 200
 
-@receptionist_api.route('/search-patients', methods=['GET'])
+@receptionist_api.route('/patients/search', methods=['GET'])
 @login_required
 @role_required('receptionist')
 def search_patients():
     print("Hàm search_patients đã được gọi!")
     query = request.args.get('q', '').strip()
+    
+    # Kiểm tra nếu query quá ngắn
     if len(query) < 2:
-        return jsonify([])
+        return jsonify({'message': 'Query quá ngắn', 'patients': []}), 400
+
+    # Tìm kiếm theo idNumber hoặc fullName
     patients = mongo.db.patients.find({
         '$or': [
-            {'name': {'$regex': query, '$options': 'i'}},
-            {'patientId': {'$regex': query, '$options': 'i'}}
+            {'personalInfo.idNumber': {'$regex': query, '$options': 'i'}},
+            {'personalInfo.fullName': {'$regex': query, '$options': 'i'}}
         ]
     }).limit(10)
+
+    # Xử lý kết quả
     results = [{
         'id': str(patient['_id']),
-        'patientId': patient.get('patientId', ''),
-        'name': patient['personalInfo'].get('fullName', 'Không rõ'),
-        'phone': patient['personalInfo'].get('phone', 'Không rõ')
+        'idNumber': patient['personalInfo'].get('idNumber', 'Không rõ'),
+        'fullName': patient['personalInfo'].get('fullName', 'Không rõ'),
+        'phone': patient['personalInfo'].get('phone', 'Không rõ'),
+        'address': patient['personalInfo'].get('address', 'Không rõ')
     } for patient in patients]
+
+    # Trả về kết quả
     if not results:
-        return jsonify({'message': 'Không tìm thấy bệnh nhân', 'patients': []})
-    return jsonify(results)
+        return jsonify({'message': 'Không tìm thấy bệnh nhân', 'patients': []}), 404
+
+    return jsonify({'patients': results}), 200
 
 @receptionist_api.route('/doctors', methods=['GET'])
 @login_required
@@ -102,14 +122,6 @@ def create_patient():
     if existing_patient:
         print(f"Bệnh nhân với ID {data['personalInfo']['idNumber']} đã tồn tại!")
         return jsonify({'success': False, 'error': 'CCCD đã được đăng kí trước đó'}), 400
-    # print("Dữ liệu nhận được:", data)
-    # required_fields = ['fullName', 'dateOfBirth', 'gender', 'phone', 'address']
-    # for field in required_fields:
-        # if not data.get(field):
-            # print(f"Thiếu trường: {field}")
-            # return api_error(f'{field} is required', 400)
-    # Kiểm tra xem bệnh nhân đã tồn tại chưa    
-    # print("Thông tin bệnh nhân:", data['fullName'], data['dateOfBirth'], data['gender'], data['phone'], data['address'])
     patient = {
     'patientId': f"BN{int(datetime.now().timestamp())}",
     'personalInfo': {
@@ -139,6 +151,53 @@ def create_patient():
         print(f"Lỗi khi lưu dữ liệu: {e}")
         return jsonify({'error': 'Internal Server Error'}), 500
     return jsonify({'success': True, 'message': 'Patient created successfully'}), 201
+
+@receptionist_api.route('/appointments/time-slots', methods=['GET'])
+@login_required
+@role_required('receptionist')
+@handle_api_error
+def get_time_slots():
+    doctor_id = request.args.get('doctorId')
+    date_str = request.args.get('date')
+
+    if not doctor_id or not date_str:
+        return jsonify({'error': 'doctorId and date are required'}), 400
+
+    try:
+        date = datetime.strptime(date_str, '%Y-%m-%d').date()
+    except ValueError:
+        return jsonify({'error': 'Invalid date format. Use YYYY-MM-DD.'}), 400
+
+    # Giới hạn thời gian làm việc: 7:00 - 18:00
+    start_of_day = datetime.combine(date, time.min).replace(tzinfo=timezone.utc)
+    end_of_day = datetime.combine(date, time.max).replace(tzinfo=timezone.utc)
+    print("Start of day:", start_of_day.isoformat())
+    print("End of day:", end_of_day.isoformat())
+    # Truy vấn chỉ những lịch của bác sĩ và trong ngày cụ thể
+    appointments = mongo.db.appointments.find({
+        'doctorId': doctor_id,
+        'appointmentTime': {
+            '$gte': start_of_day,
+            '$lt': end_of_day
+        }
+    })
+
+    booked_times = [appt['timeSlot'] for appt in appointments]
+    print("Khung giờ đã đặt:", booked_times)
+    start_of_day = datetime.combine(date, time(7, 0, tzinfo=timezone.utc))
+    end_of_day = datetime.combine(date, time(18, 0, tzinfo=timezone.utc))
+    # Tạo danh sách khung giờ mỗi 60 phút
+    time_slots = []
+    current = start_of_day
+    while current < end_of_day:
+        time_str = current.strftime('%H:%M')
+        time_slots.append({
+            'time': time_str,
+            'available': time_str not in booked_times
+        })
+        current += timedelta(minutes=60)
+
+    return jsonify(time_slots), 200
 
 @receptionist_api.route('/patients', methods=['GET'])
 @login_required

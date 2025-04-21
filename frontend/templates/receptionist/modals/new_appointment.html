@@ -14,10 +14,8 @@
                     <div class="form-group mb-3">
                         <label class="form-label">Bệnh nhân</label>
                         <div class="input-group">
-                            <input type="text" 
-                                   class="form-control" 
-                                   id="patientSearch" 
-                                   placeholder="Tìm theo mã BN hoặc tên...">
+                            <input type="text" class="form-control" id="patientSearch"
+                                placeholder="Tìm theo CCCD hoặc tên...">
                             <button class="btn btn-primary" type="button" onclick="searchPatient()">
                                 <i class="fas fa-search"></i>
                             </button>
@@ -46,12 +44,8 @@
                     <!-- Appointment Date -->
                     <div class="form-group mb-3">
                         <label class="form-label">Ngày khám</label>
-                        <input type="date" 
-                               class="form-control" 
-                               name="appointment_date" 
-                               required 
-                               min="{{ today.strftime('%Y-%m-%d') }}"
-                               onchange="loadTimeSlots()">
+                        <input type="date" class="form-control" name="appointment_date" required
+                            min="{{ today.strftime('%Y-%m-%d') }}" onchange="loadTimeSlots()">
                     </div>
 
                     <!-- Time Slots -->
@@ -99,22 +93,44 @@
 
 <script>
     function searchPatient() {
-        const searchTerm = document.getElementById('patientSearch').value;
+        const searchTerm = document.getElementById('patientSearch').value.trim();
         const resultsContainer = document.getElementById('patientSearchResults');
 
+        // Kiểm tra nếu từ khóa tìm kiếm quá ngắn
         if (searchTerm.length < 2) {
             resultsContainer.style.display = 'none';
             return;
         }
 
-        fetch(`/api/patients/search?q=${encodeURIComponent(searchTerm)}`)
-            .then(response => response.json())
-            .then(patients => {
-                resultsContainer.innerHTML = patients.map(patient => `
-                    <a class="dropdown-item" href="#" onclick="selectPatient('${patient._id}', '${patient.patientId}', '${patient.personalInfo.fullName}')">
-                        ${patient.patientId} - ${patient.personalInfo.fullName}
-                    </a>
-                `).join('');
+        // Gửi yêu cầu tìm kiếm đến backend
+        fetch(`/receptionist/api/patients/search?q=${encodeURIComponent(searchTerm)}`)
+            .then(response => {
+                if (!response.ok) {
+                    return response.json().then(err => {
+                        throw new Error(err.message || 'Có lỗi xảy ra khi tìm kiếm bệnh nhân');
+                    });
+                }
+                return response.json();
+            })
+            .then(data => {
+                // Kiểm tra nếu không tìm thấy bệnh nhân
+                if (!data.patients || data.patients.length === 0) {
+                    resultsContainer.innerHTML = '<div class="dropdown-item text-muted">Không tìm thấy bệnh nhân</div>';
+                    resultsContainer.style.display = 'block';
+                    return;
+                }
+
+                // Hiển thị danh sách bệnh nhân tìm được
+                resultsContainer.innerHTML = data.patients.map(patient => `
+                <a class="dropdown-item" href="#" onclick="selectPatient('${patient.id}', '${patient.idNumber}', '${patient.fullName}')">
+                    ${patient.idNumber} - ${patient.fullName}
+                </a>
+            `).join('');
+                resultsContainer.style.display = 'block';
+            })
+            .catch(err => {
+                console.error('Lỗi:', err.message);
+                resultsContainer.innerHTML = '<div class="dropdown-item text-danger">Có lỗi xảy ra khi tìm kiếm</div>';
                 resultsContainer.style.display = 'block';
             });
     }
@@ -123,7 +139,7 @@
         document.getElementById('selectedPatientId').value = id;
         document.getElementById('patientSearch').value = `${patientId} - ${name}`;
         document.getElementById('patientSearchResults').style.display = 'none';
-        
+
         document.getElementById('selectedPatientInfo').innerHTML = `
             <strong>Bệnh nhân đã chọn:</strong> ${name} (${patientId})
             <button type="button" class="btn-close float-end" onclick="clearSelectedPatient()"></button>
@@ -141,7 +157,7 @@
         // Reset time slots
         document.getElementById('timeSlots').innerHTML = '';
         document.getElementById('selectedTimeSlot').value = '';
-        
+
         // If no doctor is selected, return
         if (!doctorId) return;
 
@@ -157,25 +173,46 @@
         const date = document.querySelector('input[name="appointment_date"]').value;
         const timeSlotsContainer = document.getElementById('timeSlots');
 
+        // Nếu chưa chọn bác sĩ hoặc ngày thì không làm gì
         if (!doctorId || !date) {
             timeSlotsContainer.innerHTML = '';
             return;
         }
 
-        fetch(`/api/doctors/${doctorId}/time-slots?date=${date}`)
-            .then(response => response.json())
+        // Gửi request tới backend để lấy khung giờ
+        fetch(`/receptionist/api/appointments/time-slots?doctorId=${doctorId}&date=${date}`)
+            .then(response => {
+                if (!response.ok) {
+                    throw new Error("Không thể tải khung giờ");
+                }
+                return response.json();
+            })
             .then(slots => {
+                if (!Array.isArray(slots)) {
+                    throw new Error("Dữ liệu không hợp lệ");
+                }
+
+                // Tạo thẻ <select> với các option giờ có thể đặt
+                const availableSlots = slots.filter(slot => slot.available);
+                if (availableSlots.length === 0) {
+                    timeSlotsContainer.innerHTML = '<div class="text-muted">Không có khung giờ khả dụng</div>';
+                    return;
+                }
+
+                const optionsHtml = availableSlots.map(slot => `
+                <option value="${slot.time}">${slot.time}</option>
+                `).join('');
+
                 timeSlotsContainer.innerHTML = `
-                    <div class="d-flex flex-wrap gap-2">
-                        ${slots.map(slot => `
-                            <div class="time-slot ${slot.available ? '' : 'booked'}"
-                                 onclick="${slot.available ? `selectTimeSlot('${slot.time}')` : ''}"
-                                 data-time="${slot.time}">
-                                ${slot.time}
-                            </div>
-                        `).join('')}
-                    </div>
-                `;
+                <select class="form-select" onchange="document.getElementById('selectedTimeSlot').value = this.value">
+                    <option value="">Chọn giờ khám...</option>
+                    ${optionsHtml}
+                </select>
+            `;
+            })
+            .catch(error => {
+                console.error('Lỗi khi tải khung giờ:', error.message);
+                timeSlotsContainer.innerHTML = '<div class="text-danger">Không thể tải khung giờ. Vui lòng thử lại sau.</div>';
             });
     }
 
@@ -200,23 +237,23 @@
             alert('Vui lòng chọn giờ khám');
             return;
         }
-
-        fetch('/api/appointments', {
+        console.log(Object.fromEntries(formData));
+        fetch('/receptionist/api/appointments', {
             method: 'POST',
             headers: {
                 'Content-Type': 'application/json',
             },
             body: JSON.stringify(Object.fromEntries(formData))
         })
-        .then(response => response.json())
-        .then(result => {
-            if (result.success) {
-                closeModal('newAppointmentModal');
-                window.location.reload();
-            } else {
-                alert('Có lỗi xảy ra khi đặt lịch hẹn');
-            }
-        });
+            .then(response => response.json())
+            .then(result => {
+                if (result.success) {
+                    closeModal('newAppointmentModal');
+                    window.location.reload();
+                } else {
+                    alert('Có lỗi xảy ra khi đặt lịch hẹn');
+                }
+            });
     }
 
     function closeModal(modalId) {

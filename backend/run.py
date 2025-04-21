@@ -23,4 +23,4 @@ def index():
 
 if __name__ == '__main__':
     # Set host to 0.0.0.0 to make it accessible from outside the container
-    app.run(host='0.0.0.0', port=5000)
+    app.run(host='0.0.0.0', port=5000, debug=True)
