@@ -10,25 +10,25 @@
     </a>
 </div>
 <div class="nav-item">
-    <a href="{{ url_for('doctor.appointments') }}" class="nav-link">
+    <a href="#" class="nav-link">
         <i class="fas fa-calendar-alt"></i>
         Lịch khám bệnh
     </a>
 </div>
 <div class="nav-item">
-    <a href="{{ url_for('doctor.patients') }}" class="nav-link active">
+    <a href="#" class="nav-link active">
         <i class="fas fa-users"></i>
         Danh sách bệnh nhân
     </a>
 </div>
 <div class="nav-item">
-    <a href="{{ url_for('doctor.medical_records') }}" class="nav-link">
+    <a href="#" class="nav-link">
         <i class="fas fa-file-medical"></i>
         Hồ sơ bệnh án
     </a>
 </div>
 <div class="nav-item">
-    <a href="{{ url_for('doctor.prescriptions') }}" class="nav-link">
+    <a href="#" class="nav-link">
         <i class="fas fa-prescription"></i>
         Kê đơn thuốc
     </a>
@@ -111,7 +111,7 @@
                         <td>{{ patient.personalInfo.phone }}</td>
                         <td>
                             {% if patient.last_visit %}
-                            {{ patient.last_visit.strftime('%d/%m/%Y') }}
+                                {{ patient.last_visit.strftime('%d/%m/%Y') }}
                             {% else %}
                             <span class="text-muted">Chưa có</span>
                             {% endif %}
@@ -278,4 +278,19 @@
         }
     });
 </script>
+<style>
+    .pagination {
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        flex-wrap: nowrap; /* Đảm bảo các phần tử nằm trên cùng một dòng */
+        list-style: none; /* Loại bỏ dấu chấm đen nếu có */
+        padding: 0; /* Loại bỏ khoảng cách thừa */
+        margin: 0; /* Loại bỏ khoảng cách thừa */
+    }
+
+    .pagination .page-item {
+        margin: 0 5px; /* Thêm khoảng cách giữa các nút */
+    }
+</style>
 {% endblock %}

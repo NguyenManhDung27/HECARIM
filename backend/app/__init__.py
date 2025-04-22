@@ -29,6 +29,9 @@ def create_app(env="development"):
         from .routes.doctor import doctor_bp
         app.register_blueprint(doctor_bp, url_prefix='/doctor')
 
+        from .routes.doctor_api import doctor_api
+        app.register_blueprint(doctor_api, url_prefix='/doctor/api')
+        
         from .routes.receptionist import receptionist_bp
         app.register_blueprint(receptionist_bp, url_prefix='/receptionist')
 

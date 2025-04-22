@@ -30,13 +30,14 @@ def get_appointment(appointment_id):
 @handle_api_error
 def create_appointment():
     data = request.get_json()
-
+    print("Received data:", data)
     appointment_data = {
         'patientId': data['patient_id'],
         'doctorId': data['doctor_id'],
         'appointmentTime': datetime.strptime(data['appointment_date'], '%Y-%m-%d'),
         'timeSlot': data['time_slot'],
         'status': 'scheduled',
+        'type': data.get('type', ''),
         'notes': data.get('notes', ''),
         'reason': data.get('reason', ''),
         'createdAt': datetime.now(),
@@ -121,7 +122,7 @@ def create_patient():
     'patientId': f"BN{int(datetime.now().timestamp())}",
     'personalInfo': {
         'fullName': data['personalInfo']['fullName'],
-        'dateOfBirth': data['personalInfo']['dateOfBirth'],
+        'dateOfBirth': datetime.fromisoformat(data['personalInfo']['dateOfBirth']),
         'gender': data['personalInfo']['gender'],
         'idNumber': data['personalInfo']['idNumber'],
         'address': data['personalInfo']['address'],

@@ -1,4 +1,4 @@
-from flask import Blueprint, render_template, jsonify
+from flask import Blueprint, render_template, jsonify, request
 from flask_login import login_required, current_user
 from ..extensions import mongo
 from bson import ObjectId
@@ -15,60 +15,35 @@ def dashboard():
         'waiting': 4,
         'completed': 3
     }
-
-    waiting_list = []
-    recent_activities = []
-
+    appointments = []
+    # Lấy thông tin bác sĩ từ cơ sở dữ liệu
     today = datetime.today()
-
+    start_of_day = datetime.combine(today.date(), datetime.min.time())
+    end_of_day = datetime.combine(today.date(), datetime.max.time())
+    appointments_list = mongo.db.appointments.find({
+        'doctorId': str(current_user.user_data.get('staff_id')), # Thay thế bằng ID bác sĩ thực tế
+        'appointmentTime': {'$gte': start_of_day, '$lte': end_of_day},
+    })
+    for appt in appointments_list:
+        # Lấy thông tin bệnh nhân
+        patient = mongo.db.patients.find_one({'_id': ObjectId(appt['patientId'])})
+        # An toàn khi truy xuất thông tin
+        patient_name = patient['personalInfo']['fullName'] if patient else 'Không rõ'
+        appointments.append({
+            'patient_name': patient_name,
+            'patient_id': patient.get('patientId', '') if patient else '',
+            'time': appt.get('timeSlot'),
+            'status': 'chờ khám',  # Hoặc trạng thái khác
+            'type': appt.get('type'),  # Hoặc trạng thái khác
+            'status_class': 'warning'  # hoặc tạo rule cho status_class theo trạng thái
+        })    
     return render_template(
         'doctor/dashboard.html',
         stats=stats,
-        waiting_list=waiting_list,
-        recent_activities=recent_activities,
         notifications_count=3,  # hoặc context processor như đã nói
-        today=today
+        today=today,
+        appointments=appointments,  # Truyền danh sách cuộc hẹn vào template
     )
-    # Get today's appointments
-    # today_appointments = mongo.db.appointments.find({
-    #     'doctor_id': current_user.user_data.get('staff_id'),
-    #     'date': {'$gte': datetime.now().replace(hour=0, minute=0, second=0),
-    #              '$lt': datetime.now().replace(hour=23, minute=59, second=59)}
-    # })
-
-    # # Get monitored patients
-    # monitored_patients = mongo.db.patients.find({
-    #     'monitoring_doctor_id': current_user.user_data.get('staff_id')
-    # }).limit(5)
-
-    # stats = {
-    #     'total_appointments': mongo.db.appointments.count_documents({
-    #         'doctor_id': current_user.user_data.get('staff_id'),
-    #         'date': {'$gte': datetime.now().replace(hour=0, minute=0, second=0),
-    #                 '$lt': datetime.now().replace(hour=23, minute=59, second=59)}
-    #     }),
-    #     'completed_appointments': mongo.db.appointments.count_documents({
-    #         'doctor_id': current_user.user_data.get('staff_id'),
-    #         'date': {'$gte': datetime.now().replace(hour=0, minute=0, second=0),
-    #                 '$lt': datetime.now().replace(hour=23, minute=59, second=59)},
-    #         'status': 'completed'
-    #     }),
-    #     'waiting_appointments': mongo.db.appointments.count_documents({
-    #         'doctor_id': current_user.user_data.get('staff_id'),
-    #         'date': {'$gte': datetime.now().replace(hour=0, minute=0, second=0),
-    #                 '$lt': datetime.now().replace(hour=23, minute=59, second=59)},
-    #         'status': 'waiting'
-    #     }),
-    #     'prescriptions': mongo.db.prescriptions.count_documents({
-    #         'doctor_id': current_user.user_data.get('staff_id'),
-    #         'created_at': {'$gte': datetime.now().replace(hour=0, minute=0, second=0),
-    #                       '$lt': datetime.now().replace(hour=23, minute=59, second=59)}
-    #     })
-    # }
-    # return render_template('doctor/dashboard.html',
-    #                      stats=stats,
-    #                      appointments=list(today_appointments),
-    #                      monitored_patients=list(monitored_patients))
 
 @doctor_bp.route('/medical-records')
 @login_required
@@ -83,9 +58,32 @@ def prescriptions():
 @doctor_bp.route('/patients')
 @login_required
 def patients():
-    patients = mongo.db.patients.find()
-    return render_template('doctor/patients.html', patients=list(patients))
+    page = request.args.get('page', 1, type=int)  # Lấy số trang từ query string, mặc định là 1
+    per_page = 10  # Số lượng bệnh nhân trên mỗi trang
+    if page < 1:
+        page = 1  # Đảm bảo số trang không nhỏ hơn 1
 
+    # Đếm tổng số bệnh nhân
+    total_patients = mongo.db.patients.count_documents({})  # Đếm tất cả bệnh nhân
+
+    # Lấy danh sách bệnh nhân với phân trang
+    patients_cursor = mongo.db.patients.find().skip((page - 1) * per_page).limit(per_page)
+
+    # Tính toán tổng số trang
+    total_pages = (total_patients + per_page - 1) // per_page
+    # Kiểm tra xem có trang trước và trang sau không
+    has_prev = page > 1
+    has_next = page < total_pages
+
+    return render_template(
+        'doctor/patients.html',
+        patients=list(patients_cursor),
+        page=page,
+        total_pages=total_pages,
+        has_prev=has_prev,
+        has_next=has_next,
+        notifications_count=3
+    )
 @doctor_bp.route('/patient/<string:patient_id>')
 @login_required
 def patient_details(patient_id):

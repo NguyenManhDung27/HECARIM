@@ -41,7 +41,7 @@ def dashboard():
             'id': patient.get('patientId', '') if patient else '',
             'check_in_time': appt.get('timeSlot'),
             'doctor': doctor_name,
-            'status': 'Chờ khám',
+            'status': 'chờ khám',  # Hoặc trạng thái khác
             'status_class': 'warning'  # hoặc tạo rule cho status_class theo trạng thái
         })
     print("Waiting list:", waiting_list)
@@ -71,37 +71,3 @@ def dashboard():
         today=today,
         doctors=doctors_list
     )
-
-# @app.route('/auth/logout', methods=['POST'])
-# @login_required
-# def logout():
-#     logout_user()
-#     return redirect(url_for('auth.login'))
-# @receptionist_bp.route('/api/patients', methods=['POST'])
-# @login_required
-# # @role_required('receptionist')
-# @handle_api_error
-# def create_patient():
-#     print("Hàm create_patient đã được gọi!")
-#     # data = request.get_json()
-
-#     # required_fields = ['fullName', 'dateOfBirth', 'gender', 'phone', 'address']
-#     # for field in required_fields:
-#     #     if not data.get(field):
-#     #         return api_error(f'{field} is required', 400)
-
-#     # patient = {
-#     #     'patientId': f"BN{int(datetime.now().timestamp())}",
-#     #     'personalInfo': {
-#     #         'fullName': data['fullName'],
-#     #         'dateOfBirth': data['dateOfBirth'],
-#     #         'gender': data['gender'],
-#     #         'phone': data['phone'],
-#     #         'address': data['address']
-#     #     },
-#     #     'createdAt': datetime.now(),
-#     #     'updatedAt': datetime.now()
-#     # }
-
-#     # mongo.db.patients.insert_one(patient)
-#     return jsonify({'message': 'Patient created successfully'})
