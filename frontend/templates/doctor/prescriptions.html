@@ -10,9 +10,9 @@
     </a>
 </div>
 <div class="nav-item">
-    <a href="{{ url_for('doctor.appointments') }}" class="nav-link">
-        <i class="fas fa-calendar-alt"></i>
-        Lịch khám bệnh
+    <a href="#" class="nav-link"></a>
+    <i class="fas fa-calendar-alt"></i>
+    Lịch khám bệnh
     </a>
 </div>
 <div class="nav-item">
@@ -63,11 +63,8 @@
                 <div class="col-md-6">
                     <div class="form-group">
                         <label class="form-label">Ngày kê đơn</label>
-                        <input type="date" 
-                               class="form-control" 
-                               name="issue_date" 
-                               value="{{ today.strftime('%Y-%m-%d') }}" 
-                               required>
+                        <input type="date" class="form-control" name="issue_date"
+                            value="{{ today.strftime('%Y-%m-%d') }}" required>
                     </div>
                 </div>
             </div>
@@ -90,10 +87,8 @@
             <!-- Notes -->
             <div class="form-group mb-4">
                 <label class="form-label">Ghi chú</label>
-                <textarea class="form-control" 
-                          name="notes" 
-                          rows="3" 
-                          placeholder="Nhập ghi chú cho đơn thuốc..."></textarea>
+                <textarea class="form-control" name="notes" rows="3"
+                    placeholder="Nhập ghi chú cho đơn thuốc..."></textarea>
             </div>
 
             <!-- Submit Button -->
@@ -112,10 +107,7 @@
     <div class="card-header d-flex justify-content-between align-items-center">
         <h3 class="card-title mb-0">Đơn thuốc gần đây</h3>
         <div class="input-group" style="width: 300px;">
-            <input type="text" 
-                   class="form-control" 
-                   placeholder="Tìm kiếm đơn thuốc..."
-                   id="searchPrescription">
+            <input type="text" class="form-control" placeholder="Tìm kiếm đơn thuốc..." id="searchPrescription">
             <button class="btn btn-primary">
                 <i class="fas fa-search"></i>
             </button>
@@ -137,7 +129,7 @@
                 <tbody>
                     {% for prescription in prescriptions %}
                     <tr>
-                        <td>{{ prescription.issue_date.strftime('%d/%m/%Y') }}</td>
+                        <td>{{ prescription.issue_date }}</td>
                         <td>{{ prescription.patient_id }}</td>
                         <td>{{ prescription.patient_name }}</td>
                         <td>{{ prescription.medications|length }}</td>
@@ -149,15 +141,13 @@
                             {% endif %}
                         </td>
                         <td>
-                            <button type="button" 
-                                    class="btn btn-primary btn-sm"
-                                    onclick="viewPrescription('{{ prescription._id }}')">
+                            <button type="button" class="btn btn-primary btn-sm"
+                                onclick="viewPrescription('{{ prescription._id }}')">
                                 <i class="fas fa-eye"></i>
                                 Xem
                             </button>
-                            <button type="button" 
-                                    class="btn btn-secondary btn-sm"
-                                    onclick="printPrescription('{{ prescription._id }}')">
+                            <button type="button" class="btn btn-secondary btn-sm"
+                                onclick="printPrescription('{{ prescription._id }}')">
                                 <i class="fas fa-print"></i>
                                 In
                             </button>
@@ -181,9 +171,8 @@
                         <select class="form-select medication-select" name="medications[][id]" required>
                             <option value="">Chọn thuốc...</option>
                             {% for med in medications %}
-                            <option value="{{ med._id }}" 
-                                    data-unit="{{ med.dosageForm }}"
-                                    data-instructions="{{ med.usageInstructions }}">
+                            <option value="{{ med._id }}" data-unit="{{ med.dosageForm }}"
+                                data-instructions="{{ med.usageInstructions }}">
                                 {{ med.name }} ({{ med.strength }})
                             </option>
                             {% endfor %}
@@ -193,36 +182,25 @@
                 <div class="col-md-2">
                     <div class="form-group">
                         <label class="form-label">Liều lượng</label>
-                        <input type="text" 
-                               class="form-control" 
-                               name="medications[][dosage]"
-                               required>
+                        <input type="text" class="form-control" name="medications[][dosage]" required>
                     </div>
                 </div>
                 <div class="col-md-2">
                     <div class="form-group">
                         <label class="form-label">Tần suất</label>
-                        <input type="text" 
-                               class="form-control" 
-                               name="medications[][frequency]"
-                               placeholder="VD: 2 lần/ngày"
-                               required>
+                        <input type="text" class="form-control" name="medications[][frequency]"
+                            placeholder="VD: 2 lần/ngày" required>
                     </div>
                 </div>
                 <div class="col-md-2">
                     <div class="form-group">
                         <label class="form-label">Thời gian</label>
-                        <input type="text" 
-                               class="form-control" 
-                               name="medications[][duration]"
-                               placeholder="VD: 7 ngày"
-                               required>
+                        <input type="text" class="form-control" name="medications[][duration]" placeholder="VD: 7 ngày"
+                            required>
                     </div>
                 </div>
                 <div class="col-md-2 d-flex align-items-center justify-content-end">
-                    <button type="button" 
-                            class="btn btn-danger btn-sm"
-                            onclick="removeMedication(this)">
+                    <button type="button" class="btn btn-danger btn-sm" onclick="removeMedication(this)">
                         <i class="fas fa-trash"></i>
                         Xóa
                     </button>
@@ -232,10 +210,7 @@
                 <div class="col-12">
                     <div class="form-group">
                         <label class="form-label">Hướng dẫn sử dụng</label>
-                        <textarea class="form-control" 
-                                  name="medications[][instructions]" 
-                                  rows="2"
-                                  required></textarea>
+                        <textarea class="form-control" name="medications[][instructions]" rows="2" required></textarea>
                     </div>
                 </div>
             </div>
@@ -282,8 +257,8 @@
         const select = event.target;
         const option = select.options[select.selectedIndex];
         const instructionsField = select.closest('.medication-item')
-                                      .querySelector('textarea[name$="[instructions]"]');
-        
+            .querySelector('textarea[name$="[instructions]"]');
+
         if (option.value) {
             instructionsField.value = option.dataset.instructions || '';
         }
@@ -295,7 +270,7 @@
             .then(prescription => {
                 const modal = document.getElementById('prescriptionModal');
                 const details = document.getElementById('prescriptionDetails');
-                
+
                 details.innerHTML = `
                     <div class="row mb-3">
                         <div class="col-md-6">
@@ -343,7 +318,7 @@
                         </div>
                     ` : ''}
                 `;
-                
+
                 modal.classList.add('show');
             });
     }
@@ -353,11 +328,11 @@
     }
 
     // Event listeners for modal
-    document.querySelector('.modal-close').addEventListener('click', function() {
+    document.querySelector('.modal-close').addEventListener('click', function () {
         document.getElementById('prescriptionModal').classList.remove('show');
     });
 
-    document.addEventListener('click', function(event) {
+    document.addEventListener('click', function (event) {
         const modal = document.getElementById('prescriptionModal');
         if (event.target === modal) {
             modal.classList.remove('show');
@@ -365,17 +340,37 @@
     });
 
     // Form submission
-    document.getElementById('prescriptionForm').addEventListener('submit', function(e) {
-        if (!confirm('Xác nhận kê đơn thuốc?')) {
-            e.preventDefault();
-        }
+    document.getElementById('prescriptionForm').addEventListener('submit', function (e) {
+        e.preventDefault();
+
+        const formData = new FormData(this);
+        const data = Object.fromEntries(formData);
+
+        fetch('/doctor/api/prescriptions', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json'
+            },
+            body: JSON.stringify(data)
+        })
+            .then(response => response.json())
+            .then(result => {
+                if (result.success) {
+                    window.location.reload();
+                    alert(result.message);
+                    this.reset();
+                } else {
+                    alert(result.message);
+                }
+            })
+            .catch(error => console.error('Error:', error));
     });
 
     // Search functionality
-    document.getElementById('searchPrescription').addEventListener('input', function(e) {
+    document.getElementById('searchPrescription').addEventListener('input', function (e) {
         const searchTerm = e.target.value.toLowerCase();
         const rows = document.querySelectorAll('tbody tr');
-        
+
         rows.forEach(row => {
             const text = row.textContent.toLowerCase();
             row.style.display = text.includes(searchTerm) ? '' : 'none';

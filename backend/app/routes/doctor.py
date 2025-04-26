@@ -48,12 +48,38 @@ def dashboard():
 @doctor_bp.route('/medical-records')
 @login_required
 def medical_records():
-    return render_template('doctor/medical_records.html')
+    return render_template('doctor/medical_records.html',
+                           notifications_count=3,)
 
 @doctor_bp.route('/prescriptions')
 @login_required
 def prescriptions():
-    return render_template('doctor/prescriptions.html')
+    print("Patients loaded")
+    patients =list(mongo.db.patients.find())
+    for patient in patients:
+        patient['_id'] = str(patient['_id'])  # Chuyển đổi ObjectId thành chuỗi
+    # patients = list(patients)  # Chuyển đổi cursor thành danh sách
+    medications = list(mongo.db.medications.find())
+    prescriptions = list(mongo.db.prescriptions.find())
+
+    # Tạo dictionary ánh xạ `patient_id` -> `patient_name`
+    patient_map = {str(patient['_id']): patient['personalInfo']['fullName'] for patient in patients}
+
+# Chuyển đổi ObjectId thành chuỗi và thêm `patient_name` vào mỗi đơn thuốc
+    for prescription in prescriptions:
+        prescription['_id'] = str(prescription['_id'])
+        prescription['patient_id'] = str(prescription['patient_id'])
+        prescription['doctor_id'] = str(prescription['doctor_id'])
+        prescription['issue_date'] = prescription['issue_date'].strftime('%Y-%m-%d')  # Định dạng ngày
+        prescription['patient_name'] = patient_map.get(prescription['patient_id'], 'Không xác định')  # Lấy tên bệnh nhân
+        # print
+    today = datetime.today()
+    return render_template('doctor/prescriptions.html',
+                            notifications_count =3,
+                            today=today,
+                            patients=patients,
+                            medications=medications,
+                            prescriptions=prescriptions)
 
 @doctor_bp.route('/patients')
 @login_required
@@ -106,7 +132,7 @@ def profile():
     doctor = mongo.db.doctors.find_one({'_id': current_user.user_data.get('staff_id')})
     if not doctor:
         return "Doctor profile not found", 404
-    return render_template('doctor/profile.html', doctor=doctor)
+    return render_template('doctor/profile.html', doctor=doctor, notifications_count = 4)
 
 # API endpoints for AJAX requests
 @doctor_bp.route('/api/today-appointments')

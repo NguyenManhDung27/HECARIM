@@ -38,11 +38,11 @@
 {% block page_title %}Thông tin Bác sĩ{% endblock %}
 
 {% block content %}
-<div class="row">
+<div class="row g-4">
     <div class="col-md-8">
         <div class="card">
             <div class="card-body">
-                <div class="row">
+                <div class="row g-4">
                     <div class="col-md-4">
                         <div class="text-center mb-4">
                             <div class="avatar-circle">
@@ -93,14 +93,20 @@
                 <h5 class="card-title mb-0">Lịch làm việc</h5>
             </div>
             <div class="card-body">
-                <p><strong>Ngày làm việc:</strong></p>
-                <ul class="list-unstyled">
-                    {% for day in doctor.schedule.workDays %}
-                    <li>{{ day }}</li>
-                    {% endfor %}
-                </ul>
-                <p><strong>Giờ làm việc:</strong></p>
-                <p>{{ doctor.schedule.workHours.start }} - {{ doctor.schedule.workHours.end }}</p>
+                <div class="d-flex">
+                    <div class="work-days" style="flex: 1;">
+                        <p><strong>Ngày làm việc:</strong></p>
+                        <ul class="list-unstyled">
+                            {% for day in doctor.schedule.workDays %}
+                            <li>{{ day }}</li>
+                            {% endfor %}
+                        </ul>
+                    </div>
+                    <div class="work-hours" style="flex: 2;">
+                        <p><strong>Giờ làm việc:</strong></p>
+                        <p>{{ doctor.schedule.workHours.start }} - {{ doctor.schedule.workHours.end }}</p>
+                    </div>
+                </div>
             </div>
         </div>
 
@@ -165,4 +171,30 @@
         });
     });
 </script>
+<style>
+    .row.g-4 {
+        display: flex;
+        gap: 20px; /* Khoảng cách giữa các cột */
+    }
+
+    .row.g-4 > .col-md-8, .row.g-4 > .col-md-4 {
+        flex: 1; /* Chia đều chiều rộng */
+    }
+    .d-flex {
+        display: flex;
+        gap: 20px; /* Khoảng cách giữa các phần */
+    }
+
+    .work-days {
+        flex: 1; /* Chiếm 1/3 chiều rộng */
+    }
+
+    .work-hours {
+        flex: 2; /* Chiếm 2/3 chiều rộng */
+    }
+    
+    .work-days ul {
+        padding-left: 20px; /* Thụt lề danh sách */
+    }
+</style>
 {% endblock %}
