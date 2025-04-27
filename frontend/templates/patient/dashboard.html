@@ -1,161 +1,151 @@
 {% extends "base.html" %}
 
-{% block title %}Bảng điều khiển Bệnh nhân{% endblock %}
+{% block title %}Trang chủ - Bệnh nhân{% endblock %}
+
+{% block page_title %}Trang chủ{% endblock %}
 
 {% block sidebar_menu %}
-<div class="nav-item">
-    <a href="{{ url_for('patient.dashboard') }}" class="nav-link {% if request.endpoint == 'patient.dashboard' %}active{% endif %}">
-        <i class="fas fa-home"></i>
-        Tổng quan
-    </a>
-</div>
-<div class="nav-item">
-    <a href="#" class="nav-link">
-        <i class="fas fa-calendar-alt"></i>
-        Lịch hẹn
-    </a>
-</div>
-<div class="nav-item">
-    <a href="#" class="nav-link">
-        <i class="fas fa-file-medical"></i>
-        Hồ sơ bệnh án
-    </a>
-</div>
-<div class="nav-item">
-    <a href="#" class="nav-link">
-        <i class="fas fa-notes-medical"></i>
-        Đơn thuốc
-    </a>
-</div>
+<a href="{{ url_for('patient.dashboard') }}" class="nav-link">
+    <i class="fas fa-home"></i>
+    <span>Trang chủ</span>
+</a>
+<a href="{{ url_for('patient.appointments') }}" class="nav-link">
+    <i class="fas fa-calendar-alt"></i>
+    <span>Lịch hẹn</span>
+</a>
+<a href="{{ url_for('patient.records') }}" class="nav-link">
+    <i class="fas fa-file-medical"></i>
+    <span>Hồ sơ bệnh án</span>
+</a>
+<a href="{{ url_for('patient.prescriptions') }}" class="nav-link">
+    <i class="fas fa-prescription"></i>
+    <span>Đơn thuốc</span>
+</a>
 {% endblock %}
 
-{% block page_title %}Tổng quan{% endblock %}
-
 {% block content %}
-<!-- Health Overview -->
 <div class="row">
-    <div class="col-md-8">
-        <div class="card health-card mb-4">
+    <!-- Personal Information -->
+    <div class="col">
+        <div class="card">
             <div class="card-header">
-                <h2 class="card-title">Thông tin sức khỏe</h2>
+                <h2 class="card-title">
+                    <i class="fas fa-user-circle me-2"></i>
+                    Thông tin cá nhân
+                </h2>
             </div>
             <div class="card-body">
-                <div class="row">
-                    <div class="col-md-4">
-                        <div class="health-metric">
-                            <div class="metric-icon">
-                                <i class="fas fa-ruler text-primary"></i>
-                            </div>
-                            <div class="metric-info">
-                                <span class="metric-label">Chiều cao</span>
-                                <span class="metric-value">{{ health_info.height }} cm</span>
-                            </div>
-                        </div>
-                    </div>
-                    <div class="col-md-4">
-                        <div class="health-metric">
-                            <div class="metric-icon">
-                                <i class="fas fa-weight text-success"></i>
-                            </div>
-                            <div class="metric-info">
-                                <span class="metric-label">Cân nặng</span>
-                                <span class="metric-value">{{ health_info.weight }} kg</span>
-                            </div>
-                        </div>
-                    </div>
-                    <div class="col-md-4">
-                        <div class="health-metric">
-                            <div class="metric-icon">
-                                <i class="fas fa-calculator text-info"></i>
-                            </div>
-                            <div class="metric-info">
-                                <span class="metric-label">Chỉ số BMI</span>
-                                <span class="metric-value">{{ health_info.bmi }}</span>
-                            </div>
-                        </div>
-                    </div>
+                <div class="patient-info">
+                    <p><strong>Họ tên:</strong> {{ patient.full_name }}</p>
+                    <p><strong>Ngày sinh:</strong> {{ patient.date_of_birth }}</p>
+                    <p><strong>Giới tính:</strong> {{ patient.gender }}</p>
+                    <p><strong>Địa chỉ:</strong> {{ patient.address }}</p>
+                    <p><strong>Số điện thoại:</strong> {{ patient.phone }}</p>
+                    <p><strong>Email:</strong> {{ patient.email }}</p>
                 </div>
-
-                <div class="mt-4">
-                    <h3 class="section-title">Dị ứng</h3>
-                    <div class="allergies-list">
-                        {% if health_info.allergies %}
-                            {% for allergy in health_info.allergies %}
-                                <span class="badge badge-warning">{{ allergy }}</span>
-                            {% endfor %}
-                        {% else %}
-                            <p class="text-muted">Không có dị ứng</p>
-                        {% endif %}
-                    </div>
-                </div>
-            </div>
-        </div>
-
-        <!-- Upcoming Appointments -->
-        <div class="card mb-4">
-            <div class="card-header">
-                <h2 class="card-title">Lịch hẹn sắp tới</h2>
-            </div>
-            <div class="card-body">
-                <div class="upcoming-appointments">
-                    <p class="text-center text-muted">Không có lịch hẹn nào sắp tới</p>
-                </div>
+                <a href="{{ url_for('auth.profile') }}" class="btn btn-primary mt-3">
+                    <i class="fas fa-edit me-2"></i>Cập nhật thông tin
+                </a>
             </div>
         </div>
     </div>
 
-    <div class="col-md-4">
-        <!-- Quick Actions -->
-        <div class="card mb-4">
-            <div class="card-header">
-                <h2 class="card-title">Thao tác nhanh</h2>
-            </div>
-            <div class="card-body">
-                <div class="quick-actions">
-                    <a href="#" class="btn btn-primary btn-block mb-3">
-                        <i class="fas fa-calendar-plus"></i>
-                        Đặt lịch khám
-                    </a>
-                    <a href="#" class="btn btn-outline-primary btn-block mb-3">
-                        <i class="fas fa-file-medical"></i>
-                        Xem hồ sơ bệnh án
-                    </a>
-                    <a href="#" class="btn btn-outline-primary btn-block">
-                        <i class="fas fa-notes-medical"></i>
-                        Xem đơn thuốc
-                    </a>
-                </div>
-            </div>
-        </div>
-
-        <!-- Recent Activities -->
+    <!-- Upcoming Appointments -->
+    <div class="col">
         <div class="card">
             <div class="card-header">
-                <h2 class="card-title">Hoạt động gần đây</h2>
+                <h2 class="card-title">
+                    <i class="fas fa-calendar-check me-2"></i>
+                    Lịch hẹn sắp tới
+                </h2>
             </div>
-            <div class="card-body p-0">
-                <div class="activity-list">
-                    <div class="activity-item">
-                        <div class="activity-icon bg-primary">
-                            <i class="fas fa-calendar-check text-white"></i>
-                        </div>
-                        <div class="activity-content">
-                            <p class="activity-text">Đã đặt lịch khám</p>
-                            <p class="activity-time">2 ngày trước</p>
-                        </div>
-                    </div>
-                    <div class="activity-item">
-                        <div class="activity-icon bg-success">
-                            <i class="fas fa-notes-medical text-white"></i>
-                        </div>
-                        <div class="activity-content">
-                            <p class="activity-text">Nhận đơn thuốc mới</p>
-                            <p class="activity-time">5 ngày trước</p>
-                        </div>
-                    </div>
+            <div class="card-body">
+                {% if upcoming_appointments %}
+                <div class="table-container">
+                    <table class="table">
+                        <thead>
+                            <tr>
+                                <th>Ngày giờ</th>
+                                <th>Bác sĩ</th>
+                                <th>Khoa</th>
+                                <th>Trạng thái</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for appointment in upcoming_appointments %}
+                            <tr>
+                                <td>{{ appointment.datetime }}</td>
+                                <td>{{ appointment.doctor_name }}</td>
+                                <td>{{ appointment.department }}</td>
+                                <td>
+                                    <span class="badge badge-{{ appointment.status_color }}">
+                                        {{ appointment.status }}
+                                    </span>
+                                </td>
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
                 </div>
+                {% else %}
+                <p class="text-muted">Không có lịch hẹn sắp tới</p>
+                {% endif %}
+                <a href="{{ url_for('patient.appointments') }}" class="btn btn-primary mt-3">
+                    <i class="fas fa-plus me-2"></i>Đặt lịch hẹn
+                </a>
             </div>
         </div>
+    </div>
+</div>
+
+<!-- Recent Records -->
+<div class="card mt-4">
+    <div class="card-header">
+        <h2 class="card-title">
+            <i class="fas fa-history me-2"></i>
+            Lịch sử khám gần đây
+        </h2>
+    </div>
+    <div class="card-body">
+        {% if recent_records %}
+        <div class="table-container">
+            <table class="table">
+                <thead>
+                    <tr>
+                        <th>Ngày khám</th>
+                        <th>Bác sĩ</th>
+                        <th>Chẩn đoán</th>
+                        <th>Kê đơn</th>
+                        <th></th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for record in recent_records %}
+                    <tr>
+                        <td>{{ record.date }}</td>
+                        <td>{{ record.doctor_name }}</td>
+                        <td>{{ record.diagnosis }}</td>
+                        <td>
+                            {% if record.has_prescription %}
+                            <span class="badge badge-success">Có</span>
+                            {% else %}
+                            <span class="badge badge-secondary">Không</span>
+                            {% endif %}
+                        </td>
+                        <td>
+                            <a href="{{ url_for('patient.records', record_id=record.id) }}" 
+                               class="btn btn-sm btn-outline-primary">
+                                <i class="fas fa-eye me-1"></i>Chi tiết
+                            </a>
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+        {% else %}
+        <p class="text-muted">Chưa có lịch sử khám bệnh</p>
+        {% endif %}
     </div>
 </div>
 {% endblock %}
