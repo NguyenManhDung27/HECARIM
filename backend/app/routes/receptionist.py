@@ -38,13 +38,13 @@ def dashboard():
 
         waiting_list.append({
             'name': patient_name,
-            'id': patient.get('patientId', '') if patient else '',
+            'id': patient.get('_id', '') if patient else '',
             'check_in_time': appt.get('timeSlot'),
             'doctor': doctor_name,
             'status': 'chờ khám',  # Hoặc trạng thái khác
             'status_class': 'warning'  # hoặc tạo rule cho status_class theo trạng thái
         })
-    print("Waiting list:", waiting_list)
+    # print("Waiting list:", waiting_list)
     # Truy vấn danh sách bác sĩ từ MongoDB
     doctors = mongo.db.doctors.find({}, {
         '_id': 1,

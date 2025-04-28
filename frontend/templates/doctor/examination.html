@@ -1,0 +1,245 @@
+{% extends "base.html" %}
+
+{% block title %}Khám Bệnh - Hệ thống Quản lý Bệnh viện{% endblock %}
+
+{% block sidebar_menu %}
+<div class="nav-item">
+    <a href="{{ url_for('doctor.dashboard') }}" class="nav-link {% if request.endpoint == 'doctor.dashboard' %}active{% endif %}">
+        <i class="fas fa-home"></i>
+        Tổng quan
+    </a>
+</div>
+<div class="nav-item">
+    <a href="{{ url_for('doctor.medical_records') }}" class="nav-link {% if request.endpoint == 'doctor.medical_records' %}active{% endif %}">
+        <i class="fas fa-file-medical"></i>
+        Hồ sơ bệnh án
+    </a>
+</div>
+<div class="nav-item">
+    <a href="{{ url_for('doctor.prescriptions') }}" class="nav-link {% if request.endpoint == 'doctor.prescriptions' %}active{% endif %}">
+        <i class="fas fa-prescription"></i>
+        Kê đơn thuốc
+    </a>
+</div>
+<div class="nav-item">
+    <a href="{{ url_for('doctor.patients') }}" class="nav-link {% if request.endpoint == 'doctor.patients' %}active{% endif %}">
+        <i class="fas fa-users"></i>
+        Danh sách bệnh nhân
+    </a>
+</div>
+<div class="nav-item">
+    <a href="{{ url_for('doctor.profile') }}" class="nav-link {% if request.endpoint == 'doctor.profile' %}active{% endif %}">
+        <i class="fas fa-user"></i>
+        Thông tin cá nhân
+    </a>
+</div>
+{% endblock %}
+
+{% block page_title %}Phiếu Khám Bệnh{% endblock %}
+
+{% block content %}
+<div class="card">
+    <form method="POST" action="{{ url_for('doctor/api.save_examination') }}">
+        <input type="hidden" name="patientId" value="{{ patient.id }}">
+        
+        <!-- Vital Signs Section -->
+        <div class="card-section">
+            <h3 class="section-title">Dấu Hiệu Sinh Tồn</h3>
+            <div class="form-grid">
+                <div class="form-group">
+                    <label for="temperature">Nhiệt độ (°C)</label>
+                    <input type="number" step="0.1" id="temperature" name="vitalSigns.temperature" class="form-control" required>
+                </div>
+                <div class="form-group">
+                    <label for="systolic">Huyết áp tâm thu (mmHg)</label>
+                    <input type="number" id="systolic" name="vitalSigns.bloodPressure.systolic" class="form-control" required>
+                </div>
+                <div class="form-group">
+                    <label for="diastolic">Huyết áp tâm trương (mmHg)</label>
+                    <input type="number" id="diastolic" name="vitalSigns.bloodPressure.diastolic" class="form-control" required>
+                </div>
+                <div class="form-group">
+                    <label for="heartRate">Nhịp tim (nhịp/phút)</label>
+                    <input type="number" id="heartRate" name="vitalSigns.heartRate" class="form-control" required>
+                </div>
+                <div class="form-group">
+                    <label for="respiratoryRate">Nhịp thở (lần/phút)</label>
+                    <input type="number" id="respiratoryRate" name="vitalSigns.respiratoryRate" class="form-control" required>
+                </div>
+            </div>
+        </div>
+
+        <!-- Symptoms & Diagnosis Section -->
+        <div class="card-section">
+            <h3 class="section-title">Triệu Chứng & Chẩn Đoán</h3>
+            <div class="form-group">
+                <label for="symptoms">Triệu chứng</label>
+                <textarea id="symptoms" name="symptoms" class="form-control" rows="3" required></textarea>
+            </div>
+            <div class="form-group">
+                <label for="diagnosis">Chẩn đoán</label>
+                <textarea id="diagnosis" name="diagnosis" class="form-control" rows="3" required></textarea>
+            </div>
+        </div>
+
+        <!-- Treatment Section -->
+        <div class="card-section">
+            <h3 class="section-title">Điều Trị</h3>
+            <div id="medications">
+                <h4>Đơn Thuốc</h4>
+                <div class="medication-list">
+                    <div class="medication-item form-grid">
+                        <div class="form-group">
+                            <label>Tên thuốc</label>
+                            <select name="treatment.medications[0].medicationId" class="form-control" required>
+                                <option value="">Chọn thuốc</option>
+                                {% for medication in medications %}
+                                <option value="{{ medication._id }}">{{ medication.name }}</option>
+                                {% endfor %}
+                            </select>
+                        </div>
+                        <div class="form-group">
+                            <label>Liều lượng</label>
+                            <input type="text" name="treatment.medications[0].dosage" class="form-control" required>
+                        </div>
+                        <div class="form-group">
+                            <label>Tần suất</label>
+                            <input type="text" name="treatment.medications[0].frequency" class="form-control" required>
+                        </div>
+                        <div class="form-group">
+                            <label>Thời gian dùng</label>
+                            <input type="text" name="treatment.medications[0].duration" class="form-control" required>
+                        </div>
+                        <div class="form-group">
+                            <label>Hướng dẫn</label>
+                            <input type="text" name="treatment.medications[0].instructions" class="form-control">
+                        </div>
+                    </div>
+                </div>
+                <button type="button" class="btn btn-secondary" onclick="addMedication()">+ Thêm thuốc</button>
+            </div>
+
+            <div class="form-group mt-4">
+                <label for="recommendations">Lời dặn</label>
+                <textarea id="recommendations" name="treatment.recommendations" class="form-control" rows="3"></textarea>
+            </div>
+        </div>
+
+        <!-- Follow Up Section -->
+        <div class="card-section">
+            <h3 class="section-title">Tái Khám</h3>
+            <div class="form-group">
+                <div class="checkbox-group">
+                    <input type="checkbox" id="followUpRequired" name="followUp.required">
+                    <label for="followUpRequired">Yêu cầu tái khám</label>
+                </div>
+            </div>
+            <div id="followUpDetails" style="display: none;">
+                <div class="form-group">
+                    <label for="followUpDate">Ngày tái khám</label>
+                    <input type="date" id="followUpDate" name="followUp.recommendedDate" class="form-control">
+                </div>
+                <div class="form-group">
+                    <label for="followUpReason">Lý do tái khám</label>
+                    <textarea id="followUpReason" name="followUp.reason" class="form-control" rows="2"></textarea>
+                </div>
+            </div>
+        </div>
+
+        <!-- Notes Section -->
+        <div class="card-section">
+            <h3 class="section-title">Ghi Chú</h3>
+            <div class="form-group">
+                <textarea id="notes" name="notes" class="form-control" rows="3"></textarea>
+            </div>
+        </div>
+
+        <div class="form-actions">
+            <button type="submit" class="btn btn-primary">Lưu Phiếu Khám</button>
+            <a href="{{ url_for('doctor.patient_details', patient_id=patient.id) }}" class="btn btn-secondary">Hủy</a>
+        </div>
+    </form>
+</div>
+{% endblock %}
+
+{% block extra_css %}
+<style>
+    .card-section {
+        margin-bottom: 2rem;
+        padding-bottom: 1rem;
+        border-bottom: 1px solid var(--gray-200);
+    }
+
+    .section-title {
+        color: var(--primary-color);
+        margin-bottom: 1rem;
+        font-size: 1.2rem;
+    }
+
+    .form-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+        gap: 1rem;
+    }
+
+    .form-group {
+        margin-bottom: 1rem;
+    }
+
+    .form-control {
+        width: 100%;
+        padding: 0.5rem;
+        border: 1px solid var(--gray-300);
+        border-radius: 4px;
+        font-size: 1rem;
+    }
+
+    .checkbox-group {
+        display: flex;
+        align-items: center;
+        gap: 0.5rem;
+    }
+
+    .medication-list {
+        margin-bottom: 1rem;
+    }
+
+    .medication-item {
+        border: 1px solid var(--gray-200);
+        padding: 1rem;
+        border-radius: 4px;
+        margin-bottom: 1rem;
+    }
+
+    .form-actions {
+        display: flex;
+        gap: 1rem;
+        margin-top: 2rem;
+    }
+</style>
+{% endblock %}
+
+{% block extra_scripts %}
+<script>
+    document.getElementById('followUpRequired').addEventListener('change', function() {
+        const details = document.getElementById('followUpDetails');
+        details.style.display = this.checked ? 'block' : 'none';
+    });
+
+    let medicationCount = 1;
+    function addMedication() {
+        const medicationList = document.querySelector('.medication-list');
+        const newMedication = document.querySelector('.medication-item').cloneNode(true);
+        const inputs = newMedication.querySelectorAll('input, select');
+        
+        inputs.forEach(input => {
+            const name = input.getAttribute('name');
+            input.setAttribute('name', name.replace('[0]', `[${medicationCount}]`));
+            input.value = '';
+        });
+
+        medicationList.appendChild(newMedication);
+        medicationCount++;
+    }
+</script>
+{% endblock %}

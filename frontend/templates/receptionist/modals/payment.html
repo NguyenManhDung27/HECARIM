@@ -9,20 +9,6 @@
                 </button>
             </div>
             <div class="modal-body">
-                <!-- Patient Search -->
-                <div class="form-group mb-4">
-                    <label class="form-label">Tìm kiếm bệnh nhân</label>
-                    <div class="input-group">
-                        <input type="text" 
-                               class="form-control" 
-                               id="paymentPatientSearch" 
-                               placeholder="Nhập mã BN hoặc tên...">
-                        <button class="btn btn-primary" type="button" onclick="searchPaymentPatient()">
-                            <i class="fas fa-search"></i>
-                        </button>
-                    </div>
-                </div>
-
                 <!-- Patient Info -->
                 <div id="paymentPatientInfo" class="alert alert-info mb-4" style="display: none;">
                     <!-- Patient info will be displayed here -->
@@ -182,36 +168,6 @@
 <script>
     let selectedPatient = null;
     let invoiceItems = [];
-
-    function searchPaymentPatient() {
-        const searchTerm = document.getElementById('paymentPatientSearch').value;
-
-        if (!searchTerm) {
-            alert('Vui lòng nhập mã bệnh nhân hoặc tên');
-            return;
-        }
-
-        fetch(`/api/patients/search?q=${encodeURIComponent(searchTerm)}`)
-            .then(response => response.json())
-            .then(patient => {
-                selectedPatient = patient;
-                document.getElementById('paymentPatientInfo').innerHTML = `
-                    <div class="d-flex justify-content-between align-items-center">
-                        <div>
-                            <h6 class="mb-1">${patient.personalInfo.fullName}</h6>
-                            <p class="mb-0">Mã BN: ${patient.patientId}</p>
-                        </div>
-                        ${patient.insurance ? `
-                            <span class="badge badge-info">
-                                <i class="fas fa-shield-alt"></i>
-                                Có bảo hiểm
-                            </span>
-                        ` : ''}
-                    </div>
-                `;
-                document.getElementById('paymentPatientInfo').style.display = 'block';
-            });
-    }
 
     function showServicesList() {
         fetch('/api/services')

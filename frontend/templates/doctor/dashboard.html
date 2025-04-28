@@ -100,9 +100,8 @@
         <h2 class="card-title mb-0">Lịch khám hôm nay</h2>
     </div>
     <div class="card-body">
-        {% if appointments %}
         <div class="table-container">
-            <table class="table">
+            <table class="table" id="appointmentsTable">
                 <thead>
                     <tr>
                         <th>Giờ</th>
@@ -127,8 +126,7 @@
                         </td>
                         <td>
                             {% if appointment.status != 'completed' %}
-                            <a href="#" 
-                               class="btn btn-primary btn-sm">
+                            <a href="#" class="btn btn-primary btn-sm">
                                 <i class="fas fa-stethoscope"></i>
                                 Khám bệnh
                             </a>
@@ -139,11 +137,7 @@
                 </tbody>
             </table>
         </div>
-        {% else %}
-        <p class="text-center text-muted">Không có lịch hẹn nào cho hôm nay</p>
-        {% endif %}
-    </div>
-</div>
+ </div>
 
 <!-- Monitored Patients -->
 <div class="card">
@@ -193,11 +187,16 @@
 <script>
     // Function to update dashboard data
     function updateDashboard() {
-        fetch('{{ url_for("doctor.get_today_appointments") }}')
-            .then(response => response.json())
-            .then(data => {
-                // Update appointments table
-                const tbody = document.querySelector('#appointmentsTable tbody');
+    console.log("Updating dashboard data...");
+    fetch('/doctor/api/appointments/today')
+        .then(response => response.json())
+        .then(data => {
+            console.log("Dữ liệu từ API:", data); // Kiểm tra dữ liệu trả về
+
+            // Update appointments table
+            const tbody = document.querySelector('#appointmentsTable tbody');
+            if (tbody) {
+                if(data.length > 0) {
                 tbody.innerHTML = data.map(appointment => `
                     <tr>
                         <td>${appointment.time}</td>
@@ -211,7 +210,7 @@
                         </td>
                         <td>
                             ${appointment.status !== 'completed' ? `
-                            <a href="{{ url_for('doctor.examination', appointment_id='') }}${appointment._id}"
+                            <a href="{{ url_for('doctor.examination', patient_id='') }}${appointment.patient_id}"
                                class="btn btn-primary btn-sm">
                                 <i class="fas fa-stethoscope"></i>
                                 Khám bệnh
@@ -219,10 +218,24 @@
                         </td>
                     </tr>
                 `).join('');
-            });
-    }
+                }
+                else{
+                    tbody.innerHTML = `<p class="text-center text-muted">Không có lịch hẹn nào cho hôm nay</p>`;
+                }
+            } else {
+                console.error('Phần tử #appointmentsTable không tồn tại.');
+            }
+        })
+        .catch(error => {
+            console.error('Lỗi khi gọi API:', error);
+        });
+}
+document.addEventListener('DOMContentLoaded', () => {
+    // Gọi hàm ngay khi trang được tải
+    updateDashboard();
 
-    // Update dashboard every 5 minutes
-    setInterval(updateDashboard, 300000);
+    // Update dashboard every 30 seconds
+    setInterval(updateDashboard, 30000);
+});
 </script>
 {% endblock %}

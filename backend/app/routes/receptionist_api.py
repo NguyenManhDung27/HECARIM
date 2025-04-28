@@ -53,6 +53,7 @@ def create_appointment():
 @login_required
 @role_required('receptionist')
 def search_patients():
+    print("Hàm search_patients đã được gọi!")
     query = request.args.get('q', '').strip()
     print("Query:", query)
     # Kiểm tra nếu query quá ngắn
@@ -81,6 +82,34 @@ def search_patients():
         return jsonify({'message': 'Không tìm thấy bệnh nhân', 'patients': []}), 404
 
     return jsonify({'patients': results}), 200
+
+@receptionist_api.route('/patients/<patient_id>', methods=['GET'])
+@login_required
+@role_required('receptionist')
+def get_patient_by_id(patient_id):
+    print("patient_id: ", patient_id)
+    patient = mongo.db.patients.find_one({'_id': ObjectId(patient_id)})
+    if not patient:
+        return jsonify({'success': False, 'message': 'Không tìm thấy bệnh nhân'}), 404
+
+    # Chuyển đổi ObjectId thành chuỗi
+    patient['_id'] = str(patient['_id'])
+    return jsonify(patient)
+
+@receptionist_api.route('/invoices/<patient_id>', methods=['GET'])
+@login_required
+def get_invoice_by_patient_id(patient_id):
+    print(patient_id)
+    invoice = mongo.db.invoices.find_one({'patientId': ObjectId(patient_id)})
+    print("Invoice:", invoice)
+    if not invoice:
+        return jsonify({'success': False, 'message': 'Không tìm thấy hóa đơn'}), 404
+
+    # Chuyển đổi ObjectId thành chuỗi
+    invoice['_id'] = str(invoice['_id'])
+    invoice['patientId'] = str(invoice['patientId'])
+    invoice['appointmentId'] = str(invoice['appointmentId'])
+    return jsonify(invoice)
 
 @receptionist_api.route('/doctors', methods=['GET'])
 @login_required

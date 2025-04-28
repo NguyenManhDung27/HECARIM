@@ -203,7 +203,8 @@
     }
 
     function viewPatient(patientId) {
-        fetch(`/api/patients/${patientId}`)
+        console.log('Fetching patient details for ID:', patientId);
+        fetch(`/doctor/api/patients/${patientId}`)
             .then(response => response.json())
             .then(patient => {
                 const details = document.getElementById('patientDetails');

@@ -42,8 +42,9 @@ def dashboard():
         stats=stats,
         notifications_count=3,  # hoặc context processor như đã nói
         today=today,
-        appointments=appointments,  # Truyền danh sách cuộc hẹn vào template
     )
+        # appointments=appointments,  # Truyền danh sách cuộc hẹn vào template
+
 
 @doctor_bp.route('/medical-records')
 @login_required
@@ -118,13 +119,35 @@ def patient_details(patient_id):
         return "Patient not found", 404
     return render_template('doctor/patient_details.html', patient=patient)
 
-@doctor_bp.route('/examination/<string:appointment_id>')
+# @doctor_bp.route('/examination/<appointment_id>')
+# @login_required
+# def examination(appointment_id):
+#     appointment = mongo.db.appointments.find_one({'_id': ObjectId(appointment_id)})
+#     if not appointment:
+#         return "Appointment not found", 404
+#     return render_template('doctor/examination.html', appointment=appointment)
+
+@doctor_bp.route('/examination/<patient_id>', methods=['GET'])
 @login_required
-def examination(appointment_id):
-    appointment = mongo.db.appointments.find_one({'_id': ObjectId(appointment_id)})
-    if not appointment:
-        return "Appointment not found", 404
-    return render_template('doctor/examination.html', appointment=appointment)
+def examination(patient_id):
+    # Truy vấn thông tin bệnh nhân từ MongoDB
+    patient = mongo.db.patients.find_one({'patientId': patient_id})
+    if not patient:
+        return "Patient not found", 404
+
+    # Chuyển đổi ObjectId thành chuỗi
+    patient['_id'] = str(patient['_id'])
+
+    # Truy vấn danh sách thuốc
+    medications = list(mongo.db.medications.find())
+    for med in medications:
+        med['_id'] = str(med['_id'])
+
+    # Render template với thông tin bệnh nhân và danh sách thuốc
+    return render_template('doctor/examination.html',
+                            patient=patient,
+                            medications=medications,
+                            notifications_count=3)
 
 @doctor_bp.route('/profile')
 @login_required
@@ -144,3 +167,8 @@ def get_today_appointments():
                 '$lt': datetime.now().replace(hour=23, minute=59, second=59)}
     })
     return jsonify(list(appointments))
+
+@doctor_bp.route('/prescriptions', methods=['POST'])
+@login_required
+def save_examination():
+    pass
