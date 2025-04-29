@@ -30,7 +30,6 @@ def get_appointment(appointment_id):
 @handle_api_error
 def create_appointment():
     data = request.get_json()
-    print("Received data:", data)
     appointment_data = {
         'patientId': data['patient_id'],
         'doctorId': data['doctor_id'],
@@ -53,9 +52,7 @@ def create_appointment():
 @login_required
 @role_required('receptionist')
 def search_patients():
-    print("Hàm search_patients đã được gọi!")
     query = request.args.get('q', '').strip()
-    print("Query:", query)
     # Kiểm tra nếu query quá ngắn
     if len(query) < 2:
         return jsonify({'message': 'Query quá ngắn', 'patients': []}), 400
@@ -87,7 +84,6 @@ def search_patients():
 @login_required
 @role_required('receptionist')
 def get_patient_by_id(patient_id):
-    print("patient_id: ", patient_id)
     patient = mongo.db.patients.find_one({'_id': ObjectId(patient_id)})
     if not patient:
         return jsonify({'success': False, 'message': 'Không tìm thấy bệnh nhân'}), 404
@@ -99,9 +95,7 @@ def get_patient_by_id(patient_id):
 @receptionist_api.route('/invoices/<patient_id>', methods=['GET'])
 @login_required
 def get_invoice_by_patient_id(patient_id):
-    print(patient_id)
     invoice = mongo.db.invoices.find_one({'patientId': ObjectId(patient_id)})
-    print("Invoice:", invoice)
     if not invoice:
         return jsonify({'success': False, 'message': 'Không tìm thấy hóa đơn'}), 404
 
@@ -231,9 +225,7 @@ def list_patients():
 @role_required('receptionist')
 @handle_api_error
 def CheckInToday():
-    print("Hàm checkin search_patients đã được gọi!")
     query = request.args.get('patient', '').strip()
-    print("Query:", query)
 
     # Tìm bệnh nhân theo patientId (cho phép tìm gần đúng)
     patient = mongo.db.patients.find_one({
@@ -241,7 +233,6 @@ def CheckInToday():
     })
 
     if not patient:
-        print("Không tìm thấy bệnh nhân")
         return jsonify({'message': 'Không tìm thấy bệnh nhân', 'patients': []}), 404
 
     # Format kết quả trả về
@@ -255,7 +246,6 @@ def CheckInToday():
         'email': patient['personalInfo'].get('email', 'Không rõ'),
     }
 
-    print("Kết quả:", result)
     return jsonify({'patient': result}), 200
 
 # Helper
@@ -263,3 +253,26 @@ def CheckInToday():
 def get_department_name(department_id):
     department = mongo.db.departments.find_one({'_id': department_id})
     return department['name'] if department else 'Unknown'
+
+@receptionist_api.route('/medications', methods=['GET'])
+@login_required
+@role_required('receptionist')
+@handle_api_error
+def list_medications():
+    print("Hàm list_medications đã được gọi!")
+    medications = list(mongo.db.medications.find())
+    for medication in medications:
+        medication['_id'] = str(medication['_id'])
+    print("Danh sách thuốc:", list(medications))
+    return jsonify(list(medications))
+
+@receptionist_api.route('/services', methods=['GET'])
+@login_required
+@role_required('receptionist')
+@handle_api_error
+def list_services():
+    services = list(mongo.db.services.find())
+    for service in services:
+        service['_id'] = str(service['_id'])
+    print("Danh sách thuốc:", list(services))
+    return jsonify(list(services))

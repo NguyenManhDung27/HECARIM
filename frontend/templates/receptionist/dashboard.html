@@ -217,6 +217,7 @@
     }
     // Nếu modal là paymentModal và có patientId, tự động tìm hóa đơn
     if (modalId === 'paymentModal' && patientId) {
+        document.getElementById('invoiceItems').innerHTML = '';
         fetch(`/receptionist/api/invoices/${patientId}`)
             .then(response => response.json())
             .then(invoice => {
@@ -238,7 +239,6 @@
             })
             .catch(error => {
                 console.error('Lỗi khi tìm hóa đơn:', error);
-                alert('Không tìm thấy hóa đơn.');
             });
         }
         // // Hiển thị modal
