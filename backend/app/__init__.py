@@ -40,6 +40,9 @@ def create_app(env="development"):
 
         from .routes.patient import patient_bp
         app.register_blueprint(patient_bp, url_prefix='/patient')
+
+        from .routes.patient_api import patient_api
+        app.register_blueprint(patient_api, url_prefix='/patient/api')
         
         # Main route redirects to auth login
         @app.route('/')
