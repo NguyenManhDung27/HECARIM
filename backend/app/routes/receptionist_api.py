@@ -95,7 +95,7 @@ def get_patient_by_id(patient_id):
 @receptionist_api.route('/invoices/<patient_id>', methods=['GET'])
 @login_required
 def get_invoice_by_patient_id(patient_id):
-    invoice = mongo.db.invoices.find_one({'patientId': ObjectId(patient_id)})
+    invoice = mongo.db.invoices.find_one({'patientId': ObjectId(patient_id), 'paymentDate': None })
     if not invoice:
         return jsonify({'success': False, 'message': 'Không tìm thấy hóa đơn'}), 404
 
@@ -103,7 +103,11 @@ def get_invoice_by_patient_id(patient_id):
     invoice['_id'] = str(invoice['_id'])
     invoice['patientId'] = str(invoice['patientId'])
     invoice['appointmentId'] = str(invoice['appointmentId'])
+    invoice['issuedBy'] = str(invoice['issuedBy'])
     return jsonify(invoice)
+    # if invoice['paymentDate'] is None:
+    # else:
+    #     return jsonify({'success': False, 'message': 'Không tìm thấy hóa đơn'}), 404
 
 @receptionist_api.route('/doctors', methods=['GET'])
 @login_required
@@ -259,11 +263,9 @@ def get_department_name(department_id):
 @role_required('receptionist')
 @handle_api_error
 def list_medications():
-    print("Hàm list_medications đã được gọi!")
     medications = list(mongo.db.medications.find())
     for medication in medications:
         medication['_id'] = str(medication['_id'])
-    print("Danh sách thuốc:", list(medications))
     return jsonify(list(medications))
 
 @receptionist_api.route('/services', methods=['GET'])
@@ -274,5 +276,34 @@ def list_services():
     services = list(mongo.db.services.find())
     for service in services:
         service['_id'] = str(service['_id'])
-    print("Danh sách thuốc:", list(services))
     return jsonify(list(services))
+
+@receptionist_api.route('/invoices', methods=['POST'])
+@login_required
+def save_invoice():
+    print("Tao invoice")
+    data = request.json
+    if not data:
+        return jsonify({'success': False, 'message': 'Dữ liệu không hợp lệ'}), 400
+    print(data)
+    # Lưu hóa đơn vào cơ sở dữ liệu
+    invoice = {
+        'patientId': ObjectId(data['patientId']),
+        'appointmentId': ObjectId(data['appointmentId']) if data.get('appointmentId') else None,
+        'issueDate': data['issueDate'],
+        'status': data['status'],
+        'items': data['items'],
+        'subtotal': data['subtotal'],
+        'discount': data['discount'],
+        'tax': data['tax'],
+        'grandTotal': data['grandTotal'],
+        'paymentMethod': data['paymentMethod'],
+        'paymentDate': data['paymentDate'],
+        'issuedBy': ObjectId(data['issuedBy']),
+        'notes': data['notes'],
+        'createdAt': data['createdAt'],
+        'updatedAt': data['updatedAt']
+    }
+    mongo.db.invoices.insert_one(invoice)
+
+    return jsonify({'success': True, 'invoiceId': str(invoice['_id'])})

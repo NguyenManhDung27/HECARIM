@@ -113,6 +113,9 @@
                 <button type="button" class="btn btn-secondary" onclick="closeModal('paymentModal')">
                     Hủy
                 </button>
+                <button type="button" class="btn btn-warning" onclick="saveInvoice()">
+                    Lưu hóa đơn
+                </button>
                 <button type="button" class="btn btn-success" onclick="processPayment()">
                     <i class="fas fa-check"></i>
                     Xác nhận thanh toán
@@ -161,6 +164,7 @@
 </div>
 
 <script>
+    const currentUserId = "{{ current_user_id }}"; // Giá trị này phải là chuỗi 24 ký tự // Thay USER_ID_FROM_BACKEND bằng giá trị thực tế từ backend
     let selectedPatient = null;
     let invoiceItems = [];
 
@@ -345,6 +349,117 @@
         }).format(amount);
     }
 
+    function updateDiscountValue(invoice) {
+        if (!invoice || !invoice.discount) {
+            console.error('Hóa đơn không hợp lệ hoặc không có thông tin giảm giá.');
+            return;
+        }
+
+        // Cập nhật giá trị giảm giá
+        document.getElementById('discountValue').value = invoice.discount.value || 0;
+        document.getElementById('discountType').value = invoice.discount.type || 'amount';
+
+        // Tính toán lại tổng tiền
+        calculateTotal();
+    }
+
+    function openPaymentModal(invoice) {
+        // Hiển thị modal
+        document.getElementById('paymentModal').classList.add('show');
+
+        // Cập nhật thông tin giảm giá từ hóa đơn
+        updateDiscountValue(invoice);
+
+        // Cập nhật các thông tin khác nếu cần
+        if (invoice) {
+            selectedPatient = { _id: invoice.patientId }; // Gán bệnh nhân từ hóa đơn
+            invoiceItems = invoice.items || []; // Gán danh sách mục hóa đơn
+            updateInvoiceTable(); // Cập nhật bảng hóa đơn
+            calculateTotal(); // Tính toán lại tổng tiền
+        }
+    }
+
+    function saveInvoice() {
+        if (!selectedPatient) {
+            alert('Vui lòng chọn bệnh nhân trước khi lưu hóa đơn.');
+            return;
+        }
+
+        if (invoiceItems.length === 0) {
+            alert('Vui lòng thêm dịch vụ hoặc thuốc vào hóa đơn trước khi lưu.');
+            return;
+        }
+
+        // Thu thập thông tin hóa đơn
+        const invoice = {
+            patientId: selectedPatient._id,
+            appointmentId: selectedPatient.appointmentId || null, // Nếu có liên kết với lịch hẹn
+            issueDate: new Date(),
+            status: 'Chưa thanh toán', // Mặc định là chưa thanh toán
+            items: invoiceItems.map(item => ({
+                type: item.type,
+                itemId: item.itemId,
+                name: item.name,
+                quantity: item.quantity,
+                unitPrice: item.unitPrice,
+                totalPrice: item.totalPrice
+            })),
+            subtotal: invoiceItems.reduce((sum, item) => sum + item.totalPrice, 0),
+            discount: {
+                type: document.getElementById('discountType').value,
+                value: parseFloat(document.getElementById('discountValue').value) || 0,
+                reason: document.getElementById('discountReason')?.value || ''
+            },
+            tax: invoiceItems.reduce((sum, item) => sum + item.totalPrice, 0) * 0.08, // 8% VAT
+            grandTotal: calculateTotalAmount(),
+            paymentMethod: document.getElementById('paymentMethod').value,
+            paymentDate: null, // Chưa thanh toán
+            issuedBy: currentUserId, // ID của người lập hóa đơn
+            notes: document.getElementById('paymentNotes').value,
+            createdAt: new Date(),
+            updatedAt: new Date()
+        };
+
+        // Gửi hóa đơn đến API
+        fetch('/receptionist/api/invoices', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json'
+            },
+            body: JSON.stringify(invoice)
+        })
+            .then(response => response.json())
+            .then(result => {
+                if (result.success) {
+                    alert('Hóa đơn đã được lưu thành công!');
+                    closeModal('paymentModal');
+                    window.location.reload(); // Làm mới trang sau khi lưu
+                } else {
+                    alert('Có lỗi xảy ra khi lưu hóa đơn.');
+                }
+            })
+            .catch(error => {
+                console.error('Lỗi khi lưu hóa đơn:', error);
+                alert('Không thể lưu hóa đơn. Vui lòng thử lại.');
+            });
+    }
+
+    function calculateTotalAmount() {
+        const subtotal = invoiceItems.reduce((sum, item) => sum + item.totalPrice, 0);
+        const discountType = document.getElementById('discountType').value;
+        const discountValue = parseFloat(document.getElementById('discountValue').value) || 0;
+
+        let discount = 0;
+        if (discountType === 'percent') {
+            discount = subtotal * (discountValue / 100);
+        } else {
+            discount = discountValue;
+        }
+
+        const afterDiscount = subtotal - discount;
+        const tax = afterDiscount * 0.08; // 8% VAT
+        return afterDiscount + tax;
+    }
     function closeModal(modalId) {
         document.getElementById(modalId).classList.remove('show');
         if (modalId === 'paymentModal') {

@@ -19,7 +19,7 @@ def dashboard():
         'completed': 3
     }
     today = datetime.today()
-
+    current_user_id = str(current_user.id)  # Lấy ID người dùng hiện tại
     waiting_list = []
     recent_activities = []
     start_of_day = datetime.combine(today.date(), datetime.min.time())
@@ -69,5 +69,5 @@ def dashboard():
         recent_activities=recent_activities,
         notifications_count=3,  # hoặc context processor như đã nói
         today=today,
-        doctors=doctors_list
-    )
+        doctors=doctors_list,
+        current_user_id=current_user_id)
