@@ -49,9 +49,47 @@ def dashboard():
 @doctor_bp.route('/medical-records')
 @login_required
 def medical_records():
-    return render_template('doctor/medical_records.html',
-                           notifications_count=3,)
+        # Get the current page from the query parameters (default to 1)
+    page = int(request.args.get('page', 1))
+    if page < 1:
+        page = 1  # Ensure page is at least 1
 
+    per_page = 5  # Number of records per page
+
+    patients = list(mongo.db.patients.find())
+    for patient in patients:
+        patient['_id'] = str(patient['_id']) 
+    # Fetch medical records with pagination
+    total_records = mongo.db.medical_records.count_documents({})
+    medical_records = list(
+        mongo.db.medical_records.find()
+        .skip((page - 1) * per_page)
+        .limit(per_page)
+    )
+    patient_map = {str(patient['_id']): patient['personalInfo']['fullName'] for patient in patients}
+
+    # Process the records (convert ObjectId to string, format dates, etc.)
+    for record in medical_records:
+        record['_id'] = str(record['_id'])
+        record['patientId'] = str(record.get('patientId', ''))
+        record['doctorId'] = str(record.get('doctorId', ''))
+        record['patient_name'] = patient_map.get(record['patientId'], 'Không xác định')
+        record['visitDate'] = record['visitDate'].strftime('%Y-%m-%d')
+        record['symptoms'] = record.get('symptoms', '')
+        record['diagnosis'] = record.get('diagnosis', '')
+        record['notes'] = record.get('notes', '')
+    # Calculate total pages
+    total_pages = (total_records + per_page - 1) // per_page  # Round up division
+    # Pass the processed records to the template
+    return render_template(
+        'doctor/medical_records.html',
+        medical_records=medical_records,
+        notifications_count=3,
+        page=page,
+        total_pages=total_pages,
+        has_prev=page > 1,
+        has_next=page < total_pages
+    )
 @doctor_bp.route('/prescriptions')
 @login_required
 def prescriptions():
