@@ -22,9 +22,9 @@
     </a>
 </div>
 <div class="nav-item">
-    <a class="nav-link">
-        <i class="fas fa-clock"></i>
-        Lịch hẹn
+    <a class="nav-link" onclick="showModal('invoiceModel')">
+        <i class="fas fa-money-bill-wave"></i>
+        Hóa đơn
     </a>
 </div>
 {% endblock %}
@@ -107,7 +107,7 @@
                     <tr>
                         <th>STT</th>
                         <th>Họ và tên</th>
-                        <th>Mã BN</th>
+                        <th>Số điện thoại</th>
                         <th>Thời gian checkin</th>
                         <th>Bác sĩ</th>
                         <th>Trạng thái</th>
@@ -119,7 +119,7 @@
                     <tr>
                         <td>{{ loop.index }}</td>
                         <td>{{ patient.name }}</td>
-                        <td>{{ patient.id }}</td>
+                        <td>{{ patient.phone }}</td>
                         <td>{{ patient.check_in_time }}</td>
                         <td>{{ patient.doctor }}</td>
                         <td>
@@ -128,11 +128,13 @@
                             </span>
                         </td>
                         <td>
-                            <button class="btn btn-primary btn-sm" onclick="showModal('checkInModal', '{{ patient.id }}')">
+                            <button class="btn btn-primary btn-sm"
+                                onclick="checkInAppointment('{{ patient.appointment_id }}')">
                                 <i class="fas fa-clipboard-check"></i>
                                 Check-in
                             </button>
-                            <button class="btn btn-warning btn-sm" onclick="showModal('paymentModal', '{{ patient.id }}')">
+                            <button class="btn btn-warning btn-sm"
+                                onclick="showModal('paymentModal', '{{ patient.id }}', '{{ patient.appointment_type }}')">
                                 <i class="fas fa-money-bill-wave"></i>
                                 Thanh toán
                             </button>
@@ -156,21 +158,21 @@
     <div class="card-body p-0">
         <div class="activity-list">
             {% if recent_activities %}
-                {% for activity in recent_activities %}
-                <div class="activity-item">
-                    <div class="activity-icon bg-{{ activity.type }}">
-                        <i class="{{ activity.icon }} text-white"></i>
-                    </div>
-                    <div class="activity-content">
-                        <p class="activity-text">{{ activity.text }}</p>
-                        <p class="activity-time">{{ activity.time }}</p>
-                    </div>
+            {% for activity in recent_activities %}
+            <div class="activity-item">
+                <div class="activity-icon bg-{{ activity.type }}">
+                    <i class="{{ activity.icon }} text-white"></i>
                 </div>
-                {% endfor %}
+                <div class="activity-content">
+                    <p class="activity-text">{{ activity.text }}</p>
+                    <p class="activity-time">{{ activity.time }}</p>
+                </div>
+            </div>
+            {% endfor %}
             {% else %}
-                <div class="p-4 text-center text-muted">
-                    Không có hoạt động nào gần đây
-                </div>
+            <div class="p-4 text-center text-muted">
+                Không có hoạt động nào gần đây
+            </div>
             {% endif %}
         </div>
     </div>
@@ -181,24 +183,24 @@
 {% include 'receptionist/modals/new_appointment.html' %}
 {% include 'receptionist/modals/check_in.html' %}
 {% include 'receptionist/modals/payment.html' %}
+{% include 'receptionist/modals/invoices.html' %}
 {% endblock %}
 
 {% block extra_scripts %}
 <script>
-    function showModal(modalId, patientId = null) {
-    const modal = document.getElementById(modalId);
-
-    // Nếu modal là paymentModal và có patientId, tự động tìm kiếm bệnh nhân
-    if (modalId === 'paymentModal' && patientId) {
-        fetch(`/receptionist/api/patients/${patientId}`)
-            .then(response => response.json())
-            .then(patient => {
-                selectedPatient = patient;
-                document.getElementById('paymentPatientInfo').innerHTML = `
+    function showModal(modalId, patientId = null, type = null) {
+        const modal = document.getElementById(modalId);
+        // Nếu modal là paymentModal và có patientId, tự động tìm kiếm bệnh nhân
+        if (modalId === 'paymentModal' && patientId) {
+            fetch(`/receptionist/api/patients/${patientId}`)
+                .then(response => response.json())
+                .then(patient => {
+                    selectedPatient = patient;
+                    document.getElementById('paymentPatientInfo').innerHTML = `
                     <div class="d-flex justify-content-between align-items-center">
                         <div>
                             <h6 class="mb-1">${patient.personalInfo.fullName}</h6>
-                            <p class="mb-0">Mã BN: ${patient.patientId}</p>
+                            <p class="mb-0">Số điện thoại: ${patient.patientId}</p>
                         </div>
                         ${patient.insurance ? `
                             <span class="badge badge-info">
@@ -208,41 +210,72 @@
                         ` : ''}
                     </div>
                 `;
-                document.getElementById('paymentPatientInfo').style.display = 'block';
-            })
-            .catch(error => {
-                console.error('Lỗi khi tìm kiếm bệnh nhân:', error);
-                alert('Không tìm thấy bệnh nhân');
-            });
+                    document.getElementById('paymentPatientInfo').style.display = 'block';
+                })
+                .catch(error => {
+                    console.error('Lỗi khi tìm kiếm bệnh nhân:', error);
+                    alert('Không tìm thấy bệnh nhân');
+                });
+        }
+        // Nếu modal là paymentModal và có patientId, tự động tìm hóa đơn
+        if (modalId === 'paymentModal' && patientId) {
+            document.getElementById('invoiceItems').innerHTML = '';
+            fetch(`/receptionist/api/invoices/${patientId}`)
+                .then(response => response.json())
+                .then(invoice => {
+                    if (invoice) {
+                        // Hiển thị các mục hóa đơn
+                        invoiceItems = invoice.items.map(item => ({
+                            type: item.type,
+                            itemId: item.itemId,
+                            name: item.name,
+                            quantity: item.quantity,
+                            unitPrice: item.unitPrice,
+                            totalPrice: item.totalPrice
+                        }));
+                        updateInvoiceTable();
+                        calculateTotal();
+                        openPaymentModal(invoice, type);
+                    } else {
+                        openPaymentModal(null, type);
+                        alert('Không tìm thấy hóa đơn cho bệnh nhân này.');
+                    }
+                })
+                .catch(error => {
+                    openPaymentModal(null, type);
+                    console.error('Lỗi khi tìm hóa đơn:', error);
+                });
+        }
+        // // Hiển thị modal
+        modal.classList.add('show');
     }
-    // Nếu modal là paymentModal và có patientId, tự động tìm hóa đơn
-    if (modalId === 'paymentModal' && patientId) {
-        fetch(`/receptionist/api/invoices/${patientId}`)
+    function checkInAppointment(appointmentId) {
+        if (!appointmentId) {
+            alert('Không tìm thấy ID lịch hẹn.');
+            return;
+        }
+
+        // Gửi yêu cầu cập nhật trạng thái lịch hẹn
+        fetch(`/receptionist/api/appointments/${appointmentId}/check-in`, {
+            method: 'PUT',
+            headers: {
+                'Content-Type': 'application/json'
+            },
+            body: JSON.stringify({ status: 'đã check-in' })
+        })
             .then(response => response.json())
-            .then(invoice => {
-                if (invoice) {
-                    // Hiển thị các mục hóa đơn
-                    invoiceItems = invoice.items.map(item => ({
-                        type: item.type,
-                        itemId: item.itemId,
-                        name: item.name,
-                        quantity: item.quantity,
-                        unitPrice: item.unitPrice,
-                        totalPrice: item.totalPrice
-                    }));
-                    updateInvoiceTable();
-                    calculateTotal();
+            .then(result => {
+                if (result.success) {
+                    alert('Lịch hẹn đã được cập nhật thành "đã check-in".');
+                    window.location.reload(); // Làm mới trang để cập nhật danh sách
                 } else {
-                    alert('Không tìm thấy hóa đơn cho bệnh nhân này.');
+                    alert('Không thể cập nhật trạng thái lịch hẹn.');
                 }
             })
             .catch(error => {
-                console.error('Lỗi khi tìm hóa đơn:', error);
-                alert('Không tìm thấy hóa đơn.');
+                console.error('Lỗi khi cập nhật trạng thái lịch hẹn:', error);
+                alert('Đã xảy ra lỗi. Vui lòng thử lại.');
             });
-        }
-        // // Hiển thị modal
-    modal.classList.add('show');
-}
+    }
 </script>
 {% endblock %}
