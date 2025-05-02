@@ -3,6 +3,7 @@ from flask_login import login_user, logout_user, login_required, current_user
 from ..models.user import User
 from ..extensions import mongo
 import bcrypt
+from werkzeug.security import check_password_hash
 
 auth_bp = Blueprint('auth', __name__)
 

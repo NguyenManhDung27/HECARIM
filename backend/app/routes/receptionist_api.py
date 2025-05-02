@@ -1,3 +1,4 @@
+import bcrypt
 from flask import Blueprint, jsonify, request
 from flask_login import login_required, current_user
 from backend.app.utils.auth_utils import role_required
@@ -13,6 +14,7 @@ from backend.app import mongo
 from bson import ObjectId
 from datetime import datetime, time, timedelta, timezone
 import math
+from werkzeug.security import generate_password_hash
 
 receptionist_api = Blueprint('receptionist/api', __name__)
 
@@ -192,7 +194,24 @@ def create_patient():
     'updatedAt': datetime.now()
     }
     try:
-        mongo.db.patients.insert_one(patient)
+         # Lưu bệnh nhân vào cơ sở dữ liệu
+        result = mongo.db.patients.insert_one(patient)
+        patient_id = result.inserted_id  # Lấy ID của bệnh nhân vừa tạo
+
+        salt = bcrypt.gensalt()
+        password_hash = bcrypt.hashpw(data['personalInfo']['phone'].encode('utf-8'), salt)  # Hash mật khẩu bằng bcrypt
+
+        user_account = {
+            'username': data['personalInfo']['phone'],  # Sử dụng số điện thoại làm username
+            'role': 'patient',
+            'patient_id': patient_id,  # Liên kết với ID bệnh nhân
+            'password_hash': password_hash,  # Lưu hash dưới dạng byte
+            'status': 'active',
+            'createdAt': datetime.now(),
+            'updatedAt': datetime.now()
+        }
+        mongo.db.users.insert_one(user_account)  # Lưu tài khoản vào collection `users`
+
     except Exception as e:
         return jsonify({'error': 'Internal Server Error'}), 500
     return jsonify({'success': True, 'message': 'Patient created successfully'}), 201
