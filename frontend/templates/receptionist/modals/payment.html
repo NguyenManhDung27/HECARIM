@@ -223,7 +223,6 @@
     }
 
     function addInvoiceItem(type, item) {
-        console.log("Adding invoice item:", item);
         const newItem = {
             type: type,
             itemId: item._id,
@@ -312,33 +311,45 @@
             return;
         }
 
+        // Thu thập thông tin hóa đơn
         const invoice = {
             patientId: selectedPatient._id,
             items: invoiceItems,
             discountType: document.getElementById('discountType').value,
             discountValue: parseFloat(document.getElementById('discountValue').value) || 0,
             paymentMethod: document.getElementById('paymentMethod').value,
-            notes: document.getElementById('paymentNotes').value
+            notes: document.getElementById('paymentNotes').value,
+            paymentDate: new Date().toISOString() // Thêm thời gian hiện tại
         };
 
-        fetch('/api/invoices', {
-            method: 'POST',
+        console.log('Dữ liệu gửi lên:', invoice); // Kiểm tra dữ liệu gửi lên
+
+        // Gửi yêu cầu cập nhật hóa đơn
+        fetch('/receptionist/api/invoices', {
+            method: 'PUT',
             headers: {
                 'Content-Type': 'application/json'
             },
             body: JSON.stringify(invoice)
         })
-            .then(response => response.json())
+            .then(response => {
+                if (!response.ok) {
+                    throw new Error('Yêu cầu không hợp lệ');
+                }
+                return response.json();
+            })
             .then(result => {
                 if (result.success) {
-                    // Print invoice
-                    window.open(`/invoices/${result.invoiceId}/print`, '_blank');
-                    // Close modal and refresh page
+                    alert('Thanh toán thành công!');
                     closeModal('paymentModal');
                     window.location.reload();
                 } else {
-                    alert('Có lỗi xảy ra khi xử lý thanh toán');
+                    alert(result.message || 'Có lỗi xảy ra khi xử lý thanh toán');
                 }
+            })
+            .catch(error => {
+                console.error('Lỗi khi xử lý thanh toán:', error);
+                alert('Đã xảy ra lỗi. Vui lòng thử lại.');
             });
     }
 
@@ -349,30 +360,39 @@
         }).format(amount);
     }
 
-    function updateDiscountValue(invoice) {
-        if (!invoice || !invoice.discount) {
-            console.error('Hóa đơn không hợp lệ hoặc không có thông tin giảm giá.');
+    function updateInvoiceDetails(invoice) {
+        if (!invoice) {
+            console.error('Hóa đơn không hợp lệ.');
             return;
         }
 
         // Cập nhật giá trị giảm giá
-        document.getElementById('discountValue').value = invoice.discount.value || 0;
-        document.getElementById('discountType').value = invoice.discount.type || 'amount';
+        if (invoice.discount) {
+            document.getElementById('discountValue').value = invoice.discount.value || 0;
+            document.getElementById('discountType').value = invoice.discount.type || 'amount';
+        }
+
+        // Cập nhật ghi chú thanh toán
+        document.getElementById('paymentNotes').value = invoice.notes || '';
 
         // Tính toán lại tổng tiền
         calculateTotal();
     }
 
-    function openPaymentModal(invoice) {
+    function openPaymentModal(invoice, appointmentType) {
         // Hiển thị modal
         document.getElementById('paymentModal').classList.add('show');
 
         // Cập nhật thông tin giảm giá từ hóa đơn
-        updateDiscountValue(invoice);
-
+        updateInvoiceDetails(invoice);
+        // Tìm và thêm dịch vụ dựa trên loại lịch hẹn
+        if (appointmentType) {
+            fetchAndAddServiceByType(appointmentType);
+        }
         // Cập nhật các thông tin khác nếu cần
         if (invoice) {
             selectedPatient = { _id: invoice.patientId }; // Gán bệnh nhân từ hóa đơn
+            console.log('Selected patient:', selectedPatient); // Kiểm tra bệnh nhân đã chọn
             invoiceItems = invoice.items || []; // Gán danh sách mục hóa đơn
             updateInvoiceTable(); // Cập nhật bảng hóa đơn
             calculateTotal(); // Tính toán lại tổng tiền
@@ -389,7 +409,7 @@
             alert('Vui lòng thêm dịch vụ hoặc thuốc vào hóa đơn trước khi lưu.');
             return;
         }
-
+        console.log('Lưu hóa đơn:', selectedPatient); // Kiểm tra dữ liệu hóa đơn
         // Thu thập thông tin hóa đơn
         const invoice = {
             patientId: selectedPatient._id,
@@ -419,7 +439,7 @@
             createdAt: new Date(),
             updatedAt: new Date()
         };
-
+        console.log('Dữ liệu hóa đơn:', invoice); // Kiểm tra dữ liệu hóa đơn
         // Gửi hóa đơn đến API
         fetch('/receptionist/api/invoices', {
             method: 'POST',
@@ -444,6 +464,35 @@
             });
     }
 
+    function fetchAndAddServiceByType(appointmentType) {
+        if (!appointmentType) {
+            console.error('Loại dịch vụ không hợp lệ.');
+            return;
+        }
+        console.log(appointmentType);
+
+        // Gửi yêu cầu tìm kiếm dịch vụ theo loại
+        fetch(`/receptionist/api/services/${appointmentType}`)
+            .then(response => response.json())
+            .then(services => {
+                if (services.length > 0) {
+                    // Lấy dịch vụ đầu tiên (hoặc tất cả nếu cần)
+                    const service = services[0]; // Hoặc lặp qua tất cả dịch vụ nếu cần
+                    addInvoiceItem('service', {
+                        _id: service._id,
+                        name: service.name,
+                        price: service.price
+                    });
+                    alert(`Dịch vụ "${service.name}" đã được thêm vào hóa đơn.`);
+                } else {
+                    alert('Không tìm thấy dịch vụ phù hợp với loại lịch hẹn.');
+                }
+            })
+            .catch(error => {
+                console.error('Lỗi khi tìm kiếm dịch vụ:', error);
+                alert('Đã xảy ra lỗi khi tìm kiếm dịch vụ.');
+            });
+    }
     function calculateTotalAmount() {
         const subtotal = invoiceItems.reduce((sum, item) => sum + item.totalPrice, 0);
         const discountType = document.getElementById('discountType').value;
@@ -461,13 +510,34 @@
         return afterDiscount + tax;
     }
     function closeModal(modalId) {
-        document.getElementById(modalId).classList.remove('show');
+        const modal = document.getElementById(modalId);
+        if (modal) {
+            modal.classList.remove('show');
+        }
+
         if (modalId === 'paymentModal') {
-            // Reset payment form
-            document.getElementById('paymentPatientSearch').value = '';
-            document.getElementById('paymentPatientInfo').style.display = 'none';
-            document.getElementById('discountValue').value = '';
-            document.getElementById('paymentNotes').value = '';
+            // Kiểm tra và reset các trường trong modal
+            const patientSearch = document.getElementById('paymentPatientSearch');
+            if (patientSearch) {
+                patientSearch.value = '';
+            }
+
+            const patientInfo = document.getElementById('paymentPatientInfo');
+            if (patientInfo) {
+                patientInfo.style.display = 'none';
+            }
+
+            const discountValue = document.getElementById('discountValue');
+            if (discountValue) {
+                discountValue.value = '';
+            }
+
+            const paymentNotes = document.getElementById('paymentNotes');
+            if (paymentNotes) {
+                paymentNotes.value = '';
+            }
+
+            // Reset danh sách hóa đơn
             invoiceItems = [];
             updateInvoiceTable();
             calculateTotal();

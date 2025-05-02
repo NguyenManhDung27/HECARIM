@@ -31,11 +31,11 @@ def get_appointment(appointment_id):
 def create_appointment():
     data = request.get_json()
     appointment_data = {
-        'patientId': data['patient_id'],
-        'doctorId': data['doctor_id'],
+        'patientId': ObjectId(data['patient_id']),
+        'doctorId': ObjectId(data['doctor_id']),
         'appointmentTime': datetime.strptime(data['appointment_date'], '%Y-%m-%d'),
         'timeSlot': data['time_slot'],
-        'status': 'scheduled',
+        'status': 'đã lên lịch',
         'type': data.get('type', ''),
         'notes': data.get('notes', ''),
         'reason': data.get('reason', ''),
@@ -91,6 +91,30 @@ def get_patient_by_id(patient_id):
     # Chuyển đổi ObjectId thành chuỗi
     patient['_id'] = str(patient['_id'])
     return jsonify(patient)
+
+
+@receptionist_api.route('/appointments/<appointment_id>/check-in', methods=['PUT'])
+@login_required
+def check_in_appointment(appointment_id):
+    try:
+        # Lấy dữ liệu từ yêu cầu
+        data = request.json
+        new_status = data.get('status', 'đã check-in')
+
+        # Cập nhật trạng thái lịch hẹn trong cơ sở dữ liệu
+        result = mongo.db.appointments.update_one(
+            {'_id': ObjectId(appointment_id)},
+            {'$set': {'status': new_status}}
+        )
+
+        if result.matched_count == 0:
+            return jsonify({'success': False, 'message': 'Không tìm thấy lịch hẹn.'}), 404
+
+        return jsonify({'success': True, 'message': 'Trạng thái lịch hẹn đã được cập nhật.'})
+
+    except Exception as e:
+        print(f'Lỗi khi cập nhật trạng thái lịch hẹn: {e}')
+        return jsonify({'success': False, 'message': 'Đã xảy ra lỗi khi cập nhật trạng thái.'}), 500
 
 @receptionist_api.route('/invoices/<patient_id>', methods=['GET'])
 @login_required
@@ -278,14 +302,27 @@ def list_services():
         service['_id'] = str(service['_id'])
     return jsonify(list(services))
 
+@receptionist_api.route('/services/<service_type>', methods=['GET'])
+@login_required
+@role_required('receptionist')
+def get_services_by_type(service_type):
+    if not service_type:
+        return jsonify({'success': False, 'message': 'Thiếu loại dịch vụ'}), 400
+
+    services = list(mongo.db.services.find({'category': service_type}))
+    if services:
+        for service in services:
+            service['_id'] = str(service['_id'])
+    else:
+        services = []
+    return jsonify(services)
+
 @receptionist_api.route('/invoices', methods=['POST'])
 @login_required
 def save_invoice():
-    print("Tao invoice")
     data = request.json
     if not data:
         return jsonify({'success': False, 'message': 'Dữ liệu không hợp lệ'}), 400
-    print(data)
     # Lưu hóa đơn vào cơ sở dữ liệu
     invoice = {
         'patientId': ObjectId(data['patientId']),
@@ -301,9 +338,42 @@ def save_invoice():
         'paymentDate': data['paymentDate'],
         'issuedBy': ObjectId(data['issuedBy']),
         'notes': data['notes'],
-        'createdAt': data['createdAt'],
-        'updatedAt': data['updatedAt']
+        'createdAt': datetime.fromisoformat(data['createdAt'].replace("Z", "+00:00")),
+        'updatedAt': datetime.fromisoformat(data['updatedAt'].replace("Z", "+00:00"))
     }
     mongo.db.invoices.insert_one(invoice)
 
     return jsonify({'success': True, 'invoiceId': str(invoice['_id'])})
+
+@receptionist_api.route('/invoices', methods=['PUT'])
+@login_required
+def update_invoice():
+    try:
+        data = request.json
+        patient_id = data.get('patientId')
+        payment_date = data.get('paymentDate')
+        payment_method = data.get('paymentMethod')
+
+        if not patient_id or not payment_date or not payment_method:
+            return jsonify({'success': False, 'message': 'Thiếu dữ liệu cần thiết'}), 400
+
+        payment_date = datetime.fromisoformat(payment_date.replace("Z", "+00:00"))
+        # Cập nhật hóa đơn trong cơ sở dữ liệu
+        result = mongo.db.invoices.update_one(
+            {'patientId': ObjectId(patient_id)},
+            {'$set': {
+                'status': 'đã thanh toán',
+                'paymentDate': payment_date,
+                'paymentMethod': payment_method,
+                'notes': data.get('notes')
+            }}
+        )
+
+        if result.matched_count == 0:
+            return jsonify({'success': False, 'message': 'Không tìm thấy hóa đơn'}), 404
+
+        return jsonify({'success': True, 'message': 'Hóa đơn đã được cập nhật thành công'})
+
+    except Exception as e:
+        print(f'Lỗi khi cập nhật hóa đơn: {e}')
+        return jsonify({'success': False, 'message': 'Đã xảy ra lỗi khi cập nhật hóa đơn'}), 500

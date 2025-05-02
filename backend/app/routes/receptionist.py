@@ -36,13 +36,18 @@ def dashboard():
         patient_name = patient['personalInfo']['fullName'] if patient else 'Không rõ'
         doctor_name = doctor['personalInfo']['fullName'] if doctor else 'Không rõ'
 
+        status_class = 'success' if appt.get('status') == "đã check-in" else 'warning'  # hoặc tạo rule cho status_class theo trạng thái
+
         waiting_list.append({
+            'appointment_id': str(appt['_id']),
             'name': patient_name,
+            'phone': patient['personalInfo']['phone'] if patient else 'Không rõ',
             'id': patient.get('_id', '') if patient else '',
+            'appointment_type': appt.get('type', 'Không rõ'),
             'check_in_time': appt.get('timeSlot'),
             'doctor': doctor_name,
-            'status': 'chờ khám',  # Hoặc trạng thái khác
-            'status_class': 'warning'  # hoặc tạo rule cho status_class theo trạng thái
+            'status': appt.get('status'),
+            'status_class': status_class
         })
     # print("Waiting list:", waiting_list)
     # Truy vấn danh sách bác sĩ từ MongoDB
@@ -51,7 +56,7 @@ def dashboard():
         'personalInfo.fullName': 1,
         'professionalInfo.specialization': 1
     })
-
+    print(waiting_list)
     # Chuyển đổi ObjectId sang chuỗi và chuẩn bị dữ liệu
     doctors_list = [{
         '_id': str(doctor['_id']),
