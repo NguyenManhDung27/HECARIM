@@ -1,5 +1,6 @@
 import bcrypt
 from flask import Blueprint, jsonify, request
+from flask_mail import Mail, Message
 from flask_login import login_required, current_user
 from backend.app.utils.auth_utils import role_required
 from backend.app.utils.api_utils import (
@@ -15,7 +16,10 @@ from bson import ObjectId
 from datetime import datetime, time, timedelta, timezone
 import math
 from werkzeug.security import generate_password_hash
+receptionist_api = Blueprint('receptionist/api', __name__)
 
+# Configure Flask-Mail
+mail = Mail()
 receptionist_api = Blueprint('receptionist/api', __name__)
 
 @receptionist_api.route('/appointments/<appointment_id>')
@@ -211,7 +215,18 @@ def create_patient():
             'updatedAt': datetime.now()
         }
         mongo.db.users.insert_one(user_account)  # Lưu tài khoản vào collection `users`
-
+        try:
+            # Gửi email xác nhận tài khoản
+            msg = Message('XIn chào ông/bà ' + data['personalInfo']['fullName'],   
+                          recipients=[data['personalInfo']['email']])
+            msg.subject = 'Xác nhận tài khoản bệnh nhân'
+            msg.html = '<h1>Cảm ơn ông/bà đã đăng ký tại bệnh viện của chúng tôi</h1>' \
+                        '<p>Tài khoản của ông/bà đã được tạo thành công với tên đăng nhập là ' + data['personalInfo']['phone'] + ' và mật khẩu là ' + data['personalInfo']['phone'] + '.</p>' \
+                        '<p>Vui lòng thay đổi mật khẩu sau khi đăng nhập.</p>'
+            mail.send(msg)
+        except Exception as e:
+            print(f'Lỗi khi gửi email xác nhận: {e}')
+            return jsonify({'success': False, 'message': 'Đã xảy ra lỗi khi gửi email xác nhận.'}), 500
     except Exception as e:
         return jsonify({'error': 'Internal Server Error'}), 500
     return jsonify({'success': True, 'message': 'Patient created successfully'}), 201
