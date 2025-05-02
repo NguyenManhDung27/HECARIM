@@ -183,16 +183,15 @@
 {% include 'receptionist/modals/new_appointment.html' %}
 {% include 'receptionist/modals/check_in.html' %}
 {% include 'receptionist/modals/payment.html' %}
+{% include 'receptionist/modals/invoices.html' %}
 {% endblock %}
 
 {% block extra_scripts %}
 <script>
     function showModal(modalId, patientId = null, type = null) {
         const modal = document.getElementById(modalId);
-        console.log(modal)
         // Nếu modal là paymentModal và có patientId, tự động tìm kiếm bệnh nhân
         if (modalId === 'paymentModal' && patientId) {
-            console.log(type)
             fetch(`/receptionist/api/patients/${patientId}`)
                 .then(response => response.json())
                 .then(patient => {

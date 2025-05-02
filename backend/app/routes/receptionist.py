@@ -56,7 +56,7 @@ def dashboard():
         'personalInfo.fullName': 1,
         'professionalInfo.specialization': 1
     })
-    print(waiting_list)
+
     # Chuyển đổi ObjectId sang chuỗi và chuẩn bị dữ liệu
     doctors_list = [{
         '_id': str(doctor['_id']),
