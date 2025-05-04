@@ -16,15 +16,15 @@ def save_prescription():
 
     # Chuyển đổi medications từ các trường riêng lẻ thành danh sách
     medications = []
-    if 'medications[][id]' in data:
-        medications.append({
-            'id': data['medications[][id]'],
-            'dosage': data['medications[][dosage]'],
-            'frequency': data['medications[][frequency]'],
-            'duration': data['medications[][duration]'],
-            'instructions': data['medications[][instructions]']
-        })
-
+    if 'medications' in data:
+        for med in data['medications']:
+            medications.append({
+                'id': med.get('id'),
+                'dosage': med.get('dosage'),
+                'frequency': med.get('frequency'),
+                'duration': med.get('duration'),
+                'instructions': med.get('instructions')
+            })
     # Kiểm tra dữ liệu đầu vào
     if not data.get('patient_id') or not medications:
         return jsonify({'success': False, 'message': 'Thiếu thông tin bệnh nhân hoặc danh sách thuốc'}), 400
@@ -103,7 +103,6 @@ def save_examination():
     try:
         # Parse JSON data from the request body
         data = request.get_json()
-        print("Received data:", data)  # Debugging: Log the received data
 
         if not data:
             return jsonify({'success': False, 'message': 'No data provided'}), 400
@@ -111,8 +110,6 @@ def save_examination():
         # Validate required fields
         patient_id = data.get('patient_id')
         examination_details = data.get('examination_details')
-        print("Patient ID:", patient_id)  # Debugging: Log patient_id
-        print("Examination Details:", examination_details)  # Debugging: Log examination_details
 
         if not patient_id or not examination_details:
             return jsonify({'success': False, 'message': 'Missing required fields: patient_id or examination_details'}), 400
@@ -148,12 +145,16 @@ def save_examination():
             'updatedAt': datetime.now()
         }
         mongo.db.medical_records.insert_one(medical_record)
+
+        # Remove the appointment from the database
+        patientId=patient_id
+        mongo.db.appointments.delete_one({'patientId': patientId})
         
         return jsonify({'success': True, 'message': 'Đã lưu hồ sơ khám và bệnh án thành công'}), 201
     except Exception as e:
         print(f"Error saving examination or medical record: {e}")
         return jsonify({'success': False, 'message': f'An error occurred: {str(e)}'}), 500
-@doctor_api.route('/doctor/medical-records', methods=['GET'])
+@doctor_api.route('/doctor/medical-records/', methods=['GET'])
 @login_required
 def render_medical_records_page():
     try:
@@ -180,3 +181,154 @@ def render_medical_records_page():
     except Exception as e:
         print(f"Error fetching medical records: {e}")
         return render_template('doctor/medical_records.html', medical_records=[])   
+@doctor_api.route('/api/medical-records/<record_id>', methods=['GET'])
+@login_required
+def get_medical_record(record_id):
+    try:
+        # Fetch the medical record from the database
+        record = mongo.db.medical_records.find_one({'_id': ObjectId(record_id)})
+        if not record:
+            return jsonify({'error': 'Medical record not found'}), 404
+
+        # Convert ObjectId to string and format fields
+        record['_id'] = str(record['_id'])
+        record['patientId'] = str(record.get('patientId', ''))
+        record['doctorId'] = str(record.get('doctorId', ''))
+        record['visitDate'] = record['visitDate'].strftime('%Y-%m-%d') if record.get('visitDate') else None
+        record['examinationId'] = str(record.get('examinationId', ''))
+        # Add patient name (fetch from patients collection if needed)
+        patient = mongo.db.patients.find_one({'_id': ObjectId(record['patientId'])})
+        record['patient_name'] = patient['personalInfo']['fullName'] if patient else "N/A"
+
+        # Add vital signs
+        record['vital_signs'] = {
+            'temperature': record.get('vitalSigns', {}).get('temperature', "N/A"),
+            'blood_pressure': record.get('vitalSigns', {}).get('bloodPressure', {'systolic': "N/A", 'diastolic': "N/A"}),
+            'heart_rate': record.get('vitalSigns', {}).get('heartRate', "N/A"),
+            'respiratoryRate': record.get('vitalSigns', {}).get('respiratoryRate', "N/A")
+    }
+
+        record['symptoms'] = record.get('symptoms', '')
+        record['diagnosis'] = record.get('diagnosis', '')
+        record['notes'] = record.get('notes', '')
+
+        # Add treatment details
+        record['treatment'] = record.get('treatment', {'recommendations': '', 'medications': []})
+        for med in record['treatment']['medications']:
+            med['medicationId'] = med.get('medicationId', "")
+            med['dosage'] = med.get('dosage', "N/A")
+            med['frequency'] = med.get('frequency', "N/A")
+            med['duration'] = med.get('duration', "N/A")
+            med['instructions'] = med.get('instructions', "N/A")
+            medication = mongo.db.medications.find_one({'_id': ObjectId(med.get('medicationId', ""))})
+            med['name'] = medication.get('name', "N/A")
+
+
+
+
+        record['followUp'] = record.get('followUp', {'required': False, 'recommendedDate': None, 'reason': ''})
+        if record['followUp'].get('recommendedDate'):
+            record['followUp']['recommendedDate'] = record['followUp']['recommendedDate'].strftime('%Y-%m-%d')
+
+        return jsonify(record), 200
+    except Exception as e:
+        print(f"Error fetching medical record: {e}")
+        return jsonify({'error': 'An error occurred'}), 500
+@doctor_api.route('/api/prescriptions/<prescription_id>', methods=['GET'])
+@login_required
+def get_prescription(prescription_id):
+    try:
+        # Fetch the prescription record
+        prescription = mongo.db.prescriptions.find_one({'_id': ObjectId(prescription_id)})
+        if not prescription:
+            return jsonify({'error': 'Prescription not found'}), 404
+#)
+        # Convert ObjectId fields to strings
+        prescription['_id'] = str(prescription['_id'])
+        prescription['patient_id'] = str(prescription.get('patient_id', ''))
+        prescription['doctor_id'] = str(prescription.get('doctor_id', ''))
+        prescription['issue_date'] = prescription.get('issue_date').strftime('%Y-%m-%d') if prescription.get('issue_date') else None
+
+        # Fetch patient and doctor names
+        patient = mongo.db.patients.find_one({'_id': ObjectId(prescription['patient_id'])})
+        prescription['patient_name'] = patient['personalInfo']['fullName'] if patient else "N/A"
+
+        # Find the user first
+        user = mongo.db.users.find_one({'_id': ObjectId(current_user.id)})
+
+        # Then use the staff_id from the user to find the doctor
+        doctor = mongo.db.doctors.find_one({'_id': user['staff_id']}) if user else None
+
+        # Assign the doctor's name to the prescription
+        prescription['doctor_name'] = doctor['personalInfo']['fullName'] if doctor else "N/A"
+
+        # Fetch medication names from medications collection
+        for med in prescription.get('medications', []):
+            med['medicationId'] = med.get('id', "")
+            med['dosage'] = med.get('dosage', "N/A")
+            med['frequency'] = med.get('frequency', "N/A")
+            med['duration'] = med.get('duration', "N/A")
+            medication = mongo.db.medications.find_one({'_id': ObjectId(med.get('id', ""))})
+            med['name'] = medication['name'] if medication else "N/A"
+            med['instructions'] = med.get('instructions', "N/A")  # Add this line
+        return jsonify(prescription), 200
+
+    except Exception as e:
+        print(f"Error fetching prescription: {e}")
+        return jsonify({'error': 'An error occurred'}), 500
+@doctor_api.route('/schedule', methods=['GET'])
+@login_required
+def get_schedule():
+    try:
+        # Find the logged-in doctor
+        user = mongo.db.users.find_one({'_id': ObjectId(current_user.id)})
+        if not user:
+            return jsonify({"success": False, "message": "User not found"}), 404
+
+        doctor = mongo.db.doctors.find_one({'_id': user['staff_id']})
+        if not doctor:
+            return jsonify({"success": False, "message": "Doctor not found"}), 404
+
+
+        selected_date_str = request.args.get("date")
+        if not selected_date_str:
+            return jsonify({"success": False, "message": "Date parameter is missing"}), 400  # Return an error if date is missing
+
+        selected_date = datetime.strptime(selected_date_str, "%Y-%m-%d")
+        start_of_day = datetime.combine(selected_date, datetime.min.time())
+        end_of_day = datetime.combine(selected_date, datetime.max.time())
+
+        appointments_cursor = mongo.db.appointments.find({
+            "doctorId": str(doctor['_id']),
+            "appointmentTime": {"$gte": start_of_day, "$lt": end_of_day}  # Proper date filtering
+        })
+
+
+
+        appointments = list(appointments_cursor)
+        appointments_by_date = {}
+
+        # Format appointments for frontend
+        formatted_appointments = []
+        for appointment in appointments:
+            formatted_appointments.append({
+                "id": str(appointment["_id"]),
+                "patient_id": str(appointment["patientId"]),
+                "date": appointment["appointmentTime"].strftime('%Y-%m-%d'),
+                "time": appointment["timeSlot"],
+                "status": appointment["status"]
+            })
+
+        appointments_by_date = {}
+
+        for appointment in appointments:
+            date_key = appointment["appointmentTime"].strftime('%Y-%m-%d')
+            if date_key not in appointments_by_date:
+                appointments_by_date[date_key] = []
+            appointments_by_date[date_key].append(appointment["timeSlot"])
+
+        return jsonify({"success": True, "appointments": formatted_appointments, "appointments_by_date": appointments_by_date}), 200
+
+    except Exception as e:
+        print(f"Error fetching schedule: {e}")
+        return jsonify({"success": False, "message": "Có lỗi xảy ra khi lấy lịch khám"}), 500

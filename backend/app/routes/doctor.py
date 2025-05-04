@@ -88,7 +88,7 @@ def medical_records():
         page=page,
         total_pages=total_pages,
         has_prev=page > 1,
-        has_next=page < total_pages
+        has_next=page < total_pages,
     )
 @doctor_bp.route('/prescriptions')
 @login_required
@@ -193,20 +193,9 @@ def profile():
     doctor = mongo.db.doctors.find_one({'_id': current_user.user_data.get('staff_id')})
     if not doctor:
         return "Doctor profile not found", 404
-    return render_template('doctor/profile.html', doctor=doctor, notifications_count = 4)
-
-# API endpoints for AJAX requests
-@doctor_bp.route('/api/today-appointments')
+    return render_template('doctor/profile.html', doctor=doctor, notifications_count = 3)
+@doctor_bp.route('/schedule-page')
 @login_required
-def get_today_appointments():
-    appointments = mongo.db.appointments.find({
-        'doctor_id': current_user.user_data.get('staff_id'),
-        'date': {'$gte': datetime.now().replace(hour=0, minute=0, second=0),
-                '$lt': datetime.now().replace(hour=23, minute=59, second=59)}
-    })
-    return jsonify(list(appointments))
+def schedule_page():
+    return render_template("doctor/schedule.html", notifications_count = 3)
 
-@doctor_bp.route('/prescriptions', methods=['POST'])
-@login_required
-def save_examination():
-    pass

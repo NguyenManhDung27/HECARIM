@@ -157,7 +157,7 @@
         <!-- Existing form fields... -->
         <div class="form-actions">
             <button type="button" class="btn btn-primary" onclick="submitExaminationForm()">Lưu Phiếu Khám</button>
-            <a href="{{ url_for('doctor.patient_details', patient_id=patient.id) }}" class="btn btn-secondary">Hủy</a>
+            <a href="{{ url_for('doctor.dashboard') }}" class="btn btn-secondary">Hủy</a>
         </div>
     </form>
 </div>
@@ -306,7 +306,13 @@
         .then(data => {
             if (data.success) {
                 alert(data.message);
-                // Redirect or update the UI as needed
+                // Remove the patient row from the dashboard table
+                const patientRow = window.parent.document.querySelector(`tr[data-patient-id="${jsonData.patient_id}"]`);
+                if (patientRow) {
+                    patientRow.remove();
+                }
+                // Optionally redirect to another page
+                window.location.href = '/doctor/dashboard';
             } else {
                 alert(data.message || 'An error occurred');
             }

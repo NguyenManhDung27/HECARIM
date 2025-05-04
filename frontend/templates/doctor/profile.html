@@ -10,6 +10,18 @@
     </a>
 </div>
 <div class="nav-item">
+    <a href="{{ url_for('doctor.schedule_page') }}" class="nav-link">
+        <i class="fas fa-calendar-alt"></i>
+        Lịch khám bệnh
+    </a>
+</div>
+<div class="nav-item">
+    <a href="{{ url_for('doctor.patients') }}" class="nav-link">
+        <i class="fas fa-users"></i>
+        Danh sách bệnh nhân
+    </a>
+</div>
+<div class="nav-item">
     <a href="{{ url_for('doctor.medical_records') }}" class="nav-link">
         <i class="fas fa-file-medical"></i>
         Hồ sơ bệnh án
@@ -19,12 +31,6 @@
     <a href="{{ url_for('doctor.prescriptions') }}" class="nav-link">
         <i class="fas fa-prescription"></i>
         Kê đơn thuốc
-    </a>
-</div>
-<div class="nav-item">
-    <a href="{{ url_for('doctor.patients') }}" class="nav-link">
-        <i class="fas fa-users"></i>
-        Danh sách bệnh nhân
     </a>
 </div>
 <div class="nav-item">
