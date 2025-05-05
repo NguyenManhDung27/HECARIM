@@ -39,8 +39,8 @@
 
 {% block content %}
 <div class="card">
-    <form method="POST" action="{{ url_for('doctor/api.save_examination') }}">
-        <input type="hidden" name="patientId" value="{{ patient.id }}">
+    <form id="examinationForm" action="{{ url_for('doctor/api.save_examination') }}" method="POST">
+        <input type="hidden" name="patientId" value="{{ patient['_id'] }}">
         
         <!-- Vital Signs Section -->
         <div class="card-section">
@@ -153,10 +153,11 @@
                 <textarea id="notes" name="notes" class="form-control" rows="3"></textarea>
             </div>
         </div>
-
+        
+        <!-- Existing form fields... -->
         <div class="form-actions">
-            <button type="submit" class="btn btn-primary">Lưu Phiếu Khám</button>
-            <a href="{{ url_for('doctor.patient_details', patient_id=patient.id) }}" class="btn btn-secondary">Hủy</a>
+            <button type="button" class="btn btn-primary" onclick="submitExaminationForm()">Lưu Phiếu Khám</button>
+            <a href="{{ url_for('doctor.dashboard') }}" class="btn btn-secondary">Hủy</a>
         </div>
     </form>
 </div>
@@ -241,5 +242,85 @@
         medicationList.appendChild(newMedication);
         medicationCount++;
     }
+    function submitExaminationForm() {
+    const form = document.getElementById('examinationForm');
+    const formData = new FormData(form);
+    const jsonData = {
+        patient_id: formData.get('patientId'),
+        examination_details: {
+            vitalSigns: {
+                temperature: parseFloat(formData.get('vitalSigns.temperature')) || null,
+                bloodPressure: {
+                    systolic: parseInt(formData.get('vitalSigns.bloodPressure.systolic')) || null,
+                    diastolic: parseInt(formData.get('vitalSigns.bloodPressure.diastolic')) || null
+                },
+                heartRate: parseInt(formData.get('vitalSigns.heartRate')) || null,
+                respiratoryRate: parseInt(formData.get('vitalSigns.respiratoryRate')) || null
+            },
+            symptoms: formData.get('symptoms') || '',
+            diagnosis: formData.get('diagnosis') || '',
+            treatment: {
+                recommendations: formData.get('treatment.recommendations') || '',
+                medications: []
+            },
+            followUp: {
+                required: formData.get('followUp.required') === 'on',
+                recommendedDate: formData.get('followUp.recommendedDate') || null,
+                reason: formData.get('followUp.reason') || ''
+            },
+            notes: formData.get('notes') || ''
+        }
+    };
+
+    // Handle multiple medications
+    const medicationItems = document.querySelectorAll('.medication-item');
+    medicationItems.forEach((medication, index) => {
+        const medicationId = formData.get(`treatment.medications[${index}].medicationId`);
+        const dosage = formData.get(`treatment.medications[${index}].dosage`);
+        const frequency = formData.get(`treatment.medications[${index}].frequency`);
+        const duration = formData.get(`treatment.medications[${index}].duration`);
+        const instructions = formData.get(`treatment.medications[${index}].instructions`);
+
+        if (medicationId && dosage && frequency && duration) {
+            jsonData.examination_details.treatment.medications.push({
+                medicationId,
+                dosage,
+                frequency,
+                duration,
+                instructions
+            });
+        }
+    });
+
+    console.log("JSON Payload:", jsonData); // Debugging: Log the JSON payload
+
+    // Send JSON data to the backend
+    fetch(form.action, {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json',
+        },
+        body: JSON.stringify(jsonData),
+    })
+        .then(response => response.json())
+        .then(data => {
+            if (data.success) {
+                alert(data.message);
+                // Remove the patient row from the dashboard table
+                const patientRow = window.parent.document.querySelector(`tr[data-patient-id="${jsonData.patient_id}"]`);
+                if (patientRow) {
+                    patientRow.remove();
+                }
+                // Optionally redirect to another page
+                window.location.href = '/doctor/dashboard';
+            } else {
+                alert(data.message || 'An error occurred');
+            }
+        })
+        .catch(error => {
+            console.error('Error:', error);
+            alert('An error occurred while saving the examination.');
+        });
+}
 </script>
 {% endblock %}

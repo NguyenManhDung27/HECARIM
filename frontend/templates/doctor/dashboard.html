@@ -10,6 +10,18 @@
     </a>
 </div>
 <div class="nav-item">
+    <a href="{{ url_for('doctor.schedule_page') }}" class="nav-link">
+        <i class="fas fa-calendar-alt"></i>
+        Lịch khám bệnh
+    </a>
+</div>
+<div class="nav-item">
+    <a href="{{ url_for('doctor.patients') }}" class="nav-link {% if request.endpoint == 'doctor.patients' %}active{% endif %}">
+        <i class="fas fa-users"></i>
+        Danh sách bệnh nhân
+    </a>
+</div>
+<div class="nav-item">
     <a href="{{ url_for('doctor.medical_records') }}" class="nav-link {% if request.endpoint == 'doctor.medical_records' %}active{% endif %}">
         <i class="fas fa-file-medical"></i>
         Hồ sơ bệnh án
@@ -19,12 +31,6 @@
     <a href="{{ url_for('doctor.prescriptions') }}" class="nav-link {% if request.endpoint == 'doctor.prescriptions' %}active{% endif %}">
         <i class="fas fa-prescription"></i>
         Kê đơn thuốc
-    </a>
-</div>
-<div class="nav-item">
-    <a href="{{ url_for('doctor.patients') }}" class="nav-link {% if request.endpoint == 'doctor.patients' %}active{% endif %}">
-        <i class="fas fa-users"></i>
-        Danh sách bệnh nhân
     </a>
 </div>
 <div class="nav-item">
@@ -126,7 +132,7 @@
                         </td>
                         <td>
                             {% if appointment.status != 'completed' %}
-                            <a href="#" class="btn btn-primary btn-sm">
+                            <a href="{{ url_for('doctor.examination', patient_id=appointment.patient_id) }}" class="btn btn-primary btn-sm">
                                 <i class="fas fa-stethoscope"></i>
                                 Khám bệnh
                             </a>

@@ -116,7 +116,7 @@
     </a>
 </div>
 <div class="nav-item">
-    <a href="{{ url_for('doctor.appointments') }}" class="nav-link active">
+    <a href="{{ url_for('doctor.schedule_page') }}" class="nav-link active">
         <i class="fas fa-calendar-alt"></i>
         Lịch khám bệnh
     </a>
@@ -199,7 +199,7 @@
 </div>
 
 <!-- Appointment Modal -->
-<div class="modal" id="appointmentModal">
+<!--<div class="modal" id="appointmentModal">
     <div class="modal-dialog">
         <div class="modal-content">
             <div class="modal-header">
@@ -259,7 +259,7 @@
             </div>
         </div>
     </div>
-</div>
+</div>-->
 {% endblock %}
 
 {% block extra_scripts %}
@@ -333,10 +333,11 @@
         const year = currentDate.getFullYear();
         const month = currentDate.getMonth() + 1;
         
-        fetch(`/api/appointments/${year}/${month}`)
+        fetch('/doctor/api/schedule')
             .then(response => response.json())
             .then(data => {
-                appointments = data;
+                console.log("API Response:", data);  // Debugging Output
+                appointments = data.appointments_by_date || {};  // Ensure correct data structure
                 renderCalendar();
             });
     }
@@ -363,7 +364,8 @@
 
                 // Check if slot is booked
                 const timeStr = `${hour}:${minute}`;
-                if (appointments[getDateString(selectedDate)]?.includes(timeStr)) {
+                const dateKey = getDateString(selectedDate);
+                if (appointments[dateKey]) {
                     timeSlot.classList.add('booked');
                 } else {
                     timeSlot.addEventListener('click', () => selectTimeSlot(timeStr));
@@ -388,30 +390,31 @@
         document.getElementById('appointmentsDate').textContent = 
             `Lịch hẹn ngày ${selectedDate.getDate()}/${selectedDate.getMonth() + 1}/${selectedDate.getFullYear()}`;
 
-        fetch(`/api/appointments/day/${dateStr}`)
+            fetch(`/doctor/api/schedule?date=${getDateString(selectedDate)}`)
             .then(response => response.json())
-            .then(appointments => {
-                appointmentsContainer.innerHTML = appointments.length ? 
-                    appointments.map(apt => `
+            .then(data => {
+                console.log("API Response:", data); // Debugging output
+
+                const appointmentsContainer = document.getElementById('appointmentsList');
+                const appointments = data.appointments?.filter(apt => apt.date === getDateString(selectedDate)) || [];
+
+                appointmentsContainer.innerHTML = appointments.length 
+                    ? appointments.map(apt => `
                         <div class="card mb-2">
                             <div class="card-body">
                                 <div class="d-flex justify-content-between align-items-center">
                                     <div>
-                                        <h5 class="mb-1">${apt.time_slot}</h5>
-                                        <p class="mb-0">${apt.patient_name}</p>
-                                        <small class="text-muted">${apt.type}</small>
-                                    </div>
-                                    <div>
-                                        <span class="badge badge-${getStatusColor(apt.status)}">
-                                            ${apt.status}
-                                        </span>
+                                        <h5 class="mb-1">${apt.time}</h5>
+                                        <p class="mb-0">${apt.patient_id}</p>
+                                        <small class="text-muted">${apt.status}</small>
                                     </div>
                                 </div>
                             </div>
                         </div>
-                    `).join('') :
-                    '<p class="text-center text-muted">Không có lịch hẹn</p>';
-            });
+                    `).join('')
+                    : '<p class="text-center text-muted">Không có lịch hẹn</p>';
+            })
+            .catch(error => console.error("Error fetching appointments:", error));  // Catch errors
     }
 
     // Navigation functions
@@ -435,8 +438,9 @@
 
     // Utility functions
     function getDateString(date) {
-        return `${date.getFullYear()}-${date.getMonth() + 1}-${date.getDate()}`;
+    return `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, '0')}-${String(date.getDate()).padStart(2, '0')}`;
     }
+
 
     function getStatusColor(status) {
         switch (status) {

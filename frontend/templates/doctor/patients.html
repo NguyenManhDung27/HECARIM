@@ -10,7 +10,7 @@
     </a>
 </div>
 <div class="nav-item">
-    <a href="#" class="nav-link">
+    <a href="{{ url_for('doctor.schedule_page') }}" class="nav-link">
         <i class="fas fa-calendar-alt"></i>
         Lịch khám bệnh
     </a>
@@ -22,7 +22,7 @@
     </a>
 </div>
 <div class="nav-item">
-    <a href="#" class="nav-link">
+    <a href="{{ url_for('doctor.medical_records') }}" class="nav-link">
         <i class="fas fa-file-medical"></i>
         Hồ sơ bệnh án
     </a>
@@ -39,7 +39,7 @@
 
 {% block content %}
 <!-- Search and Filter -->
-<div class="card mb-4">
+<!--<div class="card mb-4">
     <div class="card-body">
         <form class="row g-3" method="GET">
             <div class="col-md-4">
@@ -83,6 +83,13 @@
             </div>
         </form>
     </div>
+</div>-->
+<div class="col-md-4">
+    <label class="form-label">Tìm kiếm bệnh nhân</label>
+    <div class="input-group">
+        <input type="text" id="searchMedicalRecords" class="form-control"
+               placeholder="Nhập mã bệnh nhân, họ tên, ngày sinh hoặc số điện thoại" onkeyup="searchPatients()">
+    </div>
 </div>
 
 <!-- Patients List -->
@@ -97,7 +104,7 @@
                         <th>Giới tính</th>
                         <th>Ngày sinh</th>
                         <th>Số điện thoại</th>
-                        <th>Lần khám gần nhất</th>
+                       <!-- <th>Lần khám gần nhất</th>-->
                         <th>Thao tác</th>
                     </tr>
                 </thead>
@@ -109,13 +116,13 @@
                         <td>{{ patient.personalInfo.gender }}</td>
                         <td>{{ patient.personalInfo.dateOfBirth.strftime('%d/%m/%Y') }}</td>
                         <td>{{ patient.personalInfo.phone }}</td>
-                        <td>
+                        <!--<td>
                             {% if patient.last_visit %}
                                 {{ patient.last_visit.strftime('%d/%m/%Y') }}
                             {% else %}
                             <span class="text-muted">Chưa có</span>
                             {% endif %}
-                        </td>
+                        </td>-->
                         <td>
                             <button type="button" 
                                     class="btn btn-primary btn-sm"
@@ -123,12 +130,12 @@
                                 <i class="fas fa-eye"></i>
                                 Chi tiết
                             </button>
-                            <button type="button" 
+                           <!-- <button type="button" 
                                     class="btn btn-secondary btn-sm"
                                     onclick="viewHistory('{{ patient._id }}')">
                                 <i class="fas fa-history"></i>
                                 Lịch sử
-                            </button>
+                            </button>-->
                         </td>
                     </tr>
                     {% endfor %}
@@ -264,6 +271,23 @@
                 document.getElementById('historyModal').classList.add('show');
             });
     }
+    function searchPatients() {
+    const searchTerm = document.getElementById('searchMedicalRecords').value.toLowerCase();
+    const rows = document.querySelectorAll(".table tbody tr");
+
+    rows.forEach(row => {
+        const name = row.cells[1].textContent.toLowerCase();  // Lấy tên bệnh nhân từ cột thứ 2
+        const id = row.cells[0].textContent.toLowerCase();    // Lấy mã BN từ cột thứ 1
+        const phone = row.cells[4].textContent.toLowerCase(); // Số điện thoại
+
+        if (name.includes(searchTerm) || id.includes(searchTerm) || phone.includes(searchTerm)) {
+            row.style.display = "";  // Hiển thị nếu khớp
+        } else {
+            row.style.display = "none";  // Ẩn nếu không khớp
+        }
+    });
+    }
+
 
     // Close modals
     document.querySelectorAll('.modal-close').forEach(button => {

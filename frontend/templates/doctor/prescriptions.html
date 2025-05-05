@@ -10,9 +10,9 @@
     </a>
 </div>
 <div class="nav-item">
-    <a href="#" class="nav-link"></a>
-    <i class="fas fa-calendar-alt"></i>
-    Lịch khám bệnh
+    <a href="{{ url_for('doctor.schedule_page') }}" class="nav-link">
+        <i class="fas fa-calendar-alt"></i>
+        Lịch khám bệnh
     </a>
 </div>
 <div class="nav-item">
@@ -265,7 +265,7 @@
     }
 
     function viewPrescription(id) {
-        fetch(`/api/prescriptions/${id}`)
+        fetch(`/doctor/api/api/prescriptions/${id}`)
             .then(response => response.json())
             .then(prescription => {
                 const modal = document.getElementById('prescriptionModal');
@@ -345,6 +345,28 @@
 
         const formData = new FormData(this);
         const data = Object.fromEntries(formData);
+
+        // Serialize medications
+        const medications = [];
+        document.querySelectorAll('#medicationsList .medication-item').forEach(item => {
+            const id = item.querySelector('[name="medications[][id]"]').value;
+            const dosage = item.querySelector('[name="medications[][dosage]"]').value;
+            const frequency = item.querySelector('[name="medications[][frequency]"]').value;
+            const duration = item.querySelector('[name="medications[][duration]"]').value;
+            const instructions = item.querySelector('[name="medications[][instructions]"]').value;
+
+            medications.push({ id, dosage, frequency, duration, instructions });
+        });
+
+        // Add medications to the data object
+        data.medications = medications;
+
+        // Remove the flattened medications fields
+        delete data['medications[][id]'];
+        delete data['medications[][dosage]'];
+        delete data['medications[][frequency]'];
+        delete data['medications[][duration]'];
+        delete data['medications[][instructions]'];
 
         fetch('/doctor/api/prescriptions', {
             method: 'POST',
