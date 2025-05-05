@@ -1,0 +1,424 @@
+<!-- Invoices View -->
+<div class="modal" id="invoiceModel">
+    <div class="row">
+        <div class="col-12">
+            <div class="card">
+                <div class="modal-header">
+                    <h5 class="card-title mb-0">Danh sách hóa đơn</h5>
+                    <button type="button" class="modal-close" onclick="closeModal('invoiceModel')">
+                        <i class="fas fa-times"></i>
+                    </button>
+                </div>
+                <div class="card-body">
+                    <!-- Search and Filter Section -->
+                    <div class="row mb-4">
+                        <div class="col-md-6">
+                            <div class="input-group">
+                                <input type="text" class="form-control" id="searchInvoice"
+                                    placeholder="Tìm kiếm hóa đơn...">
+                                <button class="btn btn-outline-primary" type="button">
+                                    <i class="fas fa-search"></i>
+                                </button>
+                            </div>
+                        </div>
+                        <div class="col-md-6">
+                            <div class="d-flex gap-2 justify-content-end">
+                                <select class="form-select" id="filterStatus" style="width: auto;">
+                                    <option value="">Tất cả trạng thái</option>
+                                    <option value="paid">Đã thanh toán</option>
+                                    <option value="unpaid">Chưa thanh toán</option>
+                                </select>
+                                <input type="date" class="form-control" id="filterDate" style="width: auto;">
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Invoices Table -->
+                    <div class="table-responsive">
+                        <table class="table table-striped">
+                            <thead>
+                                <tr>
+                                    <th>Mã hóa đơn</th>
+                                    <th>Tên bệnh nhân</th>
+                                    <th>Ngày lập</th>
+                                    <th>Tổng tiền</th>
+                                    <th>Trạng thái</th>
+                                    <th>Thao tác</th>
+                                </tr>
+                            </thead>
+                            <tbody id="invoicesTableBody">
+                                <!-- Invoice rows will be inserted here dynamically -->
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Invoice Detail Modal -->
+<div class="modal" id="invoiceDetailModal">
+    <div class="modal-dialog modal-lg">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">Chi tiết hóa đơn</h5>
+                <button type="button" class="modal-close" onclick="closeModal('invoiceDetailModal')">
+                    <i class="fas fa-times"></i>
+                </button>
+            </div>
+            <div class="modal-body">
+                <!-- Patient Info -->
+                <div id="invoicePatientInfo" class="alert alert-info mb-4">
+                    <!-- Patient info will be displayed here -->
+                </div>
+
+                <!-- Invoice Items -->
+                <div class="card mb-4">
+                    <div class="card-header">
+                        <h6 class="card-title mb-0">Chi tiết hóa đơn</h6>
+                    </div>
+                    <div class="card-body">
+                        <div class="table-container mb-3">
+                            <table class="table">
+                                <thead>
+                                    <tr>
+                                        <th>Mục</th>
+                                        <th>Loại</th>
+                                        <th>Số lượng</th>
+                                        <th>Đơn giá</th>
+                                        <th>Thành tiền</th>
+                                    </tr>
+                                </thead>
+                                <tbody id="invoiceDetailItems">
+                                    <!-- Invoice items will be displayed here -->
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Payment Details -->
+                <div class="card">
+                    <div class="card-body">
+                        <div class="row">
+                            <div class="col-md-6">
+                                <h6>Tổng cộng</h6>
+                                <div class="form-group">
+                                    <div class="row mb-2">
+                                        <label class="col-6">Tạm tính:</label>
+                                        <div class="col-6 text-end" id="detailSubtotal">0 ₫</div>
+                                    </div>
+                                    <div class="row mb-2">
+                                        <label class="col-6">Giảm giá:</label>
+                                        <div class="col-6 text-end" id="detailDiscount">0 ₫</div>
+                                    </div>
+                                    <div class="row mb-2">
+                                        <label class="col-6">Thuế (VAT 8%):</label>
+                                        <div class="col-6 text-end" id="detailTax">0 ₫</div>
+                                    </div>
+                                    <div class="row">
+                                        <label class="col-6"><strong>Tổng thanh toán:</strong></label>
+                                        <div class="col-6 text-end">
+                                            <strong id="detailTotal">0 ₫</strong>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="col-md-6">
+                                <h6>Thông tin thanh toán</h6>
+                                <div class="form-group mb-3">
+                                    <label class="form-label">Phương thức thanh toán</label>
+                                    <div id="detailPaymentMethod">-</div>
+                                </div>
+                                <div class="form-group mb-3">
+                                    <label class="form-label">Ngày thanh toán</label>
+                                    <div id="detailPaymentDate">-</div>
+                                </div>
+                                <div class="form-group">
+                                    <label class="form-label">Ghi chú</label>
+                                    <div id="detailNotes">-</div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" onclick="closeModal('invoiceDetailModal')">
+                    Đóng
+                </button>
+                <button type="button" class="btn btn-primary" onclick="printInvoice()">
+                    <i class="fas fa-print"></i>
+                    In hóa đơn
+                </button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+    document.addEventListener('DOMContentLoaded', function () {
+        loadInvoices();
+        setupEventListeners();
+    });
+
+    function setupEventListeners() {
+        document.getElementById('searchInvoice').addEventListener('input', debounce(filterInvoices, 300));
+        document.getElementById('filterStatus').addEventListener('change', filterInvoices);
+        document.getElementById('filterDate').addEventListener('change', filterInvoices);
+    }
+
+    function loadInvoices() {
+        fetch('/receptionist/api/invoices')
+            .then(response => response.json())
+            .then(data => {
+
+                if (data.success && Array.isArray(data.invoices)) {
+                    displayInvoices(data.invoices); // Truyền mảng invoices vào hàm
+                } else {
+                    console.error('Dữ liệu không hợp lệ:', data);
+                    alert('Không thể tải danh sách hóa đơn.');
+                }
+            })
+            .catch(error => {
+                console.error('Error loading invoices:', error);
+                alert('Không thể tải danh sách hóa đơn.');
+            });
+    }
+
+    function displayInvoices(invoices) {
+        if (!Array.isArray(invoices)) {
+            alert('Dữ liệu hóa đơn không hợp lệ.');
+            return;
+        }
+
+        const tbody = document.getElementById('invoicesTableBody');
+        tbody.innerHTML = invoices.map(invoice => `
+        <tr>
+            <td>${invoice._id}</td>
+            <td>${invoice.patientName}</td>
+            <td>${formatDate(invoice.issueDate)}</td>
+            <td>${formatCurrency(invoice.grandTotal)}</td>
+            <td>
+                <span class="badge ${invoice.status === 'Đã thanh toán' ? 'bg-success' : 'bg-warning'}">
+                    ${invoice.status}
+                </span>
+            </td>
+            <td>
+                <button class="btn btn-sm btn-info" onclick="viewInvoiceDetails('${invoice._id}')">
+                    <i class="fas fa-eye"></i>
+                </button>
+                <button class="btn btn-sm btn-primary" onclick="printInvoice('${invoice._id}')">
+                    <i class="fas fa-print"></i>
+                </button>
+            </td>
+        </tr>
+    `).join('');
+    }
+
+    function filterInvoices() {
+        const searchText = document.getElementById('searchInvoice').value.toLowerCase();
+        const status = document.getElementById('filterStatus').value;
+        const date = document.getElementById('filterDate').value; // Giá trị ngày từ input (yyyy-MM-dd)
+
+        const rows = document.querySelectorAll('#invoicesTableBody tr');
+        rows.forEach(row => {
+            let show = true;
+
+            // Tìm kiếm theo từ khóa
+            if (searchText) {
+                const text = row.textContent.toLowerCase();
+                show = show && text.includes(searchText);
+            }
+
+            // Lọc theo trạng thái
+            if (status) {
+                const rowStatus = row.querySelector('.badge').textContent.trim().toLowerCase();
+                show = show && (status === 'paid' ? rowStatus === 'đã thanh toán' : rowStatus === 'chưa thanh toán');
+            }
+
+            // Lọc theo ngày
+            if (date) {
+                const rowDate = row.children[2]?.textContent.trim(); // Ngày trong cột thứ 3 (dd/MM/yyyy)
+                console.log(`Row Date: ${rowDate}, Filter Date: ${date}`); // Log giá trị ngày
+                const formattedRowDate = formatDateToISO(rowDate); // Chuyển sang yyyy-MM-dd
+                console.log(`Formatted Row Date: ${formattedRowDate}`);
+                show = show && formattedRowDate === date;
+            }
+
+            row.style.display = show ? '' : 'none';
+        });
+    }
+
+    function formatDateToISO(dateString) {
+        // Tách phần ngày (bỏ qua thời gian nếu có)
+        const datePart = dateString.split(' ')[1]; // Lấy phần sau dấu cách
+        if (!datePart) {
+            console.error(`Invalid date format: ${dateString}`);
+            return null;
+        }
+
+        const parts = datePart.split('/');
+        if (parts.length !== 3) {
+            console.error(`Invalid date format: ${dateString}`);
+            return null; // Trả về null nếu định dạng không hợp lệ
+        }
+
+        const [day, month, year] = parts;
+        return `${year}-${month}-${day}`;
+    }
+
+    function viewInvoiceDetails(invoiceId) {
+        fetch(`/receptionist/api/invoices/details/${invoiceId}`)
+            .then(response => response.json())
+            .then(data => {
+                console.log('Invoice details:', data); // Kiểm tra dữ liệu trả về
+                if (data.success) {
+                    displayInvoiceDetails(data.invoice);
+                    document.getElementById('invoiceDetailModal').classList.add('show');
+                } else {
+                    alert(data.message || 'Không thể tải thông tin chi tiết hóa đơn.');
+                }
+            })
+            .catch(error => {
+                console.error('Error loading invoice details:', error);
+                alert('Không thể tải thông tin chi tiết hóa đơn.');
+            });
+    }
+
+    function displayInvoiceDetails(invoice) {
+        // Display patient info
+        document.getElementById('invoicePatientInfo').innerHTML = `
+            <strong>Thông tin bệnh nhân:</strong><br>
+            Họ tên: ${invoice.patientName}<br>
+            Mã bệnh nhân: ${invoice.patientId}<br>
+            Ngày lập: ${formatDate(invoice.issueDate)}
+        `;
+
+        // Display invoice items
+        document.getElementById('invoiceDetailItems').innerHTML = invoice.items.map(item => `
+            <tr>
+                <td>${item.name}</td>
+                <td>${item.type === 'service' ? 'Dịch vụ' : 'Thuốc'}</td>
+                <td>${item.quantity}</td>
+                <td>${formatCurrency(item.unitPrice)}</td>
+                <td>${formatCurrency(item.totalPrice)}</td>
+            </tr>
+        `).join('');
+
+        // Display payment details
+        document.getElementById('detailSubtotal').textContent = formatCurrency(invoice.subtotal);
+        document.getElementById('detailDiscount').textContent = formatCurrency(invoice.discount?.value || 0);
+        document.getElementById('detailTax').textContent = formatCurrency(invoice.tax);
+        document.getElementById('detailTotal').textContent = formatCurrency(invoice.grandTotal);
+
+        // Display payment info
+        document.getElementById('detailPaymentMethod').textContent = getPaymentMethodText(invoice.paymentMethod);
+        document.getElementById('detailPaymentDate').textContent = invoice.paymentDate ? formatDate(invoice.paymentDate) : '-';
+        document.getElementById('detailNotes').textContent = invoice.notes || '-';
+    }
+
+    function getPaymentMethodText(method) {
+        const methods = {
+            'cash': 'Tiền mặt',
+            'card': 'Thẻ ngân hàng',
+            'transfer': 'Chuyển khoản',
+            'momo': 'Ví MoMo',
+            'vnpay': 'VNPay'
+        };
+        return methods[method] || method;
+    }
+
+    function printInvoice(invoiceId) {
+        // Implementation for printing invoice
+        window.print();
+    }
+
+    function formatDate(dateString) {
+        return new Date(dateString).toLocaleDateString('vi-VN', {
+            year: 'numeric',
+            month: '2-digit',
+            day: '2-digit',
+            hour: '2-digit',
+            minute: '2-digit'
+        });
+    }
+
+    function formatCurrency(amount) {
+        return new Intl.NumberFormat('vi-VN', {
+            style: 'currency',
+            currency: 'VND'
+        }).format(amount);
+    }
+
+    function debounce(func, wait) {
+        let timeout;
+        return function executedFunction(...args) {
+            const later = () => {
+                clearTimeout(timeout);
+                func(...args);
+            };
+            clearTimeout(timeout);
+            timeout = setTimeout(later, wait);
+        };
+    }
+
+    function closeModal(modalId) {
+        document.getElementById(modalId).classList.remove('show');
+    }
+</script>
+
+<style>
+    .medication-item {
+        margin-bottom: 10px;
+    }
+
+    .medication-item button {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        padding: 10px;
+        border: 1px solid #ddd;
+        border-radius: 5px;
+        background-color: #f8f9fa;
+        transition: background-color 0.2s;
+    }
+
+    .medication-item button:hover {
+        background-color: #e9ecef;
+    }
+
+    .table-responsive {
+        margin-bottom: 1rem;
+        max-height: 400px;
+        /* Giới hạn chiều cao của bảng */
+        overflow-y: auto;
+        /* Bật thanh cuộn dọc */
+    }
+
+    .badge {
+        padding: 0.5em 0.75em;
+    }
+
+    .btn-sm {
+        padding: 0.25rem 0.5rem;
+        font-size: 0.875rem;
+        margin: 0 0.125rem;
+    }
+
+    @media print {
+        .no-print {
+            display: none !important;
+        }
+
+        .modal {
+            position: absolute;
+            left: 0;
+            top: 0;
+            margin: 0;
+            padding: 0;
+            overflow: visible !important;
+        }
+    }
+</style>
