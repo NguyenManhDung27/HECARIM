@@ -4,13 +4,17 @@ from ..extensions import mongo
 from bson import ObjectId
 from datetime import datetime, timedelta
 
-patient_api = Blueprint('patient/api', __name__)
 
-@patient_api.route('/doctors/<department_id>', methods=['GET'])
+patient_api = Blueprint('patient_api', __name__)
+
+
+
+@patient_api.route('/doctors/<department>', methods=['GET'])
 @login_required
-def get_doctors_by_department(department_id):
+def get_doctors_by_department(department):
     try:
-        doctors = list(mongo.db.doctors.find({'departmentId': department_id}))
+        # Lấy danh sách bác sĩ theo khoa
+        doctors = list(mongo.db.doctors.find({'professionalInfo.department': 'Khoa Nội'}))
         # Chỉ trả về thông tin cần thiết
         doctor_list = [{
             'id': str(doctor['_id']),
@@ -30,16 +34,16 @@ def get_available_timeslots(doctor_id, date):
         
         # Lấy lịch làm việc của bác sĩ
         doctor_schedule = mongo.db.doctor_schedules.find_one({
-            'doctorId': ObjectId(doctor_id),
-            'dayOfWeek': selected_date.strftime('%A').lower()
+            '_id': ObjectId(doctor_id),
+            'schedule.workDays': selected_date.strftime('%A')
         })
 
         if not doctor_schedule:
             return jsonify([])
 
         # Tạo danh sách các khung giờ từ lịch làm việc
-        start_time = datetime.strptime(doctor_schedule['startTime'], '%H:%M')
-        end_time = datetime.strptime(doctor_schedule['endTime'], '%H:%M')
+        start_time = datetime.strptime(doctor_schedule['schedule']['workHours']['start'], '%H:%M')
+        end_time = datetime.strptime(doctor_schedule['schedule']['workHours']['end'], '%H:%M')
         slot_duration = timedelta(minutes=30)  # Mỗi khung giờ 30 phút
 
         # Lấy danh sách cuộc hẹn đã đặt trong ngày
@@ -64,12 +68,12 @@ def get_available_timeslots(doctor_id, date):
     except Exception as e:
         return jsonify({'error': str(e)}), 500
 
-@patient_api.route('/appointments', methods=['POST'])
+@patient_api.route('/book_appointments', methods=['POST'])
 @login_required
 def book_appointment():
     try:
         data = request.get_json()
-        
+    
         # Kiểm tra dữ liệu đầu vào
         required_fields = ['department', 'doctor_id', 'date', 'time', 'symptoms']
         if not all(field in data for field in required_fields):
@@ -79,7 +83,7 @@ def book_appointment():
         appointment = {
             'patientId': str(current_user.user_data.get('patient_id')),
             'doctorId': data['doctor_id'],
-            'departmentId': data['department'],
+            'department': data['department'],
             'date': datetime.strptime(data['date'], '%Y-%m-%d').date(),
             'timeSlot': data['time'],
             'symptoms': data['symptoms'],
@@ -200,3 +204,58 @@ def update_profile():
         })
     except Exception as e:
         return jsonify({'error': str(e)}), 500
+
+@patient_api.route('/api/records/<record_id>', methods=['GET'])
+@login_required
+def get_medical_record(record_id):
+    try:
+        # Fetch the medical record from the database
+        record = mongo.db.medical_records.find_one({'_id': ObjectId(record_id)})
+        if not record:
+            return jsonify({'error': 'Medical record not found'}), 404
+
+        # Convert ObjectId to string and format fields
+        record['_id'] = str(record['_id'])
+        record['patientId'] = str(record.get('patientId', ''))
+        record['doctorId'] = str(record.get('doctorId', ''))
+        record['visitDate'] = record['visitDate'].strftime('%Y-%m-%d') if record.get('visitDate') else None
+        record['examinationId'] = str(record.get('examinationId', ''))
+        # Add patient name (fetch from patients collection if needed)
+        patient = mongo.db.patients.find_one({'_id': ObjectId(record['patientId'])})
+        record['patient_name'] = patient['personalInfo']['fullName'] if patient else "N/A"
+
+
+        # Add vital signs
+        record['vital_signs'] = {
+            'temperature': record.get('vitalSigns', {}).get('temperature', "N/A"),
+            'blood_pressure': record.get('vitalSigns', {}).get('bloodPressure', {'systolic': "N/A", 'diastolic': "N/A"}),
+            'heart_rate': record.get('vitalSigns', {}).get('heartRate', "N/A"),
+            'respiratoryRate': record.get('vitalSigns', {}).get('respiratoryRate', "N/A")
+        }
+
+        record['symptoms'] = record.get('symptoms', '')
+        record['diagnosis'] = record.get('diagnosis', '')
+        record['notes'] = record.get('notes', '')
+
+        # Add treatment details
+        record['treatment'] = record.get('treatment', {'recommendations': '', 'medications': []})
+        for med in record['treatment']['medications']:
+            med['medicationId'] = med.get('medicationId', "")
+            med['dosage'] = med.get('dosage', "N/A")
+            med['frequency'] = med.get('frequency', "N/A")
+            med['duration'] = med.get('duration', "N/A")
+            med['instructions'] = med.get('instructions', "N/A")
+            medication = mongo.db.medications.find_one({'_id': ObjectId(med.get('medicationId', ""))})
+            med['name'] = medication.get('name', "N/A")
+
+
+
+
+        record['followUp'] = record.get('followUp', {'required': False, 'recommendedDate': None, 'reason': ''})
+        if record['followUp'].get('recommendedDate'):
+            record['followUp']['recommendedDate'] = record['followUp']['recommendedDate'].strftime('%Y-%m-%d')
+
+        return jsonify(record), 200
+    except Exception as e:
+        print(f"Error fetching medical record: {e}")
+        return jsonify({'error': 'An error occurred'}), 500

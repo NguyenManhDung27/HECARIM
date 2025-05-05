@@ -33,7 +33,7 @@
         </h2>
     </div>
     <div class="card-body">
-        <form method="POST" action="{{ url_for('patient.book_appointment') }}">
+        <form method="POST" action="{{ url_for('patient_api.book_appointment') }}">
             <div class="row">
                 <div class="col">
                     <div class="form-group">
@@ -41,7 +41,7 @@
                         <select class="form-select" id="department" name="department" required>
                             <option value="">Chọn khoa</option>
                             {% for dept in departments %}
-                            <option value="{{ dept.id }}">{{ dept.name }}</option>
+                            <option value="{{ dept }}">{{ dept }}</option>
                             {% endfor %}
                         </select>
                     </div>
@@ -120,14 +120,14 @@
                             {% if appointment.can_cancel %}
                             <button type="button" 
                                     class="btn btn-sm btn-danger"
-                                    onclick="cancelAppointment({{ appointment.id }})">
+                                    onclick="cancelAppointment('{{ appointment.id }}')">
                                 <i class="fas fa-times me-1"></i>Hủy
                             </button>
                             {% endif %}
                             {% if appointment.can_reschedule %}
                             <button type="button" 
                                     class="btn btn-sm btn-warning"
-                                    onclick="rescheduleAppointment({{ appointment.id }})">
+                                    onclick="rescheduleAppointment('{{ appointment.id }}')">
                                 <i class="fas fa-clock me-1"></i>Đổi lịch
                             </button>
                             {% endif %}
@@ -143,11 +143,11 @@
 <!-- JavaScript for dynamic form handling -->
 <script>
 document.getElementById('department').addEventListener('change', function() {
-    const departmentId = this.value;
+    const department = this.value;
     const doctorSelect = document.getElementById('doctor');
     
-    if (departmentId) {
-        fetch(`/api/doctors/${departmentId}`)
+    if (department) {
+        fetch(`/patient/api/doctors/<department>`)
             .then(response => response.json())
             .then(doctors => {
                 doctorSelect.innerHTML = '<option value="">Chọn bác sĩ</option>';
@@ -178,7 +178,7 @@ function updateAvailableTimeSlots() {
     const timeSelect = document.getElementById('time');
     
     if (doctorId && date) {
-        fetch(`/api/timeslots/${doctorId}/${date}`)
+        fetch(`/patient/api/timeslots/${doctorId}/${date}`)
             .then(response => response.json())
             .then(slots => {
                 timeSelect.innerHTML = '<option value="">Chọn giờ</option>';

@@ -36,12 +36,12 @@
             </div>
             <div class="card-body">
                 <div class="patient-info">
-                    <p><strong>Họ tên:</strong> {{ patient.full_name }}</p>
-                    <p><strong>Ngày sinh:</strong> {{ patient.date_of_birth }}</p>
-                    <p><strong>Giới tính:</strong> {{ patient.gender }}</p>
-                    <p><strong>Địa chỉ:</strong> {{ patient.address }}</p>
-                    <p><strong>Số điện thoại:</strong> {{ patient.phone }}</p>
-                    <p><strong>Email:</strong> {{ patient.email }}</p>
+                    <p><strong>Họ tên:</strong> {{ patient.personalInfo.fullName }}</p>
+                    <p><strong>Ngày sinh:</strong> {{ patient.personalInfo.dateOfBirth }}</p>
+                    <p><strong>Giới tính:</strong> {{ patient.personalInfo.gender }}</p>
+                    <p><strong>Địa chỉ:</strong> {{ patient.personalInfo.address }}</p>
+                    <p><strong>Số điện thoại:</strong> {{ patient.personalInfo.phone }}</p>
+                    <p><strong>Email:</strong> {{ patient.personalInfo.email }}</p>
                 </div>
                 <a href="{{ url_for('auth.profile') }}" class="btn btn-primary mt-3">
                     <i class="fas fa-edit me-2"></i>Cập nhật thông tin
@@ -49,8 +49,8 @@
             </div>
         </div>
     </div>
-
-    <!-- Upcoming Appointments -->
+<!--
+    Upcoming Appointments
     <div class="col">
         <div class="card">
             <div class="card-header">
@@ -98,7 +98,7 @@
     </div>
 </div>
 
-<!-- Recent Records -->
+Recent Records 
 <div class="card mt-4">
     <div class="card-header">
         <h2 class="card-title">
@@ -148,4 +148,5 @@
         {% endif %}
     </div>
 </div>
+-->
 {% endblock %}
