@@ -1,7 +1,6 @@
 from flask import Flask, redirect, url_for
 from dotenv import load_dotenv
 import os
-
 from .extensions import mongo, login_manager
 
 def create_app(env="development"):
@@ -41,6 +40,9 @@ def create_app(env="development"):
         from .routes.patient import patient_bp
         app.register_blueprint(patient_bp, url_prefix='/patient')
         
+        from .routes.patient_api import patient_api
+        app.register_blueprint(patient_api, url_prefix='/patient/api')
+
         # Main route redirects to auth login
         @app.route('/')
         def main():
