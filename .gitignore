@@ -1,0 +1,3 @@
+*.pyc
+backend/tests/__pycache__/test_db_init.cpython-313-pytest-7.4.0.pyc
+*.pyc
