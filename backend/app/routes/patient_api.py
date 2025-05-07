@@ -5,7 +5,7 @@ from bson import ObjectId
 from datetime import datetime, timedelta
 
 
-patient_api = Blueprint('patient_api', __name__)
+patient_api = Blueprint('patient/api', __name__)
 
 
 
@@ -49,7 +49,7 @@ def get_available_timeslots(doctor_id, date):
         # Lấy danh sách cuộc hẹn đã đặt trong ngày
         booked_slots = set()
         appointments = mongo.db.appointments.find({
-            'doctorId': doctor_id,
+            'doctorId': ObjectId(doctor_id),
             'date': selected_date.date()
         })
         for appointment in appointments:
@@ -82,7 +82,7 @@ def book_appointment():
         # Tạo cuộc hẹn mới
         appointment = {
             'patientId': str(current_user.user_data.get('patient_id')),
-            'doctorId': data['doctor_id'],
+            'doctorId': ObjectId(data['doctor_id']),
             'department': data['department'],
             'date': datetime.strptime(data['date'], '%Y-%m-%d').date(),
             'timeSlot': data['time'],
@@ -110,7 +110,7 @@ def cancel_appointment(appointment_id):
         # Kiểm tra quyền hủy lịch
         appointment = mongo.db.appointments.find_one({
             '_id': ObjectId(appointment_id),
-            'patientId': str(current_user.user_data.get('patient_id'))
+            'patientId': ObjectId(current_user.user_data.get('patient_id'))
         })
         
         if not appointment:
@@ -150,7 +150,7 @@ def reschedule_appointment(appointment_id):
         # Kiểm tra quyền đổi lịch
         appointment = mongo.db.appointments.find_one({
             '_id': ObjectId(appointment_id),
-            'patientId': str(current_user.user_data.get('patient_id'))
+            'patientId': ObjectId(current_user.user_data.get('patient_id'))
         })
         
         if not appointment:
@@ -205,7 +205,7 @@ def update_profile():
     except Exception as e:
         return jsonify({'error': str(e)}), 500
 
-@patient_api.route('/api/records/<record_id>', methods=['GET'])
+@patient_api.route('/records/<record_id>', methods=['GET'])
 @login_required
 def get_medical_record(record_id):
     try:

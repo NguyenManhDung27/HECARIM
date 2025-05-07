@@ -57,7 +57,7 @@ def get_today_appointments():
     start_of_day = datetime.combine(today.date(), datetime.min.time())
     end_of_day = datetime.combine(today.date(), datetime.max.time())
     appointments_list = mongo.db.appointments.find({
-        'doctorId': str(current_user.user_data.get('staff_id')), # Thay thế bằng ID bác sĩ thực tế
+        'doctorId': ObjectId(current_user.user_data.get('staff_id')), # Thay thế bằng ID bác sĩ thực tế
         'appointmentTime': {'$gte': start_of_day, '$lte': end_of_day},
     })
     appointments=[]
@@ -69,7 +69,7 @@ def get_today_appointments():
         appointments.append({
             '_id': str(appt['_id']),
             'patient_name': patient_name,
-            'patient_id': patient.get('patientId', '') if patient else '',
+            'patient_id': ObjectId(patient.get('patientId', '') if patient else ''),
             'time': appt.get('timeSlot'),
             'status': 'chờ khám',  # Hoặc trạng thái khác
             'type': appt.get('type'),  # Hoặc trạng thái khác
@@ -148,7 +148,7 @@ def save_examination():
 
         # Remove the appointment from the database
         patientId=patient_id
-        mongo.db.appointments.delete_one({'patientId': patientId})
+        mongo.db.appointments.delete_one({'patientId': ObjectId(patientId)})
         
         return jsonify({'success': True, 'message': 'Đã lưu hồ sơ khám và bệnh án thành công'}), 201
     except Exception as e:
@@ -299,7 +299,7 @@ def get_schedule():
         end_of_day = datetime.combine(selected_date, datetime.max.time())
 
         appointments_cursor = mongo.db.appointments.find({
-            "doctorId": str(doctor['_id']),
+            "doctorId": ObjectId(str(doctor['_id'])),
             "appointmentTime": {"$gte": start_of_day, "$lt": end_of_day}  # Proper date filtering
         })
 

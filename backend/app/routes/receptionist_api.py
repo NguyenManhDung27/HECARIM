@@ -252,13 +252,12 @@ def get_time_slots():
     end_of_day = datetime.combine(date, time.max).replace(tzinfo=timezone.utc)
     # Truy vấn chỉ những lịch của bác sĩ và trong ngày cụ thể
     appointments = mongo.db.appointments.find({
-        'doctorId': doctor_id,
+        'doctorId': ObjectId(doctor_id),
         'appointmentTime': {
             '$gte': start_of_day,
             '$lt': end_of_day
         }
     })
-
     booked_times = [appt['timeSlot'] for appt in appointments]
     start_of_day = datetime.combine(date, time(7, 0, tzinfo=timezone.utc))
     end_of_day = datetime.combine(date, time(18, 0, tzinfo=timezone.utc))
