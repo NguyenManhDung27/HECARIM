@@ -3,6 +3,10 @@ from flask_login import login_required, current_user
 from ..extensions import mongo
 from bson import ObjectId
 from datetime import datetime
+from werkzeug.security import check_password_hash, generate_password_hash
+import bcrypt
+
+
 
 doctor_bp = Blueprint('doctor', __name__)
 
@@ -198,4 +202,32 @@ def profile():
 @login_required
 def schedule_page():
     return render_template("doctor/schedule.html", notifications_count = 3)
+@doctor_bp.route('/changepassword', methods=['GET', 'POST'])
+@login_required
+def change_password():
+    if request.method == 'POST':
+        data = request.json
+        current_password = data.get('current_password')
+        new_password = data.get('new_password')
+        staff_id = current_user.user_data.get('staff_id')
+        user = mongo.db.users.find_one({'staff_id': ObjectId(staff_id)})
+
+        stored_hash = user.get('password_hash')
+
+        # Convert Binary data to string if necessary
+        if isinstance(stored_hash, bytes):  
+            stored_hash = stored_hash.decode('utf-8') 
+
+        # Verify current password (implement actual password checking logic)
+
+        if not bcrypt.checkpw(current_password.encode('utf-8'), stored_hash.encode('utf-8')):
+            return jsonify({'success': False, 'message': 'Mật khẩu hiện tại không đúng'}), 400
+
+        salt = bcrypt.gensalt()
+        hashed_password = bcrypt.hashpw(new_password.encode('utf-8'), salt)
+        mongo.db.users.update_one({'_id': user['_id']}, {'$set': {'password_hash': hashed_password}})
+
+        return jsonify({'success': True, 'message': 'Đổi mật khẩu thành công'})
+
+    return render_template('doctor/change_password.html', notifications_count = 3)
 
