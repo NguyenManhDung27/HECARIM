@@ -269,8 +269,7 @@ def get_invoice_details(invoice_id):
 @patient_api.route('/invoices', methods=['GET'])
 @login_required
 # @role_required('patient')
-def get_invoices():
-    print("get_invoices")
+def invoices():
     try:
         invoices = mongo.db.invoices.find({'patientId': ObjectId(current_user.user_data.get('patient_id'))})
         result = []

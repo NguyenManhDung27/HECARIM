@@ -1,5 +1,7 @@
 from flask import Blueprint, render_template, jsonify, request
 from flask_login import login_required, current_user
+
+from backend.app.utils.auth_utils import role_required
 from ..extensions import mongo
 from bson import ObjectId
 from datetime import datetime
@@ -164,7 +166,6 @@ def prescriptions():
 
 @patient_bp.route('/change_password', methods=['GET', 'POST'])
 @login_required
-
 def change_password():
     if request.method == 'POST':
         data = request.json
@@ -192,3 +193,9 @@ def change_password():
 
     return render_template('patient/changepassword.html', notifications_count = 3)
 
+
+@patient_bp.route('/invoices')
+@login_required
+@role_required('patient')
+def invoices():
+    return render_template('patient/invoices.html', notifications_count=3)

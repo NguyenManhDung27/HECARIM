@@ -21,72 +21,14 @@
     <i class="fas fa-prescription"></i>
     <span>Đơn thuốc</span>
 </a>
-
-</a>
 <a href="{{ url_for('patient.change_password') }}" class="nav-link">
     <i class="fas fa-user"></i>
     Chỉnh sửa mật khẩu
 </a>
-{% endblock %}
-
-{% block content %} <!-- Appointment Booking Form --> 
-<div class="card mb-4"> 
-    <div class="card-header"> 
-        <h2 class="card-title"> 
-            <i class="fas fa-calendar-plus me-2"></i> 
-            Đặt lịch hẹn mới 
-        </h2> 
-    </div> 
-    <div class="card-body"> <form method="POST" action="{{ url_for('patient_api.book_appointment') }}"> 
-        <div class="row"> 
-            <div class="col"> 
-                <div class="form-group"> 
-                    <label class="form-label" for="department">Khoa khám bệnh</label> 
-                    <select class="form-select" id="department" name="department" required> 
-                        <option value="">Chọn khoa</option> 
-                        {% for dept in departments %} 
-                        <option value="{{ dept }}">{{ dept }}</option> 
-                        {% endfor %} 
-                    </select> 
-                </div> 
-            </div> 
-            <div class="col"> 
-                <div class="form-group"> 
-                    <label class="form-label" for="doctor">Bác sĩ</label> 
-                    <select class="form-select" id="doctor" name="doctor" required> 
-                        <option value="">Chọn bác sĩ</option> 
-                    </select> 
-                </div> 
-            </div> 
-        </div> 
-        <div class="row"> 
-            <div class="col"> 
-                <div class="form-group"> 
-                    <label class="form-label" for="date">Ngày khám</label> 
-                    <input type="date" class="form-control" id="date" name="date" required> 
-                </div> 
-            </div> 
-            <div class="col"> 
-                <div class="form-group"> 
-                    <label class="form-label" for="time">Giờ khám</label> 
-                    <select class="form-select" id="time" name="time" required> 
-                        <option value="">Chọn giờ</option> 
-                    </select> 
-                </div> 
-            </div> 
-        </div> 
-        <div class="form-group"> 
-            <label class="form-label" for="symptoms">Mô tả triệu chứng</label> 
-            <textarea class="form-control" id="symptoms" name="symptoms" rows="3" 
-            placeholder="Mô tả ngắn gọn các triệu chứng của bạn"></textarea> 
-        </div> 
-        <button type="submit" class="btn btn-primary"> <i class="fas fa-calendar-check me-2"></i>Đặt lịch </button> 
-    </form> 
-</div> 
-
 <a href="{{ url_for('patient.invoices') }}" class="nav-link">
     <i class="fas fa-file-invoice"></i>
     <span>Hóa đơn</span>
+
 </a>
 {% endblock %}
 
@@ -116,7 +58,7 @@
                 <div class="col">
                     <div class="form-group">
                         <label class="form-label" for="doctor">Bác sĩ</label>
-                        <select class="form-select" id="doctor" name="doctor_id" required>
+                        <select class="form-select" id="doctor" name="doctor" required>
                             <option value="">Chọn bác sĩ</option>
                         </select>
                     </div>
@@ -143,49 +85,50 @@
                 <textarea class="form-control" id="symptoms" name="symptoms" rows="3"
                     placeholder="Mô tả ngắn gọn các triệu chứng của bạn"></textarea>
             </div>
-            <button type="submit" class="btn btn-primary">
-                <i class="fas fa-calendar-check me-2"></i>Đặt lịch
-            </button>
+            <button type="submit" class="btn btn-primary"> <i class="fas fa-calendar-check me-2"></i>Đặt lịch </button>
         </form>
     </div>
 
-</div>
+    <a href="{{ url_for('patient.invoices') }}" class="nav-link">
+        <i class="fas fa-file-invoice"></i>
+        <span>Hóa đơn</span>
+    </a>
 
 
-<!-- Appointments List -->
-<div class="card">
-    <div class="card-header">
-        <h2 class="card-title">
-            <i class="fas fa-calendar me-2"></i>
-            Danh sách lịch hẹn
-        </h2>
-    </div>
-    <div class="card-body">
-        <div class="table-container">
-            <table class="table">
-                <thead>
-                    <tr>
-                        <th>Ngày giờ</th>
-                        <th>Khoa</th>
-                        <th>Bác sĩ</th>
-                        <th>Lí do</th>
-                        <th>Trạng thái</th>
-                       <!-- <th>Thao tác</th>-->
-                    </tr>
-                </thead>
-                <tbody>
-                    {% for appointment in appointments %}
-                    <tr>
-                        <td>{{ appointment.datetime }}</td>
-                        <td>{{ appointment.department }}</td>
-                        <td>{{ appointment.doctor_name }}</td>
-                        <td>{{ appointment.reason }}</td>
-                        <td>
-                            <span class="badge badge-{{ appointment.status_color }}">
-                                {{ appointment.status }}
-                            </span>
-                        </td>
-                        <!--<td>
+    <!-- Appointments List -->
+    <div class="card">
+        <div class="card-header">
+            <h2 class="card-title">
+                <i class="fas fa-calendar me-2"></i>
+                Danh sách lịch hẹn
+            </h2>
+        </div>
+        <div class="card-body">
+            <div class="table-container">
+                <table class="table">
+                    <thead>
+                        <tr>
+                            <th>Ngày giờ</th>
+                            <th>Khoa</th>
+                            <th>Bác sĩ</th>
+                            <th>Lí do</th>
+                            <th>Trạng thái</th>
+                            <!-- <th>Thao tác</th>-->
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for appointment in appointments %}
+                        <tr>
+                            <td>{{ appointment.datetime }}</td>
+                            <td>{{ appointment.department }}</td>
+                            <td>{{ appointment.doctor_name }}</td>
+                            <td>{{ appointment.reason }}</td>
+                            <td>
+                                <span class="badge badge-{{ appointment.status_color }}">
+                                    {{ appointment.status }}
+                                </span>
+                            </td>
+                            <!--<td>
                             {% if appointment.can_cancel %}
 
                             <button type="button" class="btn btn-sm btn-danger"
@@ -203,73 +146,80 @@
                             </button>
                             {% endif %}
                         </td>-->
-                    </tr>
-                    {% endfor %}
-                </tbody>
-            </table>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
         </div>
     </div>
-</div>
 
-<!-- JavaScript for dynamic form handling -->
-<script>
-document.getElementById('department').addEventListener('change', function() {
-    const department = this.value;
-    const doctorSelect = document.getElementById('doctor');
-    
-    if (department) {
-        fetch(`/patient/api/doctors/${department}`)
-            .then(response => response.json())
-            .then(doctors => {
-                doctorSelect.innerHTML = '<option value="">Chọn bác sĩ</option>';
-                doctors.forEach(doctor => {
-                    doctorSelect.innerHTML += `
+    <!-- JavaScript for dynamic form handling -->
+    <script>
+        document.getElementById('department').addEventListener('change', function () {
+            const department = this.value;
+            const doctorSelect = document.getElementById('doctor');
+
+            if (department) {
+                fetch(`/patient/api/doctors/${department}`)
+                    .then(response => response.json())
+                    .then(doctors => {
+                        doctorSelect.innerHTML = '<option value="">Chọn bác sĩ</option>';
+                        doctors.forEach(doctor => {
+                            doctorSelect.innerHTML += `
 
                         <option value="${doctor.id}">${doctor.name}</option>
                     `;
+                        });
+                        doctorSelect.disabled = false;
                     });
-                    doctorSelect.disabled = false;
-                });
-        } else {
-            doctorSelect.innerHTML = '<option value="">Chọn bác sĩ</option>';
-            doctorSelect.disabled = true;
+            } else {
+                doctorSelect.innerHTML = '<option value="">Chọn bác sĩ</option>';
+                doctorSelect.disabled = true;
+            }
+        });
+
+        document.getElementById('doctor').addEventListener('change', function () {
+            updateAvailableTimeSlots();
+        });
+
+        document.getElementById('date').addEventListener('change', function () {
+            updateAvailableTimeSlots();
+        });
+
+
+        document.getElementById('time').addEventListener('change', function () {
+            updateAvailableTimeSlots();
+        });
+
+
+
+        function updateAvailableTimeSlots() {
+            const doctorId = document.getElementById('doctor').value;
+            const date = document.getElementById('date').value;
+            const timeSlotSelect = document.getElementById('time');
+
+            if (doctorId && date) {
+                fetch(`/patient/api/timeslots/${doctorId}/${date}`)
+                    .then(response => response.json())
+                    .then(slots => {
+                        timeSlotSelect.innerHTML = '<option value="">Chọn giờ</option>';
+                        slots.forEach(slot => {
+                            timeSlotSelect.innerHTML += ` <option value="${slot.time}">${slot.time}</option> `;
+                        });
+                        timeSlotSelect.disabled = false;
+                    });
+            }
+            else {
+                timeSlotSelect.innerHTML = '<option value="">Chọn giờ</option>';
+                timeSlotSelect.disabled = true;
+            }
         }
-    });
-
-    document.getElementById('doctor').addEventListener('change', function () {
-        updateAvailableTimeSlots();
-    });
-
-    document.getElementById('date').addEventListener('change', function () {
-        updateAvailableTimeSlots();
-    });
-
-
-document.getElementById('time').addEventListener('change', function() {
-    updateAvailableTimeSlots();
-});
 
 
 
-function updateAvailableTimeSlots() { 
-    const doctorId = document.getElementById('doctor').value; 
-    const date = document.getElementById('date').value; 
-    const timeSlotSelect = document.getElementById('time'); 
-    
-    if (doctorId && date) { fetch(`/patient/api/timeslots/${doctorId}/${date}`) 
-        .then(response => response.json()) 
-        .then(slots => { 
-            timeSlotSelect.innerHTML = '<option value="">Chọn giờ</option>'; 
-            slots.forEach(slot => { 
-                timeSlotSelect.innerHTML += ` <option value="${slot.time}">${slot.time}</option> `; }); 
-                timeSlotSelect.disabled = false; }); } 
-    else { timeSlotSelect.innerHTML = '<option value="">Chọn giờ</option>'; 
-        timeSlotSelect.disabled = true; } }
-
-
-
-    function rescheduleAppointment(appointmentId) {
-        window.location.href = `/patient/appointments/${appointmentId}/reschedule`;
-    }
-</script>
-{% endblock %}
+        function rescheduleAppointment(appointmentId) {
+            window.location.href = `/patient/appointments/${appointmentId}/reschedule`;
+        }
+    </script>
+    {% endblock %}
