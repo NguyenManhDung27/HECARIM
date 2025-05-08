@@ -1,8 +1,8 @@
 {% extends "base.html" %}
 
-{% block title %}Lịch hẹn - Bệnh nhân{% endblock %}
+{% block title %}Lịch hẹn{% endblock %}
 
-{% block page_title %}Quản lý lịch hẹn{% endblock %}
+{% block page_title %}Lịch hẹn{% endblock %}
 
 {% block sidebar_menu %}
 <a href="{{ url_for('patient.dashboard') }}" class="nav-link">
@@ -21,67 +21,69 @@
     <i class="fas fa-prescription"></i>
     <span>Đơn thuốc</span>
 </a>
+</a>
+<a href="{{ url_for('patient.change_password') }}" class="nav-link">
+    <i class="fas fa-user"></i>
+    Chỉnh sửa mật khẩu
+</a>
 {% endblock %}
 
-{% block content %}
-<!-- Appointment Booking Form -->
-<div class="card mb-4">
-    <div class="card-header">
-        <h2 class="card-title">
-            <i class="fas fa-calendar-plus me-2"></i>
-            Đặt lịch hẹn mới
-        </h2>
-    </div>
-    <div class="card-body">
-        <form method="POST" action="{{ url_for('patient_api.book_appointment') }}">
-            <div class="row">
-                <div class="col">
-                    <div class="form-group">
-                        <label class="form-label" for="department">Khoa khám bệnh</label>
-                        <select class="form-select" id="department" name="department" required>
-                            <option value="">Chọn khoa</option>
-                            {% for dept in departments %}
-                            <option value="{{ dept }}">{{ dept }}</option>
-                            {% endfor %}
-                        </select>
-                    </div>
-                </div>
-                <div class="col">
-                    <div class="form-group">
-                        <label class="form-label" for="doctor">Bác sĩ</label>
-                        <select class="form-select" id="doctor" name="doctor_id" required>
-                            <option value="">Chọn bác sĩ</option>
-                        </select>
-                    </div>
-                </div>
-            </div>
-            <div class="row">
-                <div class="col">
-                    <div class="form-group">
-                        <label class="form-label" for="date">Ngày khám</label>
-                        <input type="date" class="form-control" id="date" name="date" required>
-                    </div>
-                </div>
-                <div class="col">
-                    <div class="form-group">
-                        <label class="form-label" for="time">Giờ khám</label>
-                        <select class="form-select" id="time" name="time" required>
-                            <option value="">Chọn giờ</option>
-                        </select>
-                    </div>
-                </div>
-            </div>
-            <div class="form-group">
-                <label class="form-label" for="symptoms">Mô tả triệu chứng</label>
-                <textarea class="form-control" id="symptoms" name="symptoms" rows="3" 
-                          placeholder="Mô tả ngắn gọn các triệu chứng của bạn"></textarea>
-            </div>
-            <button type="submit" class="btn btn-primary">
-                <i class="fas fa-calendar-check me-2"></i>Đặt lịch
-            </button>
-        </form>
-    </div>
+{% block content %} <!-- Appointment Booking Form --> 
+<div class="card mb-4"> 
+    <div class="card-header"> 
+        <h2 class="card-title"> 
+            <i class="fas fa-calendar-plus me-2"></i> 
+            Đặt lịch hẹn mới 
+        </h2> 
+    </div> 
+    <div class="card-body"> <form method="POST" action="{{ url_for('patient_api.book_appointment') }}"> 
+        <div class="row"> 
+            <div class="col"> 
+                <div class="form-group"> 
+                    <label class="form-label" for="department">Khoa khám bệnh</label> 
+                    <select class="form-select" id="department" name="department" required> 
+                        <option value="">Chọn khoa</option> 
+                        {% for dept in departments %} 
+                        <option value="{{ dept }}">{{ dept }}</option> 
+                        {% endfor %} 
+                    </select> 
+                </div> 
+            </div> 
+            <div class="col"> 
+                <div class="form-group"> 
+                    <label class="form-label" for="doctor">Bác sĩ</label> 
+                    <select class="form-select" id="doctor" name="doctor" required> 
+                        <option value="">Chọn bác sĩ</option> 
+                    </select> 
+                </div> 
+            </div> 
+        </div> 
+        <div class="row"> 
+            <div class="col"> 
+                <div class="form-group"> 
+                    <label class="form-label" for="date">Ngày khám</label> 
+                    <input type="date" class="form-control" id="date" name="date" required> 
+                </div> 
+            </div> 
+            <div class="col"> 
+                <div class="form-group"> 
+                    <label class="form-label" for="time">Giờ khám</label> 
+                    <select class="form-select" id="time" name="time" required> 
+                        <option value="">Chọn giờ</option> 
+                    </select> 
+                </div> 
+            </div> 
+        </div> 
+        <div class="form-group"> 
+            <label class="form-label" for="symptoms">Mô tả triệu chứng</label> 
+            <textarea class="form-control" id="symptoms" name="symptoms" rows="3" 
+            placeholder="Mô tả ngắn gọn các triệu chứng của bạn"></textarea> 
+        </div> 
+        <button type="submit" class="btn btn-primary"> <i class="fas fa-calendar-check me-2"></i>Đặt lịch </button> 
+    </form> 
+</div> 
 </div>
+
 
 <!-- Appointments List -->
 <div class="card">
@@ -99,9 +101,9 @@
                         <th>Ngày giờ</th>
                         <th>Khoa</th>
                         <th>Bác sĩ</th>
-                        <th>Triệu chứng</th>
+                        <th>Lí do</th>
                         <th>Trạng thái</th>
-                        <th>Thao tác</th>
+                       <!-- <th>Thao tác</th>-->
                     </tr>
                 </thead>
                 <tbody>
@@ -110,28 +112,28 @@
                         <td>{{ appointment.datetime }}</td>
                         <td>{{ appointment.department }}</td>
                         <td>{{ appointment.doctor_name }}</td>
-                        <td>{{ appointment.symptoms }}</td>
+                        <td>{{ appointment.reason }}</td>
                         <td>
                             <span class="badge badge-{{ appointment.status_color }}">
                                 {{ appointment.status }}
                             </span>
                         </td>
-                        <td>
+                        <!--<td>
                             {% if appointment.can_cancel %}
                             <button type="button" 
                                     class="btn btn-sm btn-danger"
-                                    onclick="cancelAppointment('{{ appointment.id }}')">
+                                    onclick="cancelAppointment('{{ appointment._id}}')">
                                 <i class="fas fa-times me-1"></i>Hủy
                             </button>
                             {% endif %}
                             {% if appointment.can_reschedule %}
                             <button type="button" 
                                     class="btn btn-sm btn-warning"
-                                    onclick="rescheduleAppointment('{{ appointment.id }}')">
+                                    onclick="rescheduleAppointment('{{ appointment._id }}')">
                                 <i class="fas fa-clock me-1"></i>Đổi lịch
                             </button>
                             {% endif %}
-                        </td>
+                        </td>-->
                     </tr>
                     {% endfor %}
                 </tbody>
@@ -147,7 +149,7 @@ document.getElementById('department').addEventListener('change', function() {
     const doctorSelect = document.getElementById('doctor');
     
     if (department) {
-        fetch(`/patient/api/doctors/<department>`)
+        fetch(`/patient/api/doctors/${department}`)
             .then(response => response.json())
             .then(doctors => {
                 doctorSelect.innerHTML = '<option value="">Chọn bác sĩ</option>';
@@ -172,28 +174,27 @@ document.getElementById('date').addEventListener('change', function() {
     updateAvailableTimeSlots();
 });
 
-function updateAvailableTimeSlots() {
-    const doctorId = document.getElementById('doctor').value;
-    const date = document.getElementById('date').value;
-    const timeSelect = document.getElementById('time');
+document.getElementById('time').addEventListener('change', function() {
+    updateAvailableTimeSlots();
+});
+
+
+
+function updateAvailableTimeSlots() { 
+    const doctorId = document.getElementById('doctor').value; 
+    const date = document.getElementById('date').value; 
+    const timeSlotSelect = document.getElementById('time'); 
     
-    if (doctorId && date) {
-        fetch(`/patient/api/timeslots/${doctorId}/${date}`)
-            .then(response => response.json())
-            .then(slots => {
-                timeSelect.innerHTML = '<option value="">Chọn giờ</option>';
-                slots.forEach(slot => {
-                    timeSelect.innerHTML += `
-                        <option value="${slot.time}">${slot.time}</option>
-                    `;
-                });
-                timeSelect.disabled = false;
-            });
-    } else {
-        timeSelect.innerHTML = '<option value="">Chọn giờ</option>';
-        timeSelect.disabled = true;
-    }
-}
+    if (doctorId && date) { fetch(`/patient/api/timeslots/${doctorId}/${date}`) 
+        .then(response => response.json()) 
+        .then(slots => { 
+            timeSlotSelect.innerHTML = '<option value="">Chọn giờ</option>'; 
+            slots.forEach(slot => { 
+                timeSlotSelect.innerHTML += ` <option value="${slot.time}">${slot.time}</option> `; }); 
+                timeSlotSelect.disabled = false; }); } 
+    else { timeSlotSelect.innerHTML = '<option value="">Chọn giờ</option>'; 
+        timeSlotSelect.disabled = true; } }
+
 
 function cancelAppointment(appointmentId) {
     if (confirm('Bạn có chắc muốn hủy lịch hẹn này?')) {

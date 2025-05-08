@@ -21,6 +21,11 @@
     <i class="fas fa-prescription"></i>
     <span>Đơn thuốc</span>
 </a>
+</a>
+<a href="{{ url_for('patient.change_password') }}" class="nav-link">
+    <i class="fas fa-user"></i>
+    Chỉnh sửa mật khẩu
+</a>
 {% endblock %}
 
 {% block content %}
@@ -43,9 +48,6 @@
                     <p><strong>Số điện thoại:</strong> {{ patient.personalInfo.phone }}</p>
                     <p><strong>Email:</strong> {{ patient.personalInfo.email }}</p>
                 </div>
-                <a href="{{ url_for('auth.profile') }}" class="btn btn-primary mt-3">
-                    <i class="fas fa-edit me-2"></i>Cập nhật thông tin
-                </a>
             </div>
         </div>
     </div>

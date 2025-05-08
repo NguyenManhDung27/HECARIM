@@ -5,7 +5,7 @@ from bson import ObjectId
 from datetime import datetime, timedelta
 
 
-patient_api = Blueprint('patient/api', __name__)
+patient_api = Blueprint('patient_api', __name__)
 
 
 
@@ -28,80 +28,56 @@ def get_doctors_by_department(department):
 @patient_api.route('/timeslots/<doctor_id>/<date>', methods=['GET'])
 @login_required
 def get_available_timeslots(doctor_id, date):
-    try:
-        # Chuyển đổi ngày từ string sang datetime
-        selected_date = datetime.strptime(date, '%Y-%m-%d')
-        
-        # Lấy lịch làm việc của bác sĩ
-        doctor_schedule = mongo.db.doctor_schedules.find_one({
-            '_id': ObjectId(doctor_id),
-            'schedule.workDays': selected_date.strftime('%A')
-        })
-
-        if not doctor_schedule:
-            return jsonify([])
-
-        # Tạo danh sách các khung giờ từ lịch làm việc
-        start_time = datetime.strptime(doctor_schedule['schedule']['workHours']['start'], '%H:%M')
-        end_time = datetime.strptime(doctor_schedule['schedule']['workHours']['end'], '%H:%M')
-        slot_duration = timedelta(minutes=30)  # Mỗi khung giờ 30 phút
-
-        # Lấy danh sách cuộc hẹn đã đặt trong ngày
-        booked_slots = set()
-        appointments = mongo.db.appointments.find({
-            'doctorId': ObjectId(doctor_id),
-            'date': selected_date.date()
-        })
-        for appointment in appointments:
-            booked_slots.add(appointment['timeSlot'])
-
-        # Tạo danh sách các khung giờ còn trống
-        available_slots = []
-        current_slot = start_time
-        while current_slot < end_time:
-            slot_str = current_slot.strftime('%H:%M')
-            if slot_str not in booked_slots:
-                available_slots.append({'time': slot_str})
+    doctor_id = ObjectId(doctor_id)
+    # Chuyển đổi ngày từ string sang datetime 
+    date = datetime.strptime(date, '%Y-%m-%d')
+    doctor_schedule = mongo.db.doctor_schedules.find_one({ 
+        '_id': ObjectId(doctor_id), 
+        'schedule.workDays': date.strftime('%A') })
+    if not doctor_schedule: 
+        return jsonify([])
+    start_time = datetime.strptime(doctor_schedule['schedule']['workHours']['start'], '%H:%M')
+    end_time = datetime.strptime(doctor_schedule['schedule']['workHours']['end'], '%H:%M')
+    slot_duration = timedelta(minutes=60) # Mỗi khung giờ 60 phút
+    booked_slots = set() 
+    appointments = mongo.db.appointments.find({ 'doctorId': doctor_id, 'appointmentTime': date })
+    for appointment in appointments: 
+        booked_slots.add(appointment['timeSlot'])
+    available_slots = [] 
+    current_slot = start_time
+    while current_slot < end_time: 
+        slot_str = current_slot.strftime('%H:%M')
+        if slot_str not in booked_slots:
+            available_slots.append({'time': slot_str})
             current_slot += slot_duration
+    return jsonify(available_slots)
 
-        return jsonify(available_slots)
-    except Exception as e:
-        return jsonify({'error': str(e)}), 500
 
-@patient_api.route('/book_appointments', methods=['POST'])
-@login_required
-def book_appointment():
-    try:
-        data = request.get_json()
-    
-        # Kiểm tra dữ liệu đầu vào
-        required_fields = ['department', 'doctor_id', 'date', 'time', 'symptoms']
-        if not all(field in data for field in required_fields):
-            return jsonify({'error': 'Thiếu thông tin cần thiết'}), 400
-
-        # Tạo cuộc hẹn mới
-        appointment = {
-            'patientId': str(current_user.user_data.get('patient_id')),
-            'doctorId': ObjectId(data['doctor_id']),
-            'department': data['department'],
-            'date': datetime.strptime(data['date'], '%Y-%m-%d').date(),
-            'timeSlot': data['time'],
-            'symptoms': data['symptoms'],
-            'status': 'pending',
-            'created_at': datetime.now(),
-            'updated_at': datetime.now()
-        }
-
-        # Lưu vào database
-        result = mongo.db.appointments.insert_one(appointment)
-        
-        return jsonify({
-            'success': True,
-            'message': 'Đặt lịch hẹn thành công',
-            'appointment_id': str(result.inserted_id)
-        })
-    except Exception as e:
-        return jsonify({'error': str(e)}), 500
+@patient_api.route('/book_appointments', methods=['POST']) 
+@login_required 
+def book_appointment(): 
+    try: 
+        data = request.get_json() 
+        if not data: 
+            return jsonify({'success': False, 'message': 'Dữ liệu không hợp lệ'}), 400 
+        doctor = mongo.db.doctors.find_one({'[personalInfor][fullName]': data['doctor_name']}) 
+        if not doctor: 
+            return jsonify({'success': False, 'message': 'Không tìm thấy bác sĩ'}), 404 # Tạo cuộc hẹn mới 
+        appointment = { 'patientId': ObjectId(current_user.user_data.get('patient_id')), 
+        'doctorId': ObjectId(doctor['doctor_id']), 
+        'department': data['department'] 
+        if data.get('department') else None, 
+        'appointmentTime': data['appointmentTime'], 
+        'timeSlot': data['time'], 
+        'symptoms': data['symptoms'], 
+        'status': 'pending', 
+        'created_at': datetime.now(), 
+        'updated_at': datetime.now() } 
+        # Lưu vào database 
+        result = mongo.db.appointment.insert_one(appointment) 
+        return jsonify({ 'success': True, 'message': 'Đặt lịch hẹn thành công', 'appointment_id': str(result.inserted_id) }) 
+    except Exception as e: 
+        return jsonify({'error': str(e)}), 500 
 
 @patient_api.route('/appointments/<appointment_id>', methods=['DELETE'])
 @login_required

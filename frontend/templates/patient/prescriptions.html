@@ -1,8 +1,8 @@
 {% extends "base.html" %}
 
-{% block title %}Đơn thuốc - Bệnh nhân{% endblock %}
+{% block title %}Đơn thuốc{% endblock %}
 
-{% block page_title %}Quản lý đơn thuốc{% endblock %}
+{% block page_title %}Đơn thuốc{% endblock %}
 
 {% block sidebar_menu %}
 <a href="{{ url_for('patient.dashboard') }}" class="nav-link">
@@ -21,7 +21,13 @@
     <i class="fas fa-prescription"></i>
     <span>Đơn thuốc</span>
 </a>
+</a>
+<a href="{{ url_for('patient.change_password') }}" class="nav-link">
+    <i class="fas fa-user"></i>
+    Chỉnh sửa mật khẩu
+</a>
 {% endblock %}
+
 
 {% block content %}
 <!-- Active Prescriptions -->

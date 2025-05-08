@@ -3,6 +3,7 @@ from flask_login import login_required, current_user
 from ..extensions import mongo
 from bson import ObjectId
 from datetime import datetime
+import bcrypt
 
 patient_bp = Blueprint('patient', __name__)
 
@@ -56,7 +57,7 @@ def appointments():
     departments = list(mongo.db.doctors.distinct('professionalInfo.department'))
     # Lấy tất cả lịch hẹn của bệnh nhân
     appointments = list(mongo.db.appointments.find({
-        'patientId': str(current_user.user_data.get('patient_id'))
+        'patientId': ObjectId(current_user.user_data.get('patient_id'))
     }).sort('appointmentTime', -1))
 
     # Thêm thông tin chi tiết cho mỗi lịch hẹn
@@ -70,11 +71,12 @@ def appointments():
             'completed': 'success',
             'cancelled': 'danger'
         }.get(appointment['status'], 'secondary')
-        
+        appointment['datetime'] = appointment['appointmentTime'].strftime('%Y-%m-%d %H:%M:%S') if isinstance(appointment['appointmentTime'], datetime) else appointment['appointmentTime']
+        appointment['reason'] = appointment['reason'] if appointment.get('reason') else 'Không xác định'
+
         # Kiểm tra xem có thể hủy hoặc đổi lịch không
         appointment['can_cancel'] = appointment['status'] in ['pending', 'confirmed']
         appointment['can_reschedule'] = appointment['status'] in ['pending', 'confirmed']
-        print("Dữ liệu departments:", departments)
     return render_template(
         'patient/appointments.html',
         departments =departments,
@@ -160,17 +162,31 @@ def prescriptions():
         notifications_count=3
     )
 
-@patient_bp.route('/profile')
+@patient_bp.route('/change_password', methods=['GET', 'POST'])
 @login_required
-def profile():
-    patient_id = current_user.users.get('patient_id')
-    
-    # Ensure patient_id is an ObjectId
-    if not isinstance(patient_id, ObjectId):
-        patient_id = ObjectId(patient_id)
-    
-    patient = mongo.db.patients.find_one({'_id': patient_id})
-    if not patient:
-        return "Patient profile not found", 404
-    
-    return render_template('auth/profile.html', patient=patient, notifications_count=3)
+def change_password():
+    if request.method == 'POST':
+        data = request.json
+        current_password = data.get('current_password')
+        new_password = data.get('new_password')
+        patient_id = current_user.user_data.get('patient_id')
+        user = mongo.db.users.find_one({'patient_id': ObjectId(patient_id)})
+
+        stored_hash = user.get('password_hash')
+
+        # Convert Binary data to string if necessary
+        if isinstance(stored_hash, bytes):  
+            stored_hash = stored_hash.decode('utf-8') 
+
+        # Verify current password (implement actual password checking logic)
+
+        if not bcrypt.checkpw(current_password.encode('utf-8'), stored_hash.encode('utf-8')):
+            return jsonify({'success': False, 'message': 'Mật khẩu hiện tại không đúng'}), 400
+
+        salt = bcrypt.gensalt()
+        hashed_password = bcrypt.hashpw(new_password.encode('utf-8'), salt)
+        mongo.db.users.update_one({'_id': user['_id']}, {'$set': {'password_hash': hashed_password}})
+
+        return jsonify({'success': True, 'message': 'Đổi mật khẩu thành công'})
+
+    return render_template('patient/changepassword.html', notifications_count = 3)
