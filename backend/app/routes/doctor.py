@@ -24,10 +24,11 @@ def dashboard():
     today = datetime.today()
     start_of_day = datetime.combine(today.date(), datetime.min.time())
     end_of_day = datetime.combine(today.date(), datetime.max.time())
-    appointments_list = mongo.db.appointments.find({
-        'doctorId': str(current_user.user_data.get('staff_id')), # Thay thế bằng ID bác sĩ thực tế
+    appointments_list = list(mongo.db.appointments.find({
+        'doctorId': ObjectId(current_user.user_data.get('staff_id')), # Thay thế bằng ID bác sĩ thực tế
         'appointmentTime': {'$gte': start_of_day, '$lte': end_of_day},
-    })
+    }))
+    print(appointments_list)
     for appt in appointments_list:
         # Lấy thông tin bệnh nhân
         patient = mongo.db.patients.find_one({'_id': ObjectId(appt['patientId'])})
@@ -46,8 +47,8 @@ def dashboard():
         stats=stats,
         notifications_count=3,  # hoặc context processor như đã nói
         today=today,
+        appointments=appointments,  # Truyền danh sách cuộc hẹn vào template
     )
-        # appointments=appointments,  # Truyền danh sách cuộc hẹn vào template
 
 
 @doctor_bp.route('/medical-records')
@@ -97,7 +98,6 @@ def medical_records():
 @doctor_bp.route('/prescriptions')
 @login_required
 def prescriptions():
-    print("Patients loaded")
     patients =list(mongo.db.patients.find())
     for patient in patients:
         patient['_id'] = str(patient['_id'])  # Chuyển đổi ObjectId thành chuỗi

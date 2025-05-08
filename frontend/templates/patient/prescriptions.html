@@ -54,7 +54,6 @@
                         <th>Thời gian</th>
                         <th>Bác sĩ kê đơn</th>
                         <th>Ngày kê đơn</th>
-                        <th>Trạng thái</th>
                     </tr>
                 </thead>
                 <tbody>
@@ -66,11 +65,6 @@
                         <td>{{ prescription.duration }}</td>
                         <td>{{ prescription.doctor_name }}</td>
                         <td>{{ prescription.prescribed_date }}</td>
-                        <td>
-                            <span class="badge badge-{{ prescription.status_color }}">
-                                {{ prescription.status }}
-                            </span>
-                        </td>
                     </tr>
                     {% endfor %}
                 </tbody>

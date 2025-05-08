@@ -134,8 +134,8 @@ def prescriptions():
     # Lấy đơn thuốc đang sử dụng
     active_prescriptions = list(mongo.db.prescriptions.find({
         'patient_id': ObjectId(current_user.user_data.get('patient_id')),
-        'status': 'active'
     }).sort('issue_date', -1))
+        # 'status': 'active'
 
     # Thêm thông tin chi tiết cho mỗi đơn thuốc
     for prescription in active_prescriptions:

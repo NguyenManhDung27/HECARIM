@@ -50,32 +50,32 @@ def save_prescription():
         return jsonify({'success': False, 'message': 'Có lỗi xảy ra khi lưu đơn thuốc'}), 500
     
 
-@doctor_api.route('/appointments/today', methods=['GET'])
-@login_required
-def get_today_appointments():
-    today = datetime.today()
-    start_of_day = datetime.combine(today.date(), datetime.min.time())
-    end_of_day = datetime.combine(today.date(), datetime.max.time())
-    appointments_list = mongo.db.appointments.find({
-        'doctorId': ObjectId(current_user.user_data.get('staff_id')), # Thay thế bằng ID bác sĩ thực tế
-        'appointmentTime': {'$gte': start_of_day, '$lte': end_of_day},
-    })
-    appointments=[]
-    for appt in appointments_list:
-        # Lấy thông tin bệnh nhân
-        patient = mongo.db.patients.find_one({'_id': ObjectId(appt['patientId'])})
-        # An toàn khi truy xuất thông tin
-        patient_name = patient['personalInfo']['fullName'] if patient else 'Không rõ'
-        appointments.append({
-            '_id': str(appt['_id']),
-            'patient_name': patient_name,
-            'patient_id': ObjectId(patient.get('patientId', '') if patient else ''),
-            'time': appt.get('timeSlot'),
-            'status': 'chờ khám',  # Hoặc trạng thái khác
-            'type': appt.get('type'),  # Hoặc trạng thái khác
-            'status_class': 'warning'  # hoặc tạo rule cho status_class theo trạng thái
-        })  
-    return jsonify(list(appointments))
+# @doctor_api.route('/appointments/today', methods=['GET'])
+# @login_required
+# def get_today_appointments():
+#     today = datetime.today()
+#     start_of_day = datetime.combine(today.date(), datetime.min.time())
+#     end_of_day = datetime.combine(today.date(), datetime.max.time())
+#     appointments_list = mongo.db.appointments.find({
+#         'doctorId': ObjectId(current_user.user_data.get('staff_id')), # Thay thế bằng ID bác sĩ thực tế
+#         'appointmentTime': {'$gte': start_of_day, '$lte': end_of_day},
+#     })
+#     appointments=[]
+#     for appt in appointments_list:
+#         # Lấy thông tin bệnh nhân
+#         patient = mongo.db.patients.find_one({'_id': ObjectId(appt['patientId'])})
+#         # An toàn khi truy xuất thông tin
+#         patient_name = patient['personalInfo']['fullName'] if patient else 'Không rõ'
+#         appointments.append({
+#             '_id': str(appt['_id']),
+#             'patient_name': patient_name,
+#             'patient_id': ObjectId(patient.get('patientId', '') if patient else ''),
+#             'time': appt.get('timeSlot'),
+#             'status': 'chờ khám',  # Hoặc trạng thái khác
+#             'type': appt.get('type'),  # Hoặc trạng thái khác
+#             'status_class': 'warning'  # hoặc tạo rule cho status_class theo trạng thái
+#         })  
+#     return jsonify(list(appointments))
 
 
 @doctor_api.route('/patients/<patientId>', methods=['GET'])
