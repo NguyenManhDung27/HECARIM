@@ -11,7 +11,7 @@ from backend.app.utils.api_utils import (
     format_patient_response,
     api_error
 )
-from backend.app import mongo
+from backend.app import mongo, mail
 from bson import ObjectId
 from datetime import datetime, time, timedelta, timezone
 import math
@@ -19,7 +19,7 @@ from werkzeug.security import generate_password_hash
 receptionist_api = Blueprint('receptionist/api', __name__)
 
 # Configure Flask-Mail
-mail = Mail()
+
 receptionist_api = Blueprint('receptionist/api', __name__)
 
 @receptionist_api.route('/appointments/<appointment_id>')
@@ -254,7 +254,6 @@ def create_patient():
 
 @receptionist_api.route('/appointments/time-slots', methods=['GET'])
 @login_required
-@role_required('receptionist')
 @handle_api_error
 def get_time_slots():
     doctor_id = request.args.get('doctorId')

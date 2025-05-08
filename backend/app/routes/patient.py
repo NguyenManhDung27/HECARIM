@@ -62,27 +62,44 @@ def appointments():
         'patientId': ObjectId(current_user.user_data.get('patient_id'))
     }).sort('appointmentTime', -1))
 
+    today = datetime.now()
     # Thêm thông tin chi tiết cho mỗi lịch hẹn
     for appointment in appointments:
         doctor = mongo.db.doctors.find_one({'_id': ObjectId(appointment['doctorId'])})
         appointment['doctor_name'] = doctor['personalInfo']['fullName'] if doctor else 'Không xác định'
         appointment['department'] = doctor['professionalInfo']['department'] if doctor else 'Không xác định'
         appointment['status_color'] = {
-            'pending': 'warning',
+            'đã lên lịch': 'warning',
             'confirmed': 'primary',
-            'completed': 'success',
+            'đã check-in': 'success',
             'cancelled': 'danger'
         }.get(appointment['status'], 'secondary')
-        appointment['datetime'] = appointment['appointmentTime'].strftime('%Y-%m-%d %H:%M:%S') if isinstance(appointment['appointmentTime'], datetime) else appointment['appointmentTime']
+        appointment['datetime'] = appointment['appointmentTime'].strftime('%Y-%m-%d') if isinstance(appointment['appointmentTime'], datetime) else appointment['appointmentTime']
+        appointment['timeSlot'] = appointment['timeSlot'].strftime('%H:%M') if isinstance(appointment['timeSlot'], datetime) else appointment['timeSlot']
         appointment['reason'] = appointment['reason'] if appointment.get('reason') else 'Không xác định'
 
         # Kiểm tra xem có thể hủy hoặc đổi lịch không
         appointment['can_cancel'] = appointment['status'] in ['pending', 'confirmed']
         appointment['can_reschedule'] = appointment['status'] in ['pending', 'confirmed']
+    # Truy vấn danh sách bác sĩ từ MongoDB
+    doctors = mongo.db.doctors.find()
+    # Chuyển đổi ObjectId sang chuỗi và chuẩn bị dữ liệu
+    doctors_list = [{
+        '_id': str(doctor['_id']),
+        'personalInfo': {
+            'fullName': doctor['personalInfo']['fullName']
+        },
+        'professionalInfo': {
+            'specialization': doctor['professionalInfo'].get('specialization', 'Không rõ')
+        }
+    } for doctor in doctors]
+
     return render_template(
         'patient/appointments.html',
         departments =departments,
         appointments=appointments,
+        doctors=doctors_list,
+        today = today,
         notifications_count=3
     )
 

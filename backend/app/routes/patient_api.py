@@ -1,12 +1,13 @@
 from flask import Blueprint, jsonify, request
 from flask_login import login_required, current_user
+from flask_mail import Mail, Message
 
 from backend.app.utils.auth_utils import role_required
-from ..extensions import mongo
+from backend.app import mongo, mail
 from bson import ObjectId
 from datetime import datetime, timedelta
 
-
+# mail = Mail()
 patient_api = Blueprint('patient_api', __name__)
 
 
@@ -27,59 +28,50 @@ def get_doctors_by_department(department):
     except Exception as e:
         return jsonify({'error': str(e)}), 500
 
-@patient_api.route('/timeslots/<doctor_id>/<date>', methods=['GET'])
-@login_required
-def get_available_timeslots(doctor_id, date):
-    doctor_id = ObjectId(doctor_id)
-    # Chuyển đổi ngày từ string sang datetime 
-    date = datetime.strptime(date, '%Y-%m-%d')
-    doctor_schedule = mongo.db.doctor_schedules.find_one({ 
-        '_id': ObjectId(doctor_id), 
-        'schedule.workDays': date.strftime('%A') })
-    if not doctor_schedule: 
-        return jsonify([])
-    start_time = datetime.strptime(doctor_schedule['schedule']['workHours']['start'], '%H:%M')
-    end_time = datetime.strptime(doctor_schedule['schedule']['workHours']['end'], '%H:%M')
-    slot_duration = timedelta(minutes=60) # Mỗi khung giờ 60 phút
-    booked_slots = set() 
-    appointments = mongo.db.appointments.find({ 'doctorId': doctor_id, 'appointmentTime': date })
-    for appointment in appointments: 
-        booked_slots.add(appointment['timeSlot'])
-    available_slots = [] 
-    current_slot = start_time
-    while current_slot < end_time: 
-        slot_str = current_slot.strftime('%H:%M')
-        if slot_str not in booked_slots:
-            available_slots.append({'time': slot_str})
-            current_slot += slot_duration
-    return jsonify(available_slots)
-
-
-@patient_api.route('/book_appointments', methods=['POST']) 
+@patient_api.route('/appointments', methods=['POST']) 
 @login_required 
 def book_appointment(): 
-    try: 
-        data = request.get_json() 
-        if not data: 
-            return jsonify({'success': False, 'message': 'Dữ liệu không hợp lệ'}), 400 
-        doctor = mongo.db.doctors.find_one({'[personalInfor][fullName]': data['doctor_name']}) 
-        if not doctor: 
-            return jsonify({'success': False, 'message': 'Không tìm thấy bác sĩ'}), 404 # Tạo cuộc hẹn mới 
-        appointment = { 'patientId': ObjectId(current_user.user_data.get('patient_id')), 
-        'doctorId': ObjectId(doctor['doctor_id']), 
-        'department': data['department'] 
-        if data.get('department') else None, 
-        'appointmentTime': data['appointmentTime'], 
-        'timeSlot': data['time'], 
-        'symptoms': data['symptoms'], 
-        'status': 'pending', 
-        'created_at': datetime.now(), 
-        'updated_at': datetime.now() } 
-        # Lưu vào database 
-        result = mongo.db.appointment.insert_one(appointment) 
-        return jsonify({ 'success': True, 'message': 'Đặt lịch hẹn thành công', 'appointment_id': str(result.inserted_id) }) 
-    except Exception as e: 
-        return jsonify({'error': str(e)}), 500 
+    data = request.get_json() 
+    print(data)
+    appointment_data = {
+    'patientId': ObjectId(current_user.user_data.get('patient_id')),
+    'doctorId': ObjectId(data['doctor_id']),
+    'appointmentTime': datetime.strptime(data['appointment_date'], '%Y-%m-%d'),
+    'timeSlot': data['time_slot'],
+    'status': 'đã lên lịch',
+    'type': data.get('type', ''),
+    'notes': data.get('notes', ''),
+    'reason': data.get('reason', ''),
+    'createdAt': datetime.now(),
+    'updatedAt': datetime.now()
+    }
+    # Lưu vào database 
+    try:
+        mongo.db.appointments.insert_one(appointment_data)
+        patient = mongo.db.patients.find_one({'_id': ObjectId(current_user.user_data.get('patient_id'))})
+        if not patient:
+            return jsonify({'error': 'Không tìm thấy bệnh nhân'}), 404
+        # Gửi email xác nhận lịch hẹn
+        try:
+            msg = Message(
+                subject='Xác nhận lịch hẹn',
+                recipients=[patient['personalInfo']['email']]
+            )
+            msg.html = f"""
+                <h1>Xin chào {patient['personalInfo']['fullName']}</h1>
+                <p>Lịch hẹn của bạn đã được đặt thành công.</p>
+                <p><strong>Thời gian:</strong> {data['appointment_date']} - {data['time_slot']}</p>
+                <p><strong>Loại khám:</strong> {data.get('type', 'Không có')}</p>
+                <p><strong>Lý do:</strong> {data.get('reason', 'Không có')}</p>
+                <p>Cảm ơn bạn đã sử dụng dịch vụ của chúng tôi!</p>
+            """
+            mail.send(msg)
+            print("Email xác nhận đã được gửi thành công")
+        except Exception as e:
+            print(f'Lỗi khi gửi email xác nhận lịch hẹn: {e}')
+            return jsonify({'success': False, 'message': 'Đã xảy ra lỗi khi gửi email xác nhận.'}), 500
+    except Exception as e:
+        return jsonify({'error': 'Internal Server Error'}), 500
 
 @patient_api.route('/appointments/<appointment_id>', methods=['DELETE'])
 @login_required
@@ -268,7 +260,7 @@ def get_invoice_details(invoice_id):
     
 @patient_api.route('/invoices', methods=['GET'])
 @login_required
-# @role_required('patient')
+@role_required('patient')
 def invoices():
     try:
         invoices = mongo.db.invoices.find({'patientId': ObjectId(current_user.user_data.get('patient_id'))})
