@@ -1,0 +1,263 @@
+<!-- Check-in Modal -->
+<div class="modal" id="checkInModal">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">Check-in Bệnh nhân</h5>
+                <button type="button" class="modal-close">
+                    <i class="fas fa-times"></i>
+                </button>
+            </div>
+            <div class="modal-body">
+                <!-- Patient Search -->
+                <div class="form-group mb-4">
+                    <label class="form-label">Tìm kiếm bệnh nhân</label>
+                    <div class="input-group">
+                        <input type="text" 
+                               class="form-control" 
+                               id="checkInPatientSearch" 
+                               placeholder="Nhập mã BN hoặc quét mã QR...">
+                        <button class="btn btn-primary" type="button" onclick="searchCheckInPatient()">
+                            <i class="fas fa-search"></i>
+                        </button>
+                        <button class="btn btn-secondary" type="button" onclick="openQRScanner()">
+                            <i class="fas fa-qrcode"></i>
+                        </button>
+                    </div>
+                </div>
+
+                <!-- Patient Appointments -->
+                <div id="patientAppointments" style="display: none;">
+                    <div class="alert alert-info mb-3">
+                        <div class="d-flex align-items-center">
+                            <div>
+                                <h6 class="mb-1" id="checkInPatientName"></h6>
+                                <p class="mb-0" id="checkInPatientId"></p>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="card mb-3">
+                        <div class="card-header">
+                            <h6 class="card-title mb-0">Lịch hẹn hôm nay</h6>
+                        </div>
+                        <div class="card-body" id="todayAppointments">
+                            <!-- Today's appointments will be loaded here -->
+                        </div>
+                    </div>
+
+                    <div class="form-group mb-3">
+                        <label class="form-label">Ghi chú</label>
+                        <textarea class="form-control" 
+                                  id="checkInNotes" 
+                                  rows="2" 
+                                  placeholder="Ghi chú thêm nếu cần..."></textarea>
+                    </div>
+
+                    <!-- Vital Signs -->
+                    <div class="card">
+                        <div class="card-header">
+                            <h6 class="card-title mb-0">Dấu hiệu sinh tồn</h6>
+                        </div>
+                        <div class="card-body">
+                            <div class="row">
+                                <div class="col-md-6">
+                                    <div class="form-group mb-3">
+                                        <label class="form-label">Nhiệt độ (°C)</label>
+                                        <input type="number" 
+                                               class="form-control" 
+                                               id="temperature" 
+                                               step="0.1">
+                                    </div>
+                                </div>
+                                <div class="col-md-6">
+                                    <div class="form-group mb-3">
+                                        <label class="form-label">Huyết áp (mmHg)</label>
+                                        <div class="input-group">
+                                            <input type="number" 
+                                                   class="form-control" 
+                                                   id="systolic" 
+                                                   placeholder="Tâm thu">
+                                            <span class="input-group-text">/</span>
+                                            <input type="number" 
+                                                   class="form-control" 
+                                                   id="diastolic" 
+                                                   placeholder="Tâm trương">
+                                        </div>
+                                    </div>
+                                </div>
+                                <div class="col-md-6">
+                                    <div class="form-group mb-3">
+                                        <label class="form-label">Nhịp tim (nhịp/phút)</label>
+                                        <input type="number" 
+                                               class="form-control" 
+                                               id="heartRate">
+                                    </div>
+                                </div>
+                                <div class="col-md-6">
+                                    <div class="form-group mb-3">
+                                        <label class="form-label">Nhịp thở (lần/phút)</label>
+                                        <input type="number" 
+                                               class="form-control" 
+                                               id="respiratoryRate">
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- No Appointments Message -->
+                <div id="noAppointments" class="text-center py-4" style="display: none;">
+                    <i class="fas fa-calendar-times fa-3x text-muted mb-3"></i>
+                    <p class="mb-0">Không tìm thấy lịch hẹn nào cho hôm nay</p>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" onclick="closeModal('checkInModal')">
+                    Hủy
+                </button>
+                <button type="button" 
+                        class="btn btn-primary" 
+                        id="confirmCheckIn" 
+                        style="display: none;"
+                        onclick="processCheckIn()">
+                    Xác nhận Check-in
+                </button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+    let selectedAppointment = null;
+
+    function searchCheckInPatient() {
+        const searchTerm = document.getElementById('checkInPatientSearch').value;
+        
+        if (!searchTerm) {
+            alert('Vui lòng nhập mã bệnh nhân hoặc quét mã QR');
+            return;
+        }
+
+        fetch(`/receptionist/api/appointments/today?patient=${encodeURIComponent(searchTerm)}`)
+            .then(response => response.json())
+            .then(data => {
+                console.log(data);
+                document.getElementById('patientAppointments').style.display = 'block';
+                document.getElementById('checkInPatientName').textContent = data.patient.fullName;
+                document.getElementById('checkInPatientId').textContent = `Mã BN: ${data.patient.patientId}`;
+                if (data.appointments.length > 0) {
+                    document.getElementById('todayAppointments').innerHTML = data.appointments.map(apt => `
+                        <div class="appointment-item mb-2">
+                            <div class="form-check">
+                                <input class="form-check-input" 
+                                       type="radio" 
+                                       name="appointment" 
+                                       value="${apt._id}"
+                                       onchange="selectAppointment('${apt._id}')"
+                                       ${apt.status === 'checked_in' ? 'disabled' : ''}>
+                                <label class="form-check-label">
+                                    <div class="d-flex justify-content-between align-items-center">
+                                        <div>
+                                            <strong>${apt.time_slot}</strong> - BS. ${apt.doctor_name}
+                                            <br>
+                                            <small class="text-muted">${apt.type}</small>
+                                        </div>
+                                        <span class="badge badge-${getStatusBadgeClass(apt.status)}">
+                                            ${getStatusText(apt.status)}
+                                        </span>
+                                    </div>
+                                </label>
+                            </div>
+                        </div>
+                    `).join('');
+                    document.getElementById('noAppointments').style.display = 'none';
+                } else {
+                    document.getElementById('todayAppointments').innerHTML = '';
+                    document.getElementById('noAppointments').style.display = 'block';
+                }
+            });
+    }
+
+    function selectAppointment(appointmentId) {
+        selectedAppointment = appointmentId;
+        document.getElementById('confirmCheckIn').style.display = 'block';
+    }
+
+    function processCheckIn() {
+        if (!selectedAppointment) {
+            alert('Vui lòng chọn lịch hẹn để check-in');
+            return;
+        }
+
+        const vitalSigns = {
+            temperature: parseFloat(document.getElementById('temperature').value) || null,
+            bloodPressure: {
+                systolic: parseInt(document.getElementById('systolic').value) || null,
+                diastolic: parseInt(document.getElementById('diastolic').value) || null
+            },
+            heartRate: parseInt(document.getElementById('heartRate').value) || null,
+            respiratoryRate: parseInt(document.getElementById('respiratoryRate').value) || null
+        };
+
+        fetch(`/api/appointments/${selectedAppointment}/check-in`, {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json'
+            },
+            body: JSON.stringify({
+                notes: document.getElementById('checkInNotes').value,
+                vitalSigns: vitalSigns
+            })
+        })
+        .then(response => response.json())
+        .then(result => {
+            if (result.success) {
+                closeModal('checkInModal');
+                window.location.reload();
+            } else {
+                alert('Có lỗi xảy ra khi check-in');
+            }
+        });
+    }
+
+    function openQRScanner() {
+        // Implementation for QR scanner
+        alert('Tính năng đang được phát triển');
+    }
+
+    function getStatusBadgeClass(status) {
+        switch (status) {
+            case 'checked_in': return 'success';
+            case 'waiting': return 'warning';
+            case 'cancelled': return 'danger';
+            default: return 'secondary';
+        }
+    }
+
+    function getStatusText(status) {
+        switch (status) {
+            case 'checked_in': return 'Đã check-in';
+            case 'waiting': return 'Đang chờ';
+            case 'cancelled': return 'Đã hủy';
+            default: return 'Không xác định';
+        }
+    }
+
+    function closeModal(modalId) {
+        document.getElementById(modalId).classList.remove('show');
+        // Reset form
+        document.getElementById('checkInPatientSearch').value = '';
+        document.getElementById('patientAppointments').style.display = 'none';
+        document.getElementById('noAppointments').style.display = 'none';
+        document.getElementById('confirmCheckIn').style.display = 'none';
+        document.getElementById('checkInNotes').value = '';
+        document.getElementById('temperature').value = '';
+        document.getElementById('systolic').value = '';
+        document.getElementById('diastolic').value = '';
+        document.getElementById('heartRate').value = '';
+        document.getElementById('respiratoryRate').value = '';
+        selectedAppointment = null;
+    }
+</script>

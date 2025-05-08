@@ -1,0 +1,604 @@
+{% extends "base.html" %}
+
+{% block title %}Danh sách Bệnh nhân{% endblock %}
+
+{% block extra_css %}
+<style>
+    :root {
+        --primary: #2c6bff;
+        --primary-dark: #1e4db7;
+        --secondary: #00ddeb;
+        --bg: #f4f7ff;
+        --white: #ffffff;
+        --text: #1a1a1a;
+        --text-light: #6b7280;
+        --danger: #dc2626;
+        --gray-200: #e5e7eb;
+        --border-radius: 12px;
+        --border-radius-lg: 16px;
+        --spacing-xs: 0.25rem;
+        --spacing-sm: 0.5rem;
+        --spacing-md: 1rem;
+        --spacing-lg: 1.5rem;
+        --spacing-xl: 2rem;
+    }
+
+    .row {
+        display: flex;
+        flex-wrap: wrap;
+        margin: 0;
+        width: 100%;
+        gap: var(--spacing-lg);
+        padding: var(--spacing-md) 0;
+        background: linear-gradient(180deg, #ffffff, #f8fafc);
+        border-radius: var(--border-radius-lg);
+        box-shadow: 0 4px 12px rgba(44, 107, 255, 0.1);
+    }
+
+    .col-md-4 {
+        flex: 1 1 30%;
+        max-width: 33.333333%;
+        padding: var(--spacing-sm);
+        min-width: 250px;
+    }
+
+    .card {
+        background: var(--white);
+        border-radius: var(--border-radius-lg);
+        box-shadow: 0 8px 24px rgba(44, 107, 255, 0.15);
+        transition: transform 0.3s ease, box-shadow 0.3s ease;
+        position: relative;
+        overflow: hidden;
+    }
+
+    .card:hover {
+        transform: translateY(-4px);
+        box-shadow: 0 12px 32px rgba(44, 107, 255, 0.2);
+    }
+
+    .card::before {
+        content: '';
+        position: absolute;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 4px;
+        background: linear-gradient(90deg, var(--primary), var(--secondary));
+    }
+
+    .card-body {
+        padding: var(--spacing-xl);
+    }
+
+    .input-group {
+        display: flex;
+        align-items: center;
+        border-radius: var(--border-radius);
+        overflow: hidden;
+        border: 1px solid var(--gray-200);
+        position: relative;
+        z-index: 1;
+    }
+
+    .form-control {
+        border: none;
+        padding: var(--spacing-sm) var(--spacing-md);
+        font-size: 0.9rem;
+        flex: 1;
+        background: var(--white);
+    }
+
+    .form-control:focus {
+        outline: none;
+        box-shadow: 0 0 0 2px var(--primary);
+    }
+
+    .form-label {
+        font-family: 'Montserrat', sans-serif;
+        font-size: 0.9rem;
+        font-weight: 500;
+        color: var(--text);
+        margin-bottom: var(--spacing-xs);
+    }
+
+    .table-container {
+        overflow-x: auto;
+    }
+
+    .table {
+        width: 100%;
+        border-collapse: separate;
+        border-spacing: 0;
+    }
+
+    .table th,
+    .table td {
+        padding: var(--spacing-md);
+        text-align: left;
+        font-size: 0.9rem;
+        color: var(--text);
+    }
+
+    .table th {
+        background: #f8fafc;
+        font-family: 'Montserrat', sans-serif;
+        font-weight: 600;
+        border-bottom: 1px solid var(--gray-200);
+    }
+
+    .table td {
+        border-bottom: 1px solid var(--gray-200);
+    }
+
+    .table tr:last-child td {
+        border-bottom: none;
+    }
+
+    .btn-primary,
+    .btn-secondary {
+        display: inline-flex;
+        align-items: center;
+        gap: var(--spacing-sm);
+        padding: var(--spacing-sm) var(--spacing-md);
+        border: none;
+        border-radius: var(--border-radius);
+        font-size: 0.9rem;
+        font-weight: 500;
+        cursor: pointer;
+        transition: all 0.3s ease;
+        position: relative;
+        z-index: 1;
+    }
+
+    .btn-primary {
+        background: linear-gradient(45deg, var(--primary), var(--secondary));
+        color: var(--white);
+    }
+
+    .btn-primary:hover {
+        background: linear-gradient(45deg, var(--primary-dark), var(--secondary));
+        box-shadow: 0 4px 12px rgba(44, 107, 255, 0.3);
+    }
+
+    .btn-secondary {
+        background: #e5e7eb;
+        color: var(--text);
+    }
+
+    .btn-secondary:hover {
+        background: #d1d5db;
+        box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+    }
+
+    .pagination {
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        flex-wrap: nowrap;
+        list-style: none;
+        padding: 0;
+        margin: var(--spacing-lg) 0 0;
+    }
+
+    .pagination .page-item {
+        margin: 0 var(--spacing-xs);
+    }
+
+    .page-link {
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        padding: var(--spacing-sm) var(--spacing-md);
+        border-radius: var(--border-radius);
+        font-size: 0.9rem;
+        color: var(--text);
+        background: var(--white);
+        border: 1px solid var(--gray-200);
+        transition: all 0.3s ease;
+        text-decoration: none;
+        position: relative;
+        z-index: 1;
+    }
+
+    .page-link:hover {
+        background: rgba(44, 107, 255, 0.1);
+        border-color: var(--primary);
+        color: var(--primary);
+    }
+
+    .page-item.active .page-link {
+        background: var(--primary);
+        color: var(--white);
+        border-color: var(--primary);
+    }
+
+    .page-item.disabled .page-link {
+        background: var(--gray-200);
+        color: var(--text-light);
+        cursor: not-allowed;
+    }
+
+    .modal {
+        position: fixed;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
+        background: rgba(0, 0, 0, 0.5);
+        display: none;
+        align-items: center;
+        justify-content: center;
+        z-index: 1050;
+    }
+
+    .modal.show {
+        display: flex;
+    }
+
+    .modal-dialog {
+        max-width: 800px;
+        width: 90%;
+        background: var(--white);
+        border-radius: var(--border-radius-lg);
+        box-shadow: 0 8px 24px rgba(44, 107, 255, 0.2);
+    }
+
+    .modal-content {
+        border: none;
+    }
+
+    .modal-header {
+        padding: var(--spacing-md) var(--spacing-lg);
+        border-bottom: 1px solid var(--gray-200);
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+    }
+
+    .modal-title {
+        font-family: 'Montserrat', sans-serif;
+        font-size: 1.25rem;
+        font-weight: 600;
+        color: var(--text);
+    }
+
+    .modal-close {
+        background: none;
+        border: none;
+        font-size: 1rem;
+        color: var(--text-light);
+        cursor: pointer;
+        transition: color 0.3s ease;
+        position: relative;
+        z-index: 1;
+    }
+
+    .modal-close:hover {
+        color: var(--primary);
+    }
+
+    .modal-body {
+        padding: var(--spacing-xl);
+    }
+
+    .modal-body h6 {
+        font-family: 'Montserrat', sans-serif;
+        font-size: 1rem;
+        font-weight: 600;
+        color: var(--text);
+        margin-bottom: var(--spacing-md);
+    }
+
+    .modal-body p {
+        font-size: 0.9rem;
+        color: var(--text);
+        margin-bottom: var(--spacing-sm);
+    }
+
+    .text-muted {
+        color: var(--text-light);
+        font-size: 0.9rem;
+    }
+
+    @media (max-width: 576px) {
+        .row {
+            padding: var(--spacing-sm) 0;
+            gap: var(--spacing-md);
+        }
+
+        .col-md-4 {
+            flex: 1 1 100%;
+            max-width: 100%;
+            min-width: 0;
+        }
+
+        .modal-dialog {
+            width: 95%;
+        }
+    }
+</style>
+{% endblock %}
+
+{% block sidebar_menu %}
+<style>
+    .nav-item {
+        margin-bottom: var(--spacing-sm);
+    }
+
+    .nav-link {
+        display: flex;
+        align-items: center;
+        gap: var(--spacing-sm);
+        padding: var(--spacing-md) var(--spacing-lg);
+        color: var(--text-light);
+        font-size: 0.95rem;
+        font-weight: 500;
+        border-radius: var(--border-radius);
+        transition: all 0.3s ease;
+        text-decoration: none;
+        position: relative;
+        z-index: 1;
+        cursor: pointer;
+    }
+
+    .nav-link:hover {
+        background: rgba(44, 107, 255, 0.1);
+        color: var(--primary);
+    }
+
+    .nav-link.active {
+        background: var(--primary);
+        color: var(--white);
+        font-weight: 600;
+        box-shadow: 0 2px 8px rgba(44, 107, 255, 0.2);
+    }
+
+    .nav-link i {
+        font-size: 1.1rem;
+    }
+</style>
+
+<div class="nav-item">
+    <a href="{{ url_for('doctor.dashboard') }}" class="nav-link">
+        <i class="fas fa-home"></i>
+        Tổng quan
+    </a>
+</div>
+<div class="nav-item">
+    <a href="{{ url_for('doctor.schedule_page') }}" class="nav-link">
+        <i class="fas fa-calendar-alt"></i>
+        Lịch khám bệnh
+    </a>
+</div>
+<div class="nav-item">
+    <a href="{{ url_for('doctor.patients') }}" class="nav-link active">
+        <i class="fas fa-users"></i>
+        Danh sách bệnh nhân
+    </a>
+</div>
+<div class="nav-item">
+    <a href="{{ url_for('doctor.medical_records') }}" class="nav-link">
+        <i class="fas fa-file-medical"></i>
+        Hồ sơ bệnh án
+    </a>
+</div>
+<div class="nav-item">
+    <a href="{{ url_for('doctor.prescriptions') }}" class="nav-link">
+        <i class="fas fa-prescription"></i>
+        Kê đơn thuốc
+    </a>
+</div>
+{% endblock %}
+
+{% block page_title %}Danh sách Bệnh nhân{% endblock %}
+
+{% block content %}
+<!-- Search and Filter -->
+<div class="row">
+    <div class="col-md-4">
+        <label class="form-label">Tìm kiếm bệnh nhân</label>
+        <div class="input-group">
+            <input type="text" id="searchMedicalRecords" class="form-control"
+                   placeholder="Nhập mã bệnh nhân, họ tên, ngày sinh hoặc số điện thoại" onkeyup="searchPatients()">
+        </div>
+    </div>
+</div>
+
+<!-- Patients List -->
+<div class="card mt-4">
+    <div class="card-body">
+        <div class="table-container">
+            <table class="table">
+                <thead>
+                    <tr>
+                        <th>Mã BN</th>
+                        <th>Họ và tên</th>
+                        <th>Giới tính</th>
+                        <th>Ngày sinh</th>
+                        <th>Số điện thoại</th>
+                        <th>Thao tác</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for patient in patients %}
+                    <tr>
+                        <td>{{ patient.patientId }}</td>
+                        <td>{{ patient.personalInfo.fullName }}</td>
+                        <td>{{ patient.personalInfo.gender }}</td>
+                        <td>{{ patient.personalInfo.dateOfBirth.strftime('%d/%m/%Y') }}</td>
+                        <td>{{ patient.personalInfo.phone }}</td>
+                        <td>
+                            <button type="button" 
+                                    class="btn btn-primary btn-sm"
+                                    onclick="viewPatient('{{ patient._id }}')">
+                                <i class="fas fa-eye"></i>
+                                Chi tiết
+                            </button>
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+
+        <!-- Pagination -->
+        <nav class="mt-3">
+            <ul class="pagination justify-content-center">
+                <li class="page-item {% if not has_prev %}disabled{% endif %}">
+                    <a class="page-link" href="{{ url_for('doctor.patients', page=page-1) }}">
+                        <i class="fas fa-chevron-left"></i>
+                    </a>
+                </li>
+                {% for p in range(1, total_pages + 1) %}
+                <li class="page-item {% if p == page %}active{% endif %}">
+                    <a class="page-link" href="{{ url_for('doctor.patients', page=p) }}">
+                        {{ p }}
+                    </a>
+                </li>
+                {% endfor %}
+                <li class="page-item {% if not has_next %}disabled{% endif %}">
+                    <a class="page-link" href="{{ url_for('doctor.patients', page=page+1) }}">
+                        <i class="fas fa-chevron-right"></i>
+                    </a>
+                </li>
+            </ul>
+        </nav>
+    </div>
+</div>
+
+<!-- Patient Details Modal -->
+<div class="modal" id="patientModal">
+    <div class="modal-dialog modal-lg">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">Thông tin Bệnh nhân</h5>
+                <button type="button" class="modal-close">
+                    <i class="fas fa-times"></i>
+                </button>
+            </div>
+            <div class="modal-body">
+                <div id="patientDetails"></div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Patient History Modal -->
+<div class="modal" id="historyModal">
+    <div class="modal-dialog modal-lg">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">Lịch sử Khám bệnh</h5>
+                <button type="button" class="modal-close">
+                    <i class="fas fa-times"></i>
+                </button>
+            </div>
+            <div class="modal-body">
+                <div id="patientHistory"></div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_scripts %}
+<script>
+    function clearFilters() {
+        window.location = "{{ url_for('doctor.patients') }}";
+    }
+
+    function viewPatient(patientId) {
+        console.log('Fetching patient details for ID:', patientId);
+        fetch(`/doctor/api/patients/${patientId}`)
+            .then(response => response.json())
+            .then(patient => {
+                const details = document.getElementById('patientDetails');
+                details.innerHTML = `
+                    <div class="row">
+                        <div class="col-md-6">
+                            <h6>Thông tin cá nhân</h6>
+                            <p><strong>Họ và tên:</strong> ${patient.personalInfo.fullName}</p>
+                            <p><strong>Mã BN:</strong> ${patient.patientId}</p>
+                            <p><strong>Giới tính:</strong> ${patient.personalInfo.gender}</p>
+                            <p><strong>Ngày sinh:</strong> ${new Date(patient.personalInfo.dateOfBirth).toLocaleDateString()}</p>
+                            <p><strong>CCCD/CMND:</strong> ${patient.personalInfo.idNumber}</p>
+                            <p><strong>Địa chỉ:</strong> ${patient.personalInfo.address}</p>
+                            <p><strong>Điện thoại:</strong> ${patient.personalInfo.phone}</p>
+                            <p><strong>Email:</strong> ${patient.personalInfo.email}</p>
+                        </div>
+                        <div class="col-md-6">
+                            <h6>Thông tin sức khỏe</h6>
+                            <p><strong>Nhóm máu:</strong> ${patient.healthInfo.bloodType}</p>
+                            <p><strong>Chiều cao:</strong> ${patient.healthInfo.height} cm</p>
+                            <p><strong>Cân nặng:</strong> ${patient.healthInfo.weight} kg</p>
+                            <p><strong>Dị ứng:</strong> ${patient.healthInfo.allergies.join(', ') || 'Không'}</p>
+                            <p><strong>Bệnh mãn tính:</strong> ${patient.healthInfo.chronicDiseases.join(', ') || 'Không'}</p>
+                        </div>
+                    </div>
+                `;
+                
+                document.getElementById('patientModal').classList.add('show');
+            });
+    }
+
+    function viewHistory(patientId) {
+        fetch(`/api/patients/${patientId}/history`)
+            .then(response => response.json())
+            .then(history => {
+                const historyEl = document.getElementById('patientHistory');
+                
+                if (history.length === 0) {
+                    historyEl.innerHTML = '<p class="text-center text-muted">Chưa có lịch sử khám bệnh</p>';
+                } else {
+                    historyEl.innerHTML = history.map(visit => `
+                        <div class="card mb-3">
+                            <div class="card-body">
+                                <div class="d-flex justify-content-between align-items-center mb-2">
+                                    <h6 class="mb-0">Ngày khám: ${new Date(visit.diagnosisDate).toLocaleDateString()}</h6>
+                                    <span class="text-muted">Bác sĩ: ${visit.doctorName}</span>
+                                </div>
+                                <p><strong>Triệu chứng:</strong> ${visit.symptoms.join(', ')}</p>
+                                <p><strong>Chẩn đoán:</strong> ${visit.diagnosis}</p>
+                                <p><strong>Điều trị:</strong> ${visit.treatment}</p>
+                                <p><strong>Ghi chú:</strong> ${visit.notes || 'Không có'}</p>
+                            </div>
+                        </div>
+                    `).join('');
+                }
+                
+                document.getElementById('historyModal').classList.add('show');
+            });
+    }
+
+    function searchPatients() {
+        const searchTerm = document.getElementById('searchMedicalRecords').value.toLowerCase();
+        const rows = document.querySelectorAll(".table tbody tr");
+
+        rows.forEach(row => {
+            const name = row.cells[1].textContent.toLowerCase();  // Lấy tên bệnh nhân từ cột thứ 2
+            const id = row.cells[0].textContent.toLowerCase();    // Lấy mã BN từ cột thứ 1
+            const phone = row.cells[4].textContent.toLowerCase(); // Số điện thoại
+
+            if (name.includes(searchTerm) || id.includes(searchTerm) || phone.includes(searchTerm)) {
+                row.style.display = "";  // Hiển thị nếu khớp
+            } else {
+                row.style.display = "none";  // Ẩn nếu không khớp
+            }
+        });
+    }
+
+    // Close modals
+    document.querySelectorAll('.modal-close').forEach(button => {
+        button.addEventListener('click', function() {
+            this.closest('.modal').classList.remove('show');
+        });
+    });
+
+    // Close modal when clicking outside
+    document.addEventListener('click', function(event) {
+        if (event.target.classList.contains('modal')) {
+            event.target.classList.remove('show');
+        }
+    });
+</script>
+{% endblock %}

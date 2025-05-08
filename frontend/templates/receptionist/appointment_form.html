@@ -1,0 +1,548 @@
+{% extends "base_dashboard.html" %}
+
+{% block title %}Đặt lịch hẹn{% endblock %}
+
+{% block page_title %}Đặt lịch hẹn mới{% endblock %}
+
+{% block extra_css %}
+<style>
+    /* Alert Styles */
+    .alert {
+        padding: var(--spacing-md) var(--spacing-lg);
+        margin-bottom: var(--spacing-lg);
+        border-radius: var(--border-radius);
+        font-size: 0.95rem;
+    }
+
+    .alert-success {
+        background-color: #dcfce7;
+        color: #166534;
+        border: 1px solid #bbf7d0;
+    }
+
+    .alert-error {
+        background-color: #fee2e2;
+        color: #991b1b;
+        border: 1px solid #fecaca;
+    }
+
+    #alertMessage {
+        display: none;
+    }
+
+    /* Loading Indicator */
+    .loading {
+        display: none;
+        margin-left: var(--spacing-sm);
+    }
+
+    .loading::after {
+        content: '';
+        display: inline-block;
+        width: 1rem;
+        height: 1rem;
+        border: 2px solid #ffffff;
+        border-radius: 50%;
+        border-top-color: transparent;
+        animation: spin 1s linear infinite;
+    }
+
+    @keyframes spin {
+        to { transform: rotate(360deg); }
+    }
+
+    /* Patient Search */
+    .search-container {
+        position: relative;
+    }
+
+    .search-container input {
+        width: 100%;
+        padding: var(--spacing-sm) var(--spacing-md);
+        border: 1px solid var(--gray-200);
+        border-radius: var(--border-radius);
+        font-size: 0.95rem;
+        transition: all 0.3s ease;
+    }
+
+    .search-container input:focus {
+        outline: none;
+        border-color: var(--primary);
+        box-shadow: 0 0 0 3px rgba(44, 107, 255, 0.1);
+    }
+
+    .search-results {
+        display: none;
+        position: absolute;
+        top: 100%;
+        left: 0;
+        right: 0;
+        background: var(--white);
+        border-radius: var(--border-radius);
+        box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+        z-index: 1000;
+        max-height: 200px;
+        overflow-y: auto;
+    }
+
+    .search-results > div {
+        padding: var(--spacing-sm) var(--spacing-md);
+        cursor: pointer;
+        transition: all 0.3s ease;
+    }
+
+    .search-results > div:hover {
+        background: rgba(44, 107, 255, 0.1);
+        color: var(--primary);
+    }
+
+    /* Patient Info Display */
+    .info-display {
+        background: var(--white);
+        border-radius: var(--border-radius-lg);
+        padding: var(--spacing-lg);
+        margin-top: var(--spacing-md);
+        box-shadow: 0 4px 12px rgba(44, 107, 255, 0.1);
+        border: 1px solid var(--gray-200);
+        transition: transform 0.3s ease, box-shadow 0.3s ease;
+    }
+
+    .info-display:hover {
+        transform: translateY(-4px);
+        box-shadow: 0 8px 24px rgba(44, 107, 255, 0.15);
+    }
+
+    .patient-avatar {
+        width: 80px;
+        height: 80px;
+        background: linear-gradient(45deg, var(--primary), var(--secondary));
+        color: var(--white);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        border-radius: 50%;
+        font-size: 2rem;
+        font-weight: 600;
+        margin: 0 auto var(--spacing-md);
+    }
+
+    .info-display h4 {
+        font-family: 'Montserrat', sans-serif;
+        font-size: 1.25rem;
+        font-weight: 600;
+        color: var(--text);
+        margin: var(--spacing-sm) 0;
+        text-align: center;
+    }
+
+    .text-muted {
+        color: var(--text-light);
+        font-size: 0.9rem;
+        text-align: center;
+        display: block;
+        margin-bottom: var(--spacing-md);
+    }
+
+    .info-group {
+        padding: var(--spacing-md) 0;
+        border-top: 1px solid var(--gray-200);
+    }
+
+    .info-group:first-child {
+        border-top: none;
+        padding-top: 0;
+    }
+
+    .info-group h6 {
+        font-family: 'Montserrat', sans-serif;
+        font-size: 1rem;
+        font-weight: 600;
+        color: var(--text);
+        margin-bottom: var(--spacing-sm);
+    }
+
+    .info-group p {
+        margin: 0;
+        padding: var(--spacing-xs) 0;
+        display: flex;
+        align-items: center;
+        gap: var(--spacing-md);
+        font-size: 0.95rem;
+    }
+
+    .info-group strong {
+        color: var(--text-light);
+        min-width: 120px;
+        font-weight: 500;
+    }
+
+    .info-group span {
+        color: var(--text);
+        font-weight: 500;
+    }
+
+    /* Form Sections */
+    .form-section {
+        margin-bottom: var(--spacing-xl);
+    }
+
+    .form-section h3 {
+        font-family: 'Montserrat', sans-serif;
+        font-size: 1.1rem;
+        font-weight: 600;
+        color: var(--text);
+        margin-bottom: var(--spacing-md);
+        padding-left: var(--spacing-sm);
+        border-left: 3px solid var(--primary);
+    }
+
+    .form-group {
+        margin-bottom: var(--spacing-md);
+    }
+
+    /* Form Actions */
+    .form-actions {
+        display: flex;
+        justify-content: flex-end;
+        gap: var(--spacing-md);
+        padding-top: var(--spacing-lg);
+        border-top: 1px solid var(--gray-200);
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div id="alertMessage" class="alert">
+    <span id="alertText"></span>
+</div>
+
+<div class="card">
+    <form id="appointmentForm" onsubmit="handleSubmit(event)">
+        <!-- Patient Information -->
+        <div class="form-section">
+            <h3>Thông tin bệnh nhân</h3>
+            <div class="form-group">
+                <label for="patientId">Mã bệnh nhân</label>
+                <div class="search-container">
+                    <input type="text" 
+                           id="patientId" 
+                           name="patientId" 
+                           required
+                           autocomplete="off"
+                           onkeyup="searchPatient(this.value)">
+                    <div id="patientSearchResults" class="search-results"></div>
+                </div>
+            </div>
+            <div id="patientInfo" class="info-display" style="display: none;">
+                <div class="text-center">
+                    <div class="patient-avatar">
+                        <span id="patientInitial"></span>
+                    </div>
+                    <h4 id="patientName"></h4>
+                    <span class="text-muted" id="patientIdDisplay"></span>
+                </div>
+
+                <div class="info-group">
+                    <p>
+                        <strong>CCCD/CMND:</strong>
+                        <span id="patientIdNumber"></span>
+                    </p>
+                    <p>
+                        <strong>Ngày sinh:</strong>
+                        <span id="patientDob"></span>
+                    </p>
+                    <p>
+                        <strong>Địa chỉ:</strong>
+                        <span id="patientAddress"></span>
+                    </p>
+                    <p>
+                        <strong>Điện thoại:</strong>
+                        <span id="patientPhone"></span>
+                    </p>
+                </div>
+
+                <div class="info-group">
+                    <h6>Bảo hiểm y tế</h6>
+                    <div id="insuranceInfo">
+                        <p id="noInsurance" class="text-muted">Không có thông tin bảo hiểm</p>
+                        <div id="hasInsurance" style="display: none;">
+                            <p>
+                                <strong>Số thẻ:</strong>
+                                <span id="insuranceNumber"></span>
+                            </p>
+                            <p>
+                                <strong>Ngày hết hạn:</strong>
+                                <span id="insuranceExpiry"></span>
+                            </p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Doctor Selection -->
+        <div class="form-section">
+            <h3>Chọn bác sĩ</h3>
+            <div class="form-group">
+                <label for="department">Khoa</label>
+                <select id="department" name="department" required onchange="loadDoctors(this.value)">
+                    <option value="">Chọn khoa</option>
+                    {% for dept in departments %}
+                    <option value="{{ dept }}">{{ dept}}</option>
+                    {% endfor %}
+                </select>
+            </div>
+            
+            <div class="form-group">
+                <label for="doctorId">Bác sĩ</label>
+                <select id="doctorId" name="doctorId" required disabled onchange="loadTimeSlots()">
+                    <option value="">Chọn bác sĩ</option>
+                </select>
+            </div>
+        </div>
+
+        <!-- Appointment Details -->
+        <div class="form-section">
+            <h3>Chi tiết lịch hẹn</h3>
+            <div class="form-group">
+                <label for="appointmentDate">Ngày khám</label>
+                <input type="date" 
+                       id="appointmentDate" 
+                       name="appointmentDate" 
+                       required 
+                       min="{{ min_date }}"
+                       onchange="loadTimeSlots()">
+            </div>
+
+            <div class="form-group">
+                <label for="timeSlot">Giờ khám</label>
+                <select id="timeSlot" name="timeSlot" required disabled>
+                    <option value="">Chọn giờ khám</option>
+                </select>
+            </div>
+
+            <div class="form-group">
+                <label for="appointmentType">Loại khám</label>
+                <select id="appointmentType" name="appointmentType" required>
+                    <option value="regular">Khám thường</option>
+                    <option value="follow_up">Tái khám</option>
+                    <option value="emergency">Cấp cứu</option>
+                </select>
+            </div>
+
+            <div class="form-group">
+                <label for="reason">Lý do khám</label>
+                <textarea id="reason" name="reason" rows="3" required></textarea>
+            </div>
+
+            <div class="form-group">
+                <label for="notes">Ghi chú</label>
+                <textarea id="notes" name="notes" rows="2"></textarea>
+            </div>
+        </div>
+
+        <div class="form-actions">
+            <button type="button" class="btn btn-secondary" onclick="window.history.back()">
+                Hủy
+            </button>
+            <button type="submit" class="btn btn-primary">
+                Đặt lịch hẹn
+                <span class="loading"></span>
+            </button>
+        </div>
+    </form>
+</div>
+{% endblock %}
+
+{% block extra_scripts %}
+<script>
+let selectedPatient = null;
+let debounceTimer;
+
+function showAlert(message, type) {
+    const alertDiv = document.getElementById('alertMessage');
+    const alertText = document.getElementById('alertText');
+    alertDiv.className = `alert alert-${type}`;
+    alertText.textContent = message;
+    alertDiv.style.display = 'block';
+    
+    if (type === 'success') {
+        setTimeout(() => {
+            window.location.href = '/receptionist/appointments';
+        }, 2000);
+    }
+}
+
+function setLoading(loading) {
+    const submitBtn = document.querySelector('button[type="submit"]');
+    const loadingSpan = submitBtn.querySelector('.loading');
+    submitBtn.disabled = loading;
+    loadingSpan.style.display = loading ? 'inline-block' : 'none';
+}
+
+async function searchPatient(query) {
+    clearTimeout(debounceTimer);
+    
+    if (query.length < 2) {
+        document.getElementById('patientSearchResults').style.display = 'none';
+        return;
+    }
+
+    debounceTimer = setTimeout(async () => {
+        try {
+            const response = await fetch(`/receptionist/api/search-patients?q=${encodeURIComponent(query)}`);
+            // ?q=${encodeURIComponent(query)}
+            if (!response.ok) throw new Error('Search failed');
+            
+            const data = await response.json();
+            const resultsDiv = document.getElementById('patientSearchResults');
+            resultsDiv.innerHTML = '';
+            
+            data.forEach(patient => {
+                const div = document.createElement('div');
+                div.textContent = `${patient.patientId} - ${patient.name}`;
+                div.onclick = () => selectPatient(patient);
+                resultsDiv.appendChild(div);
+            });
+            
+            resultsDiv.style.display = data.length > 0 ? 'block' : 'none';
+        } catch (error) {
+            console.error('Error searching patients:', error);
+            showAlert('Có lỗi khi tìm kiếm bệnh nhân', 'error');
+        }
+    }, 300);
+}
+
+function selectPatient(patient) {
+    selectedPatient = patient;
+    document.getElementById('patientId').value = patient.patientId;
+    document.getElementById('patientSearchResults').style.display = 'none';
+    
+    // Display patient info
+    document.getElementById('patientInitial').textContent = patient.name[0].toUpperCase();
+    document.getElementById('patientName').textContent = patient.name;
+    document.getElementById('patientIdDisplay').textContent = `Mã BN: ${patient.patientId}`;
+    
+    document.getElementById('patientIdNumber').textContent = patient.idNumber || 'Chưa cập nhật';
+    document.getElementById('patientDob').textContent = patient.dateOfBirth || 'Chưa cập nhật';
+    document.getElementById('patientAddress').textContent = patient.address || 'Chưa cập nhật';
+    document.getElementById('patientPhone').textContent = patient.phone || 'Chưa cập nhật';
+
+    // Handle insurance info
+    if (patient.insurance) {
+        document.getElementById('noInsurance').style.display = 'none';
+        document.getElementById('hasInsurance').style.display = 'block';
+        document.getElementById('insuranceNumber').textContent = patient.insurance.policyNumber;
+        document.getElementById('insuranceExpiry').textContent = patient.insurance.expiryDate;
+    } else {
+        document.getElementById('noInsurance').style.display = 'block';
+        document.getElementById('hasInsurance').style.display = 'none';
+    }
+
+    document.getElementById('patientInfo').style.display = 'block';
+}
+
+async function loadDoctors(departmentId) {
+    const doctorSelect = document.getElementById('doctorId');
+    doctorSelect.disabled = true;
+    console.log('Loading doctors for department:', departmentId);
+    doctorSelect.innerHTML = '<option value="">Chọn bác sĩ</option>';
+    
+    if (!departmentId) return;
+    
+    try {
+        const response = await fetch(`/receptionist/api/doctors?department=${encodeURIComponent(departmentId)}`);
+        if (!response.ok) throw new Error('Failed to load doctors');
+        
+        const doctors = await response.json();
+        doctors.forEach(doctor => {
+            const option = document.createElement('option');
+            option.value = doctor.id;
+            option.textContent = `${doctor.name} - ${doctor.specialization}`;
+            doctorSelect.appendChild(option);
+        });
+        
+        doctorSelect.disabled = false;
+    } catch (error) {
+        console.error('Error loading doctors:', error);
+        showAlert('Có lỗi khi tải danh sách bác sĩ', 'error');
+    }
+}
+
+async function loadTimeSlots() {
+    const date = document.getElementById('appointmentDate').value;
+    const doctorId = document.getElementById('doctorId').value;
+    const timeSlotSelect = document.getElementById('timeSlot');
+    
+    timeSlotSelect.disabled = true;
+    timeSlotSelect.innerHTML = '<option value="">Chọn giờ khám</option>';
+    
+    if (!date || !doctorId) return;
+    
+    try {
+        const response = await fetch(`/receptionist/api/time-slots?date=${date}&doctor=${doctorId}`);
+        if (!response.ok) throw new Error('Failed to load time slots');
+        
+        const slots = await response.json();
+        slots.forEach(slot => {
+            const option = document.createElement('option');
+            option.value = slot.value;
+            option.textContent = slot.label;
+            timeSlotSelect.appendChild(option);
+        });
+        
+        timeSlotSelect.disabled = false;
+    } catch (error) {
+        console.error('Error loading time slots:', error);
+        showAlert('Có lỗi khi tải danh sách giờ khám', 'error');
+    }
+}
+
+async function handleSubmit(event) {
+    event.preventDefault();
+    setLoading(true);
+    
+    try {
+        const form = event.target;
+        const appointmentData = {
+            patientId: selectedPatient.id,
+            doctorId: form.doctorId.value,
+            appointmentDate: form.appointmentDate.value,
+            timeSlot: form.timeSlot.value,
+            type: form.appointmentType.value,
+            reason: form.reason.value,
+            notes: form.notes.value
+        };
+        
+        const response = await fetch('/receptionist/api/appointments', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json'
+            },
+            body: JSON.stringify(appointmentData)
+        });
+        
+        const data = await response.json();
+        
+        if (response.ok) {
+            showAlert('Đặt lịch hẹn thành công!', 'success');
+        } else {
+            showAlert(data.error || 'Có lỗi xảy ra khi đặt lịch hẹn', 'error');
+        }
+    } catch (error) {
+        console.error('Error creating appointment:', error);
+        showAlert('Có lỗi xảy ra khi đặt lịch hẹn', 'error');
+    } finally {
+        setLoading(false);
+    }
+}
+
+// Initialize date min value
+document.addEventListener('DOMContentLoaded', function() {
+    const today = new Date();
+    const tomorrow = new Date(today);
+    tomorrow.setDate(tomorrow.getDate() + 1);
+    document.getElementById('appointmentDate').min = tomorrow.toISOString().split('T')[0];
+});
+</script>
+{% endblock %}

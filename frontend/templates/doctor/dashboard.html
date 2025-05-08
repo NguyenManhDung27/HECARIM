@@ -1,0 +1,460 @@
+{% extends "base.html" %}
+
+{% block title %}Bảng điều khiển Bác sĩ{% endblock %}
+
+{% block sidebar_menu %}
+<style>
+    :root {
+        --primary: #2c6bff;
+        --primary-dark: #1e4db7;
+        --secondary: #00ddeb;
+        --bg: #f4f7ff;
+        --white: #ffffff;
+        --text: #1a1a1a;
+        --text-light: #6b7280;
+        --danger: #dc2626;
+        --gray-200: #e5e7eb;
+        --border-radius: 12px;
+        --border-radius-lg: 16px;
+        --spacing-xs: 0.25rem;
+        --spacing-sm: 0.5rem;
+        --spacing-md: 1rem;
+        --spacing-lg: 1.5rem;
+        --spacing-xl: 2rem;
+    }
+
+    .nav-item {
+        margin-bottom: var(--spacing-sm);
+    }
+
+    .nav-link {
+        display: flex;
+        align-items: center;
+        gap: var(--spacing-sm);
+        padding: var(--spacing-md) var(--spacing-lg);
+        color: var(--text-light);
+        font-size: 0.95rem;
+        font-weight: 500;
+        border-radius: var(--border-radius);
+        transition: all 0.3s ease;
+        text-decoration: none;
+    }
+
+    .nav-link:hover {
+        background: rgba(44, 107, 255, 0.1);
+        color: var(--primary);
+    }
+
+    .nav-link.active {
+        background: var(--primary);
+        color: var(--white);
+        font-weight: 600;
+        box-shadow: 0 2px 8px rgba(44, 107, 255, 0.2);
+    }
+
+    .nav-link i {
+        font-size: 1.1rem;
+    }
+</style>
+
+<div class="nav-item">
+    <a href="{{ url_for('doctor.dashboard') }}" class="nav-link {% if request.endpoint == 'doctor.dashboard' %}active{% endif %}">
+        <i class="fas fa-home"></i>
+        Tổng quan
+    </a>
+</div>
+<div class="nav-item">
+    <a href="{{ url_for('doctor.schedule_page') }}" class="nav-link">
+        <i class="fas fa-calendar-alt"></i>
+        Lịch khám bệnh
+    </a>
+</div>
+<div class="nav-item">
+    <a href="{{ url_for('doctor.patients') }}" class="nav-link {% if request.endpoint == 'doctor.patients' %}active{% endif %}">
+        <i class="fas fa-users"></i>
+        Danh sách bệnh nhân
+    </a>
+</div>
+<div class="nav-item">
+    <a href="{{ url_for('doctor.medical_records') }}" class="nav-link {% if request.endpoint == 'doctor.medical_records' %}active{% endif %}">
+        <i class="fas fa-file-medical"></i>
+        Hồ sơ bệnh án
+    </a>
+</div>
+<div class="nav-item">
+    <a href="{{ url_for('doctor.prescriptions') }}" class="nav-link {% if request.endpoint == 'doctor.prescriptions' %}active{% endif %}">
+        <i class="fas fa-prescription"></i>
+        Kê đơn thuốc
+    </a>
+</div>
+{% endblock %}
+
+{% block page_title %}Tổng quan{% endblock %}
+
+{% block content %}
+<style>
+    .card {
+        background: var(--white);
+        border-radius: var(--border-radius-lg);
+        box-shadow: 0 8px 24px rgba(44, 107, 255, 0.15);
+        margin-bottom: var(--spacing-lg);
+        transition: transform 0.3s ease, box-shadow 0.3s ease;
+        position: relative;
+        overflow: hidden;
+    }
+
+    .card:hover {
+        transform: translateY(-4px);
+        box-shadow: 0 12px 32px rgba(44, 107, 255, 0.2);
+    }
+
+    .card::before {
+        content: '';
+        position: absolute;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 4px;
+        background: linear-gradient(90deg, var(--primary), var(--secondary));
+    }
+
+    .card-header {
+        padding: var(--spacing-md) var(--spacing-lg);
+        border-bottom: 1px solid var(--gray-200);
+        background: #f8fafc;
+    }
+
+    .card-title {
+        font-family: 'Montserrat', sans-serif;
+        font-size: 1.25rem;
+        font-weight: 600;
+        color: var(--text);
+        margin: 0;
+    }
+
+    .card-body {
+        padding: var(--spacing-xl);
+    }
+
+    .stats-card {
+        display: flex;
+        align-items: center;
+        padding: var(--spacing-md);
+    }
+
+    .stats-icon {
+        width: 48px;
+        height: 48px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        border-radius: var(--border-radius);
+        background: rgba(44, 107, 255, 0.1);
+        margin-right: var(--spacing-md);
+    }
+
+    .stats-icon i {
+        font-size: 1.5rem;
+    }
+
+    .stats-info {
+        flex: 1;
+    }
+
+    .stats-label {
+        font-size: 0.9rem;
+        color: var(--text-light);
+        margin-bottom: var(--spacing-xs);
+    }
+
+    .stats-value {
+        font-family: 'Montserrat', sans-serif;
+        font-size: 1.75rem;
+        font-weight: 700;
+        color: var(--text);
+    }
+
+    .table-container {
+        overflow-x: auto;
+    }
+
+    .table {
+        width: 100%;
+        border-collapse: separate;
+        border-spacing: 0;
+    }
+
+    .table th,
+    .table td {
+        padding: var(--spacing-md);
+        text-align: left;
+        font-size: 0.9rem;
+        color: var(--text);
+    }
+
+    .table th {
+        background: #f8fafc;
+        font-weight: 600;
+        border-bottom: 1px solid var(--gray-200);
+    }
+
+    .table td {
+        border-bottom: 1px solid var(--gray-200);
+    }
+
+    .table tr:last-child td {
+        border-bottom: none;
+    }
+
+    .badge {
+        padding: var(--spacing-xs) var(--spacing-sm);
+        border-radius: var(--border-radius);
+        font-size: 0.85rem;
+        font-weight: 500;
+    }
+
+    .badge-waiting {
+        background: #fef3c7;
+        color: #92400e;
+    }
+
+    .badge-completed {
+        background: #e6ffed;
+        color: #15803d;
+    }
+
+    .btn-primary,
+    .btn-secondary {
+        display: inline-flex;
+        align-items: center;
+        gap: var(--spacing-sm);
+        padding: var(--spacing-sm) var(--spacing-md);
+        border: none;
+        border-radius: var(--border-radius);
+        font-size: 0.9rem;
+        font-weight: 500;
+        cursor: pointer;
+        transition: all 0.3s ease;
+    }
+
+    .btn-primary {
+        background: linear-gradient(45deg, var(--primary), var(--secondary));
+        color: var(--white);
+    }
+
+    .btn-primary:hover {
+        background: linear-gradient(45deg, var(--primary-dark), var(--secondary));
+        box-shadow: 0 4px 12px rgba(44, 107, 255, 0.3);
+    }
+
+    .btn-secondary {
+        background: #e5e7eb;
+        color: var(--text);
+    }
+
+    .btn-secondary:hover {
+        background: #d1d5db;
+        box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+    }
+
+    .text-center {
+        text-align: center;
+    }
+
+    .text-muted {
+        color: var(--text-light);
+        font-size: 0.9rem;
+    }
+</style>
+
+<!-- Today's Stats -->
+<div class="row">
+    <div class="col-md-3">
+        <div class="card stats-card">
+            <div class="card-body">
+                <div class="stats-icon">
+                    <i class="fas fa-calendar text-primary"></i>
+                </div>
+                <div class="stats-info">
+                    <p class="stats-label">Lịch hẹn hôm nay</p>
+                    <h2 class="stats-value">{{ stats.total_appointments }}</h2>
+                </div>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-3">
+        <div class="card stats-card">
+            <div class="card-body">
+                <div class="stats-icon">
+                    <i class="fas fa-check-circle text-success"></i>
+                </div>
+                <div class="stats-info">
+                    <p class="stats-label">Đã khám</p>
+                    <h2 class="stats-value">{{ stats.completed_appointments }}</h2>
+                </div>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-3">
+        <div class="card stats-card">
+            <div class="card-body">
+                <div class="stats-icon">
+                    <i class="fas fa-clock text-warning"></i>
+                </div>
+                <div class="stats-info">
+                    <p class="stats-label">Đang chờ</p>
+                    <h2 class="stats-value">{{ stats.waiting_appointments }}</h2>
+                </div>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-3">
+        <div class="card stats-card">
+            <div class="card-body">
+                <div class="stats-icon">
+                    <i class="fas fa-notes-medical text-info"></i>
+                </div>
+                <div class="stats-info">
+                    <p class="stats-label">Đơn thuốc</p>
+                    <h2 class="stats-value">{{ stats.prescriptions }}</h2>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Today's Appointments -->
+<div class="card my-4">
+    <div class="card-header">
+        <h2 class="card-title">Lịch khám hôm nay</h2>
+    </div>
+    <div class="card-body">
+        <div class="table-container">
+            <table class="table" id="appointmentsTable">
+                <thead>
+                    <tr>
+                        <th>Giờ</th>
+                        <th>Mã BN</th>
+                        <th>Họ và tên</th>
+                        <th>Loại khám</th>
+                        <th>Trạng thái</th>
+                        <th>Thao tác</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for appointment in appointments %}
+                    <tr>
+                        <td>{{ appointment.time }}</td>
+                        <td>{{ appointment.patient_id }}</td>
+                        <td>{{ appointment.patient_name }}</td>
+                        <td>{{ appointment.type }}</td>
+                        <td>
+                            <span class="badge badge-{{ appointment.status_class }}">
+                                {{ appointment.status }}
+                            </span>
+                        </td>
+                        <td>
+                            {% if appointment.status != 'completed' %}
+                            <a href="{{ url_for('doctor.examination', patient_id=appointment.patient_id) }}" class="btn btn-primary btn-sm">
+                                <i class="fas fa-stethoscope"></i>
+                                Khám bệnh
+                            </a>
+                            {% endif %}
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>
+
+<!-- Monitored Patients -->
+<div class="card">
+    <div class="card-header">
+        <h2 class="card-title">Bệnh nhân cần theo dõi</h2>
+    </div>
+    <div class="card-body">
+        {% if monitored_patients %}
+        <div class="table-container">
+            <table class="table">
+                <thead>
+                    <tr>
+                        <th>Mã BN</th>
+                        <th>Họ và tên</th>
+                        <th>Chẩn đoán</th>
+                        <th>Lần khám gần nhất</th>
+                        <th>Thao tác</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for patient in monitored_patients %}
+                    <tr>
+                        <td>{{ patient.patientId }}</td>
+                        <td>{{ patient.personalInfo.fullName }}</td>
+                        <td>{{ patient.diagnosis }}</td>
+                        <td>{{ patient.lastVisit.strftime('%d/%m/%Y') if patient.lastVisit else 'Chưa có' }}</td>
+                        <td>
+                            <a href="#" class="btn btn-secondary btn-sm">
+                                <i class="fas fa-eye"></i>
+                                Chi tiết
+                            </a>
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+        {% else %}
+        <p class="text-center text-muted">Không có bệnh nhân nào cần theo dõi</p>
+        {% endif %}
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_scripts %}
+<script>
+    function updateDashboard() {
+        fetch('/doctor/api/appointments/today')
+            .then(response => response.json())
+            .then(data => {
+                const tbody = document.querySelector('#appointmentsTable tbody');
+                if (tbody) {
+                    if (data.length > 0) {
+                        tbody.innerHTML = data.map(appointment => `
+                            <tr>
+                                <td>${appointment.time}</td>
+                                <td>${appointment.patient_id}</td>
+                                <td>${appointment.patient_name}</td>
+                                <td>${appointment.type}</td>
+                                <td>
+                                    <span class="badge badge-${appointment.status_class}">
+                                        ${appointment.status}
+                                    </span>
+                                </td>
+                                <td>
+                                    ${appointment.status !== 'completed' ? `
+                                    <a href="{{ url_for('doctor.examination', patient_id='') }}${appointment.patient_id}"
+                                       class="btn btn-primary btn-sm">
+                                        <i class="fas fa-stethoscope"></i>
+                                        Khám bệnh
+                                    </a>` : ''}
+                                </td>
+                            </tr>
+                        `).join('');
+                    } else {
+                        tbody.innerHTML = `<p class="text-center text-muted">Không có lịch hẹn nào cho hôm nay</p>`;
+                    }
+                }
+            })
+            .catch(error => {
+                console.error('Lỗi khi gọi API:', error);
+            });
+    }
+
+    document.addEventListener('DOMContentLoaded', () => {
+        updateDashboard();
+        setInterval(updateDashboard, 30000);
+    });
+</script>
+{% endblock %}

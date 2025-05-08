@@ -1,0 +1,807 @@
+{% extends "base.html" %}
+
+{% block title %}Hóa đơn - Bệnh nhân{% endblock %}
+
+{% block page_title %}Quản lý hóa đơn{% endblock %}
+
+{% block extra_css %}
+<style>
+    .row {
+        display: flex;
+        flex-wrap: wrap;
+        margin: 0;
+        width: 100%;
+        gap: var(--spacing-lg);
+        padding: var(--spacing-md) 0;
+    }
+
+    .col-12 {
+        flex: 1 1 100%;
+        max-width: 100%;
+        padding: var(--spacing-sm);
+    }
+
+    .col-md-6 {
+        flex: 1 1 50%;
+        max-width: 50%;
+        padding: var(--spacing-sm);
+    }
+
+    .card {
+        background: var(--white);
+        border-radius: var(--border-radius-lg);
+        box-shadow: 0 8px 24px rgba(44, 107, 255, 0.15);
+        transition: transform 0.3s ease, box-shadow 0.3s ease;
+        position: relative;
+        overflow: hidden;
+    }
+
+    .card:hover {
+        transform: translateY(-4px);
+        box-shadow: 0 12px 32px rgba(44, 107, 255, 0.2);
+    }
+
+    .card::before {
+        content: '';
+        position: absolute;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 4px;
+        background: linear-gradient(90deg, var(--primary), var(--secondary));
+    }
+
+    .card-header {
+        padding: var(--spacing-md) var(--spacing-lg);
+        border-bottom: 1px solid var(--gray-200);
+        background: #f8fafc;
+    }
+
+    .card-title {
+        font-family: 'Montserrat', sans-serif;
+        font-size: 1.25rem;
+        font-weight: 600;
+        color: var(--text);
+        margin: 0;
+    }
+
+    .card-body {
+        padding: var(--spacing-xl);
+    }
+
+    .table-container {
+        overflow-x: auto;
+        margin-bottom: var(--spacing-md);
+    }
+
+    .table-responsive {
+        width: 100%;
+        max-height: 400px;
+        overflow-y: auto;
+    }
+
+    .table {
+        width: 100%;
+        border-collapse: separate;
+        border-spacing: 0;
+    }
+
+    .table-striped tbody tr:nth-of-type(odd) {
+        background: #f8fafc;
+    }
+
+    .table th,
+    .table td {
+        padding: var(--spacing-md);
+        text-align: left;
+        font-size: 0.9rem;
+        color: var(--text);
+    }
+
+    .table th {
+        background: #f8fafc;
+        font-family: 'Montserrat', sans-serif;
+        font-weight: 600;
+        border-bottom: 1px solid var(--gray-200);
+    }
+
+    .table td {
+        border-bottom: 1px solid var(--gray-200);
+    }
+
+    .table tr:last-child td {
+        border-bottom: none;
+    }
+
+    .input-group {
+        display: flex;
+        align-items: center;
+        gap: var(--spacing-sm);
+    }
+
+    .form-control,
+    .form-select {
+        border: 1px solid var(--gray-200);
+        border-radius: var(--border-radius);
+        padding: var(--spacing-sm) var(--spacing-md);
+        font-size: 0.9rem;
+        background: var(--white);
+        transition: all 0.3s ease;
+        width: 100%;
+        position: relative;
+        z-index: 1;
+    }
+
+    .form-control:focus,
+    .form-select:focus {
+        outline: none;
+        border-color: var(--primary);
+        box-shadow: 0 0 0 2px rgba(44, 107, 255, 0.2);
+    }
+
+    .form-select {
+        width: auto;
+    }
+
+    .btn-primary,
+    .btn-info,
+    .btn-secondary,
+    .btn-outline-primary {
+        display: inline-flex;
+        align-items: center;
+        gap: var(--spacing-sm);
+        padding: var(--spacing-sm) var(--spacing-md);
+        border-radius: var(--border-radius);
+        font-size: 0.9rem;
+        font-weight: 500;
+        cursor: pointer;
+        transition: all 0.3s ease;
+        position: relative;
+        z-index: 1;
+    }
+
+    .btn-primary {
+        background: linear-gradient(45deg, var(--primary), var(--secondary));
+        color: var(--white);
+        border: none;
+    }
+
+    .btn-primary:hover {
+        background: linear-gradient(45deg, var(--primary-dark), var(--secondary));
+        box-shadow: 0 4px 12px rgba(44, 107, 255, 0.3);
+    }
+
+    .btn-info {
+        background: #17a2b8;
+        color: var(--white);
+        border: none;
+    }
+
+    .btn-info:hover {
+        background: #138496;
+        box-shadow: 0 4px 12px rgba(23, 162, 184, 0.3);
+    }
+
+    .btn-secondary {
+        background: #6c757d;
+        color: var(--white);
+        border: none;
+    }
+
+    .btn-secondary:hover {
+        background: #5a6268;
+        box-shadow: 0 4px 12px rgba(108, 117, 125, 0.3);
+    }
+
+    .btn-outline-primary {
+        background: transparent;
+        color: var(--primary);
+        border: 1px solid var(--primary);
+    }
+
+    .btn-outline-primary:hover {
+        background: rgba(44, 107, 255, 0.1);
+        border-color: var(--primary-dark);
+        color: var(--primary-dark);
+    }
+
+    .btn-sm {
+        padding: var(--spacing-xs) var(--spacing-sm);
+        font-size: 0.85rem;
+        margin: 0 var(--spacing-xs);
+    }
+
+    .badge {
+        padding: var(--spacing-xs) var(--spacing-sm);
+        border-radius: var(--border-radius);
+        font-size: 0.85rem;
+        font-weight: 500;
+    }
+
+    .bg-success {
+        background: #d1fae5;
+        color: #047857;
+    }
+
+    .bg-warning {
+        background: #fef3c7;
+        color: #d97706;
+    }
+
+    .modal {
+        display: none;
+        position: fixed;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
+        background: rgba(0, 0, 0, 0.5);
+        z-index: 1050;
+    }
+
+    .modal.show {
+        display: block;
+    }
+
+    .modal-dialog {
+        max-width: 800px;
+        margin: var(--spacing-xl) auto;
+    }
+
+    .modal-content {
+        background: var(--white);
+        border-radius: var(--border-radius-lg);
+        box-shadow: 0 8px 24px rgba(44, 107, 255, 0.15);
+    }
+
+    .modal-header {
+        padding: var(--spacing-md) var(--spacing-lg);
+        border-bottom: 1px solid var(--gray-200);
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+    }
+
+    .modal-title {
+        font-family: 'Montserrat', sans-serif;
+        font-size: 1.25rem;
+        font-weight: 600;
+        color: var(--text);
+    }
+
+    .modal-body {
+        padding: var(--spacing-xl);
+    }
+
+    .modal-footer {
+        padding: var(--spacing-md) var(--spacing-lg);
+        border-top: 1px solid var(--gray-200);
+        display: flex;
+        justify-content: flex-end;
+        gap: var(--spacing-sm);
+    }
+
+    .modal-close {
+        background: none;
+        border: none;
+        font-size: 1rem;
+        color: var(--text-light);
+        cursor: pointer;
+        transition: color 0.3s ease;
+    }
+
+    .modal-close:hover {
+        color: var(--text);
+    }
+
+    .alert-info {
+        background: #e0f7fa;
+        color: #055160;
+        border: 1px solid #4dd0e1;
+        padding: var(--spacing-md);
+        border-radius: var(--border-radius);
+        margin-bottom: var(--spacing-lg);
+    }
+
+    .form-group {
+        margin-bottom: var(--spacing-md);
+    }
+
+    .form-label {
+        font-family: 'Montserrat', sans-serif;
+        font-size: 0.9rem;
+        font-weight: 500;
+        color: var(--text);
+        margin-bottom: var(--spacing-xs);
+    }
+
+    .d-flex {
+        display: flex;
+        gap: var(--spacing-sm);
+    }
+
+    .justify-content-end {
+        justify-content: flex-end;
+    }
+
+    .text-end {
+        text-align: right;
+    }
+
+    .mb-4 {
+        margin-bottom: var(--spacing-lg);
+    }
+
+    @media print {
+        .no-print {
+            display: none !important;
+        }
+
+        .modal {
+            position: absolute;
+            left: 0;
+            top: 0;
+            margin: 0;
+            padding: 0;
+            overflow: visible !important;
+        }
+    }
+
+    @media (max-width: 768px) {
+        .row {
+            padding: var(--spacing-sm) 0;
+            gap: var(--spacing-md);
+        }
+
+        .col-md-6 {
+            flex: 1 1 100%;
+            max-width: 100%;
+        }
+
+        .modal-dialog {
+            margin: var(--spacing-md) auto;
+            max-width: 95%;
+        }
+
+        .d-flex {
+            flex-direction: column;
+            align-items: stretch;
+        }
+    }
+</style>
+{% endblock %}
+
+{% block sidebar_menu %}
+<style>
+    .nav-item {
+        margin-bottom: var(--spacing-sm);
+    }
+
+    .nav-link {
+        display: flex;
+        align-items: center;
+        gap: var(--spacing-sm);
+        padding: var(--spacing-md) var(--spacing-lg);
+        color: var(--text-light);
+        font-size: 0.95rem;
+        font-weight: 500;
+        border-radius: var(--border-radius);
+        transition: all 0.3s ease;
+        text-decoration: none;
+        position: relative;
+        z-index: 1;
+        cursor: pointer;
+    }
+
+    .nav-link:hover {
+        background: rgba(44, 107, 255, 0.1);
+        color: var(--primary);
+    }
+
+    .nav-link.active {
+        background: var(--primary);
+        color: var(--white);
+        font-weight: 600;
+        box-shadow: 0 2px 8px rgba(44, 107, 255, 0.2);
+    }
+
+    .nav-link i {
+        font-size: 1.1rem;
+    }
+
+    .nav-link span {
+        font-family: 'Inter', sans-serif;
+    }
+</style>
+
+<div class="nav-item">
+    <a href="{{ url_for('patient.dashboard') }}" class="nav-link">
+        <i class="fas fa-home"></i>
+        <span>Trang chủ</span>
+    </a>
+</div>
+<div class="nav-item">
+    <a href="{{ url_for('patient.appointments') }}" class="nav-link">
+        <i class="fas fa-calendar-alt"></i>
+        <span>Lịch hẹn</span>
+    </a>
+</div>
+<div class="nav-item">
+    <a href="{{ url_for('patient.records') }}" class="nav-link">
+        <i class="fas fa-file-medical"></i>
+        <span>Hồ sơ bệnh án</span>
+    </a>
+</div>
+<div class="nav-item">
+    <a href="{{ url_for('patient.prescriptions') }}" class="nav-link">
+        <i class="fas fa-prescription"></i>
+        <span>Đơn thuốc</span>
+    </a>
+</div>
+<div class="nav-item">
+    <a href="{{ url_for('patient.invoices') }}" class="nav-link active">
+        <i class="fas fa-file-invoice"></i>
+        <span>Hóa đơn</span>
+    </a>
+</div>
+{% endblock %}
+
+{% block content %}
+<!-- Invoices View -->
+<div class="invoices" id="invoiceModel">
+    <div class="row">
+        <div class="col-12">
+            <div class="card">
+                <div class="card-header">
+                    <h5 class="card-title mb-0">Danh sách hóa đơn</h5>
+                </div>
+                <div class="card-body">
+                    <!-- Search and Filter Section -->
+                    <div class="row mb-4">
+                        <div class="col-md-6">
+                            <div class="input-group">
+                                <input type="text" class="form-control" id="searchInvoice"
+                                    placeholder="Tìm kiếm hóa đơn...">
+                                <button class="btn btn-outline-primary" type="button">
+                                    <i class="fas fa-search"></i>
+                                </button>
+                            </div>
+                        </div>
+                        <div class="col-md-6">
+                            <div class="d-flex gap-2 justify-content-end">
+                                <select class="form-select" id="filterStatus">
+                                    <option value="">Tất cả trạng thái</option>
+                                    <option value="paid">Đã thanh toán</option>
+                                    <option value="unpaid">Chưa thanh toán</option>
+                                </select>
+                                <input type="date" class="form-control" id="filterDate">
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Invoices Table -->
+                    <div class="table-responsive">
+                        <table class="table table-striped">
+                            <thead>
+                                <tr>
+                                    <th>Mã hóa đơn</th>
+                                    <th>Tên bệnh nhân</th>
+                                    <th>Ngày lập</th>
+                                    <th>Tổng tiền</th>
+                                    <th>Trạng thái</th>
+                                    <th>Thao tác</th>
+                                </tr>
+                            </thead>
+                            <tbody id="invoicesTableBody">
+                                <!-- Invoice rows will be inserted here dynamically -->
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Invoice Detail Modal -->
+<div class="modal" id="invoiceDetailModal">
+    <div class="modal-dialog modal-lg">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">Chi tiết hóa đơn</h5>
+                <button type="button" class="modal-close" onclick="closeModal('invoiceDetailModal')">
+                    <i class="fas fa-times"></i>
+                </button>
+            </div>
+            <div class="modal-body">
+                <!-- Patient Info -->
+                <div id="invoicePatientInfo" class="alert alert-info mb-4">
+                    <!-- Patient info will be displayed here -->
+                </div>
+
+                <!-- Invoice Items -->
+                <div class="card mb-4">
+                    <div class="card-header">
+                        <h6 class="card-title mb-0">Chi tiết hóa đơn</h6>
+                    </div>
+                    <div class="card-body">
+                        <div class="table-container mb-3">
+                            <table class="table">
+                                <thead>
+                                    <tr>
+                                        <th>Mục</th>
+                                        <th>Loại</th>
+                                        <th>Số lượng</th>
+                                        <th>Đơn giá</th>
+                                        <th>Thành tiền</th>
+                                    </tr>
+                                </thead>
+                                <tbody id="invoiceDetailItems">
+                                    <!-- Invoice items will be displayed here -->
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Payment Details -->
+                <div class="card">
+                    <div class="card-body">
+                        <div class="row">
+                            <div class="col-md-6">
+                                <h6>Tổng cộng</h6>
+                                <div class="form-group">
+                                    <div class="row mb-2">
+                                        <label class="col-6">Tạm tính:</label>
+                                        <div class="col-6 text-end" id="detailSubtotal">0 ₫</div>
+                                    </div>
+                                    <div class="row mb-2">
+                                        <label class="col-6">Giảm giá:</label>
+                                        <div class="col-6 text-end" id="detailDiscount">0 ₫</div>
+                                    </div>
+                                    <div class="row mb-2">
+                                        <label class="col-6">Thuế (VAT 8%):</label>
+                                        <div class="col-6 text-end" id="detailTax">0 ₫</div>
+                                    </div>
+                                    <div class="row">
+                                        <label class="col-6"><strong>Tổng thanh toán:</strong></label>
+                                        <div class="col-6 text-end">
+                                            <strong id="detailTotal">0 ₫</strong>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="col-md-6">
+                                <h6>Thông tin thanh toán</h6>
+                                <div class="form-group mb-3">
+                                    <label class="form-label">Phương thức thanh toán</label>
+                                    <div id="detailPaymentMethod">-</div>
+                                </div>
+                                <div class="form-group mb-3">
+                                    <label class="form-label">Ngày thanh toán</label>
+                                    <div id="detailPaymentDate">-</div>
+                                </div>
+                                <div class="form-group">
+                                    <label class="form-label">Ghi chú</label>
+                                    <div id="detailNotes">-</div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" onclick="closeModal('invoiceDetailModal')">
+                    Đóng
+                </button>
+                <button type="button" class="btn btn-primary" onclick="printInvoice()">
+                    <i class="fas fa-print"></i>
+                    In hóa đơn
+                </button>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_scripts %}
+<script>
+    document.addEventListener('DOMContentLoaded', function () {
+        loadInvoices();
+        setupEventListeners();
+    });
+
+    function setupEventListeners() {
+        document.getElementById('searchInvoice').addEventListener('input', debounce(filterInvoices, 300));
+        document.getElementById('filterStatus').addEventListener('change', filterInvoices);
+        document.getElementById('filterDate').addEventListener('change', filterInvoices);
+    }
+
+    function loadInvoices() {
+        console.log('Loading invoices...');
+        fetch('/patient/api/invoices')
+            .then(response => response.json())
+            .then(data => {
+                if (data.success && Array.isArray(data.invoices)) {
+                    displayInvoices(data.invoices);
+                } else {
+                    console.error('Dữ liệu không hợp lệ:', data);
+                    alert('Không thể tải danh sách hóa đơn.');
+                }
+            })
+            .catch(error => {
+                console.error('Error loading invoices:', error);
+                alert('Không thể tải danh sách hóa đơn.');
+            });
+    }
+
+    function displayInvoices(invoices) {
+        if (!Array.isArray(invoices)) {
+            alert('Dữ liệu hóa đơn không hợp lệ.');
+            return;
+        }
+
+        const tbody = document.getElementById('invoicesTableBody');
+        tbody.innerHTML = invoices.map(invoice => `
+            <tr>
+                <td>${invoice._id}</td>
+                <td>${invoice.patientName}</td>
+                <td>${formatDate(invoice.issueDate)}</td>
+                <td>${formatCurrency(invoice.grandTotal)}</td>
+                <td>
+                    <span class="badge ${invoice.status === 'Đã thanh toán' ? 'bg-success' : 'bg-warning'}">
+                        ${invoice.status}
+                    </span>
+                </td>
+                <td>
+                    <button class="btn btn-sm btn-info" onclick="viewInvoiceDetails('${invoice._id}')">
+                        <i class="fas fa-eye"></i>
+                    </button>
+                    <button class="btn btn-sm btn-primary" onclick="printInvoice('${invoice._id}')">
+                        <i class="fas fa-print"></i>
+                    </button>
+                </td>
+            </tr>
+        `).join('');
+    }
+
+    function filterInvoices() {
+        const searchText = document.getElementById('searchInvoice').value.toLowerCase();
+        const status = document.getElementByIdVirtua('filterStatus').value;
+        const date = document.getElementById('filterDate').value;
+
+        const rows = document.querySelectorAll('#invoicesTableBody tr');
+        rows.forEach(row => {
+            let show = true;
+
+            if (searchText) {
+                const text = row.textContent.toLowerCase();
+                show = show && text.includes(searchText);
+            }
+
+            if (status) {
+                const rowStatus = row.querySelector('.badge').textContent.trim().toLowerCase();
+                show = show && (status === 'paid' ? rowStatus === 'đã thanh toán' : rowStatus === 'chưa thanh toán');
+            }
+
+            if (date) {
+                const rowDate = row.children[2]?.textContent.trim();
+                const formattedRowDate = formatDateToISO(rowDate);
+                show = show && formattedRowDate === date;
+            }
+
+            row.style.display = show ? '' : 'none';
+        });
+    }
+
+    function formatDateToISO(dateString) {
+        const datePart = dateString.split(' ')[0];
+        if (!datePart) {
+            console.error(`Invalid date format: ${dateString}`);
+            return null;
+        }
+
+        const parts = datePart.split('/');
+        if (parts.length !== 3) {
+            console.error(`Invalid date format: ${dateString}`);
+            return null;
+        }
+
+        const [day, month, year] = parts;
+        return `${year}-${month.padStart(2, '0')}-${day.padStart(2, '0')}`;
+    }
+
+    function viewInvoiceDetails(invoiceId) {
+        fetch(`/patient/api/invoices/details/${invoiceId}`)
+            .then(response => response.json())
+            .then(data => {
+                if (data.success) {
+                    displayInvoiceDetails(data.invoice);
+                    document.getElementById('invoiceDetailModal').classList.add('show');
+                } else {
+                    alert(data.message || 'Không thể tải thông tin chi tiết hóa đơn.');
+                }
+            })
+            .catch(error => {
+                console.error('Error loading invoice details:', error);
+                alert('Không thể tải thông tin chi tiết hóa đơn.');
+            });
+    }
+
+    function displayInvoiceDetails(invoice) {
+        document.getElementById('invoicePatientInfo').innerHTML = `
+            <strong>Thông tin bệnh nhân:</strong><br>
+            Họ tên: ${invoice.patientName}<br>
+            Mã bệnh nhân: ${invoice.patientId}<br>
+            Ngày lập: ${formatDate(invoice.issueDate)}
+        `;
+
+        document.getElementById('invoiceDetailItems').innerHTML = invoice.items.map(item => `
+            <tr>
+                <td>${item.name}</td>
+                <td>${item.type === 'service' ? 'Dịch vụ' : 'Thuốc'}</td>
+                <td>${item.quantity}</td>
+                <td>${formatCurrency(item.unitPrice)}</td>
+                <td>${formatCurrency(item.totalPrice)}</td>
+            </tr>
+        `).join('');
+
+        document.getElementById('detailSubtotal').textContent = formatCurrency(invoice.subtotal);
+        document.getElementById('detailDiscount').textContent = formatCurrency(invoice.discount?.value || 0);
+        document.getElementById('detailTax').textContent = formatCurrency(invoice.tax);
+        document.getElementById('detailTotal').textContent = formatCurrency(invoice.grandTotal);
+
+        document.getElementById('detailPaymentMethod').textContent = getPaymentMethodText(invoice.paymentMethod);
+        document.getElementById('detailPaymentDate').textContent = invoice.paymentDate ? formatDate(invoice.paymentDate) : '-';
+        document.getElementById('detailNotes').textContent = invoice.notes || '-';
+    }
+
+    function getPaymentMethodText(method) {
+        const methods = {
+            'cash': 'Tiền mặt',
+            'card': 'Thẻ ngân hàng',
+            'transfer': 'Chuyển khoản',
+            'momo': 'Ví MoMo',
+            'vnpay': 'VNPay'
+        };
+        return methods[method] || method;
+    }
+
+    function printInvoice(invoiceId) {
+        window.print();
+    }
+
+    function formatDate(dateString) {
+        return new Date(dateString).toLocaleDateString('vi-VN', {
+            year: 'numeric',
+            month: '2-digit',
+            day: '2-digit',
+            hour: '2-digit',
+            minute: '2-digit'
+        });
+    }
+
+    function formatCurrency(amount) {
+        return new Intl.NumberFormat('vi-VN', {
+            style: 'currency',
+            currency: 'VND'
+        }).format(amount);
+    }
+
+    function debounce(func, wait) {
+        let timeout;
+        return function executedFunction(...args) {
+            const later = () => {
+                clearTimeout(timeout);
+                func(...args);
+            };
+            clearTimeout(timeout);
+            timeout = setTimeout(later, wait);
+        };
+    }
+
+    function closeModal(modalId) {
+        document.getElementById(modalId).classList.remove('show');
+    }
+</script>
+{% endblock %}

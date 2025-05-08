@@ -1,0 +1,501 @@
+{% extends "base.html" %}
+
+{% block title %}Lịch hẹn - Bệnh nhân{% endblock %}
+
+{% block page_title %}Quản lý lịch hẹn{% endblock %}
+
+{% block extra_css %}
+<style>
+    .row {
+        display: flex;
+        flex-wrap: wrap;
+        margin: 0;
+        width: 100%;
+        gap: var(--spacing-lg);
+        padding: var(--spacing-md) 0;
+    }
+
+    .col {
+        flex: 1 1 50%;
+        max-width: 50%;
+        padding: var(--spacing-sm);
+        min-width: 250px;
+    }
+
+    .card {
+        background: var(--white);
+        border-radius: var(--border-radius-lg);
+        box-shadow: 0 8px 24px rgba(44, 107, 255, 0.15);
+        transition: transform 0.3s ease, box-shadow 0.3s ease;
+        position: relative;
+        overflow: hidden;
+        margin-bottom: var(--spacing-lg);
+    }
+
+    .card:hover {
+        transform: translateY(-4px);
+        box-shadow: 0 12px 32px rgba(44, 107, 255, 0.2);
+    }
+
+    .card::before {
+        content: '';
+        position: absolute;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 4px;
+        background: linear-gradient(90deg, var(--primary), var(--secondary));
+    }
+
+    .card-header {
+        padding: var(--spacing-md) var(--spacing-lg);
+        border-bottom: 1px solid var(--gray-200);
+        background: #f8fafc;
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+    }
+
+    .card-title {
+        font-family: 'Montserrat', sans-serif;
+        font-size: 1.25rem;
+        font-weight: 600;
+        color: var(--text);
+        margin: 0;
+        display: flex;
+        align-items: center;
+        gap: var(--spacing-sm);
+    }
+
+    .card-title i {
+        color: var(--primary);
+        font-size: 1.1em;
+    }
+
+    .card-body {
+        padding: var(--spacing-xl);
+    }
+
+    .form-group {
+        margin-bottom: var(--spacing-md);
+    }
+
+    .form-label {
+        font-family: 'Montserrat', sans-serif;
+        font-size: 0.9rem;
+        font-weight: 500;
+        color: var(--text);
+        margin-bottom: var(--spacing-xs);
+        display: block;
+    }
+
+    .form-control,
+    .form-select {
+        width: 100%;
+        padding: var(--spacing-sm) var(--spacing-md);
+        border: 1px solid var(--gray-200);
+        border-radius: var(--border-radius);
+        font-size: 0.95rem;
+        background: var(--white);
+        transition: all 0.3s ease;
+    }
+
+    .form-control:focus,
+    .form-select:focus {
+        outline: none;
+        border-color: var(--primary);
+        box-shadow: 0 0 0 2px rgba(44, 107, 255, 0.2);
+    }
+
+    .form-select:disabled,
+    .form-control:disabled {
+        background: #f8fafc;
+        cursor: not-allowed;
+    }
+
+    .table-container {
+        overflow-x: auto;
+    }
+
+    .table {
+        width: 100%;
+        border-collapse: separate;
+        border-spacing: 0;
+    }
+
+    .table th,
+    .table td {
+        padding: var(--spacing-md);
+        text-align: left;
+        font-size: 0.9rem;
+        color: var(--text);
+    }
+
+    .table th {
+        background: #f8fafc;
+        font-family: 'Montserrat', sans-serif;
+        font-weight: 600;
+        border-bottom: 1px solid var(--gray-200);
+    }
+
+    .table td {
+        border-bottom: 1px solid var(--gray-200);
+        vertical-align: middle;
+    }
+
+    .table tr:last-child td {
+        border-bottom: none;
+    }
+
+    .table tr:hover {
+        background: rgba(44, 107, 255, 0.02);
+    }
+
+    .btn {
+        display: inline-flex;
+        align-items: center;
+        gap: var(--spacing-sm);
+        padding: var(--spacing-sm) var(--spacing-md);
+        border-radius: var(--border-radius);
+        font-size: 0.9rem;
+        font-weight: 500;
+        cursor: pointer;
+        transition: all 0.3s ease;
+        border: none;
+        position: relative;
+        z-index: 1;
+    }
+
+    .btn-primary {
+        background: linear-gradient(45deg, var(--primary), var(--secondary));
+        color: var(--white);
+    }
+
+    .btn-primary:hover {
+        background: linear-gradient(45deg, var(--primary-dark), var(--secondary));
+        box-shadow: 0 4px 12px rgba(44, 107, 255, 0.3);
+        transform: translateY(-2px);
+    }
+
+    .btn-danger {
+        background: #dc3545;
+        color: var(--white);
+    }
+
+    .btn-danger:hover {
+        background: #c82333;
+        box-shadow: 0 4px 12px rgba(220, 53, 69, 0.3);
+        transform: translateY(-2px);
+    }
+
+    .btn-warning {
+        background: #ffc107;
+        color: #212529;
+    }
+
+    .btn-warning:hover {
+        background: #e0a800;
+        box-shadow: 0 4px 12px rgba(255, 193, 7, 0.3);
+        transform: translateY(-2px);
+    }
+
+    .btn-sm {
+        padding: var(--spacing-xs) var(--spacing-sm);
+        font-size: 0.85rem;
+    }
+
+    .badge {
+        padding: var(--spacing-xs) var(--spacing-sm);
+        border-radius: var(--border-radius);
+        font-size: 0.85rem;
+        font-weight: 500;
+    }
+
+    .badge-warning {
+        background: #fef3c7;
+        color: #d97706;
+    }
+
+    .badge-secondary {
+        background: #e5e7eb;
+        color: #4b5563;
+    }
+
+    @media (max-width: 768px) {
+        .row {
+            padding: var(--spacing-sm) 0;
+            gap: var(--spacing-md);
+        }
+
+        .col {
+            flex: 1 1 100%;
+            max-width: 100%;
+            min-width: 0;
+        }
+    }
+</style>
+{% endblock %}
+
+{% block sidebar_menu %}
+<style>
+    .nav-item {
+        margin-bottom: var(--spacing-sm);
+    }
+
+    .nav-link {
+        display: flex;
+        align-items: center;
+        gap: var(--spacing-sm);
+        padding: var(--spacing-md) var(--spacing-lg);
+        color: var(--text-light);
+        font-size: 0.95rem;
+        font-weight: 500;
+        border-radius: var(--border-radius);
+        transition: all 0.3s ease;
+        text-decoration: none;
+        position: relative;
+        z-index: 1;
+        cursor: pointer;
+    }
+
+    .nav-link:hover {
+        background: rgba(44, 107, 255, 0.1);
+        color: var(--primary);
+    }
+
+    .nav-link.active {
+        background: var(--primary);
+        color: var(--white);
+        font-weight: 600;
+        box-shadow: 0 2px 8px rgba(44, 107, 255, 0.2);
+    }
+
+    .nav-link i {
+        font-size: 1.1rem;
+    }
+
+    .nav-link span {
+        font-family: 'Inter', sans-serif;
+    }
+</style>
+
+<div class="nav-item">
+    <a href="{{ url_for('patient.dashboard') }}" class="nav-link {% if request.endpoint == 'patient.dashboard' %}active{% endif %}">
+        <i class="fas fa-home"></i>
+        <span>Trang chủ</span>
+    </a>
+</div>
+<div class="nav-item">
+    <a href="{{ url_for('patient.appointments') }}" class="nav-link {% if request.endpoint == 'patient.appointments' %}active{% endif %}">
+        <i class="fas fa-calendar-alt"></i>
+        <span>Lịch hẹn</span>
+    </a>
+</div>
+<div class="nav-item">
+    <a href="{{ url_for('patient.records') }}" class="nav-link {% if request.endpoint == 'patient.records' %}active{% endif %}">
+        <i class="fas fa-file-medical"></i>
+        <span>Hồ sơ bệnh án</span>
+    </a>
+</div>
+<div class="nav-item">
+    <a href="{{ url_for('patient.prescriptions') }}" class="nav-link {% if request.endpoint == 'patient.prescriptions' %}active{% endif %}">
+        <i class="fas fa-prescription"></i>
+        <span>Đơn thuốc</span>
+    </a>
+</div>
+<div class="nav-item">
+    <a href="{{ url_for('patient.invoices') }}" class="nav-link {% if request.endpoint == 'patient.invoices' %}active{% endif %}">
+        <i class="fas fa-file-invoice"></i>
+        <span>Hóa đơn</span>
+    </a>
+</div>
+{% endblock %}
+
+{% block content %}
+<!-- Appointment Booking Form -->
+<div class="card">
+    <div class="card-header">
+        <h2 class="card-title">
+            <i class="fas fa-calendar-plus"></i>
+            Đặt lịch hẹn mới
+        </h2>
+    </div>
+    <div class="card-body">
+        <form method="POST" action="{{ url_for('patient_api.book_appointment') }}">
+            <div class="row">
+                <div class="col">
+                    <div class="form-group">
+                        <label class="form-label" for="department">Khoa khám bệnh</label>
+                        <select class="form-select" id="department" name="department" required>
+                            <option value="">Chọn khoa</option>
+                            {% for dept in departments %}
+                            <option value="{{ dept }}">{{ dept }}</option>
+                            {% endfor %}
+                        </select>
+                    </div>
+                </div>
+                <div class="col">
+                    <div class="form-group">
+                        <label class="form-label" for="doctor">Bác sĩ</label>
+                        <select class="form-select" id="doctor" name="doctor_id" required>
+                            <option value="">Chọn bác sĩ</option>
+                        </select>
+                    </div>
+                </div>
+            </div>
+            <div class="row">
+                <div class="col">
+                    <div class="form-group">
+                        <label class="form-label" for="date">Ngày khám</label>
+                        <input type="date" class="form-control" id="date" name="date" required>
+                    </div>
+                </div>
+                <div class="col">
+                    <div class="form-group">
+                        <label class="form-label" for="time">Giờ khám</label>
+                        <select class="form-select" id="time" name="time" required>
+                            <option value="">Chọn giờ</option>
+                        </select>
+                    </div>
+                </div>
+            </div>
+            <div class="form-group">
+                <label class="form-label" for="symptoms">Mô tả triệu chứng</label>
+                <textarea class="form-control" id="symptoms" name="symptoms" rows="3"
+                    placeholder="Mô tả ngắn gọn các triệu chứng của bạn"></textarea>
+            </div>
+            <button type="submit" class="btn btn-primary">
+                <i class="fas fa-calendar-check me-2"></i>Đặt lịch
+            </button>
+        </form>
+    </div>
+</div>
+
+<!-- Appointments List -->
+<div class="card">
+    <div class="card-header">
+        <h2 class="card-title">
+            <i class="fas fa-calendar me-2"></i>
+            Danh sách lịch hẹn
+        </h2>
+    </div>
+    <div class="card-body">
+        <div class="table-container">
+            <table class="table">
+                <thead>
+                    <tr>
+                        <th>Ngày giờ</th>
+                        <th>Khoa</th>
+                        <th>Bác sĩ</th>
+                        <th>Triệu chứng</th>
+                        <th>Trạng thái</th>
+                        <th>Thao tác</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for appointment in appointments %}
+                    <tr>
+                        <td>{{ appointment.datetime }}</td>
+                        <td>{{ appointment.department }}</td>
+                        <td>{{ appointment.doctor_name }}</td>
+                        <td>{{ appointment.symptoms }}</td>
+                        <td>
+                            <span class="badge badge-{{ appointment.status_color }}">
+                                {{ appointment.status }}
+                            </span>
+                        </td>
+                        <td>
+                            {% if appointment.can_cancel %}
+                            <button type="button" class="btn btn-sm btn-danger"
+                                onclick="cancelAppointment('{{ appointment.id }}')">
+                                <i class="fas fa-times me-1"></i>Hủy
+                            </button>
+                            {% endif %}
+                            {% if appointment.can_reschedule %}
+                            <button type="button" class="btn btn-sm btn-warning"
+                                onclick="rescheduleAppointment('{{ appointment.id }}')">
+                                <i class="fas fa-clock me-1"></i>Đổi lịch
+                            </button>
+                            {% endif %}
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_scripts %}
+<script>
+    document.getElementById('department').addEventListener('change', function () {
+        const department = this.value;
+        const doctorSelect = document.getElementById('doctor');
+
+        if (department) {
+            fetch(`/patient/api/doctors/${department}`)
+                .then(response => response.json())
+                .then(doctors => {
+                    doctorSelect.innerHTML = '<option value="">Chọn bác sĩ</option>';
+                    doctors.forEach(doctor => {
+                        doctorSelect.innerHTML += `
+                            <option value="${doctor.id}">${doctor.name}</option>
+                        `;
+                    });
+                    doctorSelect.disabled = false;
+                });
+        } else {
+            doctorSelect.innerHTML = '<option value="">Chọn bác sĩ</option>';
+            doctorSelect.disabled = true;
+        }
+    });
+
+    document.getElementById('doctor').addEventListener('change', function () {
+        updateAvailableTimeSlots();
+    });
+
+    document.getElementById('date').addEventListener('change', function () {
+        updateAvailableTimeSlots();
+    });
+
+    function updateAvailableTimeSlots() {
+        const doctorId = document.getElementById('doctor').value;
+        const date = document.getElementById('date').value;
+        const timeSelect = document.getElementById('time');
+
+        if (doctorId && date) {
+            fetch(`/patient/api/timeslots/${doctorId}/${date}`)
+                .then(response => response.json())
+                .then(slots => {
+                    timeSelect.innerHTML = '<option value="">Chọn giờ</option>';
+                    slots.forEach(slot => {
+                        timeSelect.innerHTML += `
+                            <option value="${slot.time}">${slot.time}</option>
+                        `;
+                    });
+                    timeSelect.disabled = false;
+                });
+        } else {
+            timeSelect.innerHTML = '<option value="">Chọn giờ</option>';
+            timeSelect.disabled = true;
+        }
+    }
+
+    function cancelAppointment(appointmentId) {
+        if (confirm('Bạn có chắc muốn hủy lịch hẹn này?')) {
+            fetch(`/api/appointments/${appointmentId}`, {
+                method: 'DELETE'
+            }).then(response => {
+                if (response.ok) {
+                    window.location.reload();
+                }
+            });
+        }
+    }
+
+    function rescheduleAppointment(appointmentId) {
+        window.location.href = `/patient/appointments/${appointmentId}/reschedule`;
+    }
+</script>
+{% endblock %}

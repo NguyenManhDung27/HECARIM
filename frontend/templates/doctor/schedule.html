@@ -1,0 +1,661 @@
+{% extends "base.html" %}
+
+{% block title %}Lịch khám bệnh{% endblock %}
+
+{% block extra_css %}
+<style>
+    :root {
+        --primary: #2c6bff;
+        --primary-dark: #1e4db7;
+        --secondary: #00ddeb;
+        --bg: #f4f7ff;
+        --white: #ffffff;
+        --text: #1a1a1a;
+        --text-light: #6b7280;
+        --danger: #dc2626;
+        --gray-200: #e5e7eb;
+        --border-radius: 12px;
+        --border-radius-lg: 16px;
+        --spacing-xs: 0.25rem;
+        --spacing-sm: 0.5rem;
+        --spacing-md: 1rem;
+        --spacing-lg: 1.5rem;
+        --spacing-xl: 2rem;
+    }
+
+    .row {
+        display: flex;
+        flex-wrap: wrap;
+        margin: 0;
+        width: 100%;
+        gap: var(--spacing-lg);
+        padding: var(--spacing-md) 0;
+        background: linear-gradient(180deg, #ffffff, #f8fafc);
+        border-radius: var(--border-radius-lg);
+        box-shadow: 0 4px 12px rgba(44, 107, 255, 0.1);
+    }
+
+    .col-md-8 {
+        flex: 1 1 65%;
+        max-width: 66.666667%;
+        padding: var(--spacing-sm);
+        min-width: 300px;
+    }
+
+    .col-md-4 {
+        flex: 1 1 30%;
+        max-width: 33.333333%;
+        padding: var(--spacing-sm);
+        min-width: 250px;
+    }
+
+    .card {
+        background: var(--white);
+        border-radius: var(--border-radius-lg);
+        box-shadow: 0 8px 24px rgba(44, 107, 255, 0.15);
+        transition: transform 0.3s ease, box-shadow 0.3s ease;
+        position: relative;
+        overflow: hidden;
+    }
+
+    .card:hover {
+        transform: translateY(-4px);
+        box-shadow: 0 12px 32px rgba(44, 107, 255, 0.2);
+    }
+
+    .card::before {
+        content: '';
+        position: absolute;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 4px;
+        background: linear-gradient(90deg, var(--primary), var(--secondary));
+    }
+
+    .card-header {
+        padding: var(--spacing-md) var(--spacing-lg);
+        border-bottom: 1px solid var(--gray-200);
+        background: #f8fafc;
+    }
+
+    .card-title {
+        font-family: 'Montserrat', sans-serif;
+        font-size: 1.25rem;
+        font-weight: 600;
+        color: var(--text);
+        margin: 0;
+    }
+
+    .card-body {
+        padding: var(--spacing-xl);
+    }
+
+    .calendar-header {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        margin-bottom: var(--spacing-lg);
+    }
+
+    .calendar-nav {
+        display: flex;
+        align-items: center;
+        gap: var(--spacing-md);
+    }
+
+    .calendar-nav h3 {
+        font-family: 'Montserrat', sans-serif;
+        font-size: 1.5rem;
+        font-weight: 600;
+        color: var(--text);
+        margin: 0;
+    }
+
+    .calendar-grid {
+        display: grid;
+        grid-template-columns: repeat(7, 1fr);
+        gap: var(--spacing-sm);
+    }
+
+    .calendar-weekday {
+        text-align: center;
+        font-family: 'Montserrat', sans-serif;
+        font-size: 0.9rem;
+        font-weight: 600;
+        color: var(--text-light);
+        padding: var(--spacing-sm);
+    }
+
+    .calendar-day {
+        aspect-ratio: 1;
+        border: 1px solid var(--gray-200);
+        border-radius: var(--border-radius);
+        padding: var(--spacing-sm);
+        cursor: pointer;
+        transition: all 0.3s ease;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 0.9rem;
+        font-weight: 500;
+        background: var(--white);
+    }
+
+    .calendar-day:hover {
+        background: rgba(44, 107, 255, 0.1);
+        border-color: var(--primary);
+    }
+
+    .calendar-day.today {
+        border-color: var(--primary);
+        background: rgba(44, 107, 255, 0.2);
+        color: var(--primary);
+        font-weight: 600;
+    }
+
+    .calendar-day.selected {
+        background: var(--primary);
+        color: var(--white);
+        border-color: var(--primary);
+        font-weight: 600;
+    }
+
+    .calendar-day.has-appointments {
+        background: rgba(44, 107, 255, 0.05);
+        position: relative;
+    }
+
+    .calendar-day.has-appointments::after {
+        content: '';
+        position: absolute;
+        bottom: 4px;
+        left: 50%;
+        transform: translateX(-50%);
+        width: 6px;
+        height: 6px;
+        background: var(--primary);
+        border-radius: 50%;
+    }
+
+    .time-slots {
+        display: grid;
+        grid-template-columns: repeat(auto-fill, minmax(120px, 1fr));
+        gap: var(--spacing-sm);
+        margin-top: var(--spacing-lg);
+    }
+
+    .time-slot {
+        padding: var(--spacing-sm);
+        border: 1px solid var(--gray-200);
+        border-radius: var(--border-radius);
+        text-align: center;
+        cursor: pointer;
+        transition: all 0.3s ease;
+        font-size: 0.9rem;
+        font-weight: 500;
+        background: var(--white);
+    }
+
+    .time-slot:hover {
+        background: rgba(44, 107, 255, 0.1);
+        border-color: var(--primary);
+    }
+
+    .time-slot.booked {
+        background: var(--gray-200);
+        color: var(--text-light);
+        cursor: not-allowed;
+        border-color: var(--gray-200);
+    }
+
+    .time-slot.selected {
+        background: var(--primary);
+        color: var(--white);
+        border-color: var(--primary);
+        font-weight: 600;
+    }
+
+    .btn-primary,
+    .btn-outline-primary {
+        padding: var(--spacing-sm) var(--spacing-md);
+        border-radius: var(--border-radius);
+        font-size: 0.9rem;
+        font-weight: 500;
+        transition: all 0.3s ease;
+    }
+
+    .btn-primary {
+        background: linear-gradient(45deg, var(--primary), var(--secondary));
+        color: var(--white);
+        border: none;
+    }
+
+    .btn-primary:hover {
+        background: linear-gradient(45deg, var(--primary-dark), var(--secondary));
+        box-shadow: 0 4px 12px rgba(44, 107, 255, 0.3);
+    }
+
+    .btn-outline-primary {
+        border: 1px solid var(--primary);
+        color: var(--primary);
+        background: none;
+    }
+
+    .btn-outline-primary:hover {
+        background: rgba(44, 107, 255, 0.1);
+        border-color: var(--primary-dark);
+        color: var(--primary-dark);
+    }
+
+    #appointmentsList .card {
+        margin-bottom: var(--spacing-md);
+        border: 1px solid var(--gray-200);
+    }
+
+    #appointmentsList .card-body {
+        padding: var(--spacing-md);
+    }
+
+    #appointmentsList h5 {
+        font-family: 'Montserrat', sans-serif;
+        font-size: 1rem;
+        font-weight: 600;
+        color: var(--text);
+    }
+
+    #appointmentsList p {
+        font-size: 0.9rem;
+        color: var(--text);
+        margin-bottom: var(--spacing-xs);
+    }
+
+    #appointmentsList small {
+        font-size: 0.85rem;
+        font-weight: 500;
+    }
+
+    .text-muted {
+        color: var(--text-light);
+        font-size: 0.9rem;
+    }
+
+    @media (max-width: 992px) {
+        .col-md-8 {
+            flex: 1 1 100%;
+            max-width: 100%;
+        }
+
+        .col-md-4 {
+            flex: 1 1 100%;
+            max-width: 100%;
+        }
+    }
+
+    @media (max-width: 576px) {
+        .row {
+            padding: var(--spacing-sm) 0;
+            gap: var(--spacing-md);
+        }
+
+        .calendar-nav h3 {
+            font-size: 1.25rem;
+        }
+
+        .calendar-day {
+            font-size: 0.85rem;
+        }
+
+        .time-slot {
+            font-size: 0.85rem;
+        }
+    }
+</style>
+{% endblock %}
+
+{% block sidebar_menu %}
+<style>
+    .nav-item {
+        margin-bottom: var(--spacing-sm);
+    }
+
+    .nav-link {
+        display: flex;
+        align-items: center;
+        gap: var(--spacing-sm);
+        padding: var(--spacing-md) var(--spacing-lg);
+        color: var(--text-light);
+        font-size: 0.95rem;
+        font-weight: 500;
+        border-radius: var(--border-radius);
+        transition: all 0.3s ease;
+        text-decoration: none;
+    }
+
+    .nav-link:hover {
+        background: rgba(44, 107, 255, 0.1);
+        color: var(--primary);
+    }
+
+    .nav-link.active {
+        background: var(--primary);
+        color: var(--white);
+        font-weight: 600;
+        box-shadow: 0 2px 8px rgba(44, 107, 255, 0.2);
+    }
+
+    .nav-link i {
+        font-size: 1.1rem;
+    }
+</style>
+
+<div class="nav-item">
+    <a href="{{ url_for('doctor.dashboard') }}" class="nav-link">
+        <i class="fas fa-home"></i>
+        Tổng quan
+    </a>
+</div>
+<div class="nav-item">
+    <a href="{{ url_for('doctor.schedule_page') }}" class="nav-link active">
+        <i class="fas fa-calendar-alt"></i>
+        Lịch khám bệnh
+    </a>
+</div>
+<div class="nav-item">
+    <a href="{{ url_for('doctor.patients') }}" class="nav-link">
+        <i class="fas fa-users"></i>
+        Danh sách bệnh nhân
+    </a>
+</div>
+<div class="nav-item">
+    <a href="{{ url_for('doctor.medical_records') }}" class="nav-link">
+        <i class="fas fa-file-medical"></i>
+        Hồ sơ bệnh án
+    </a>
+</div>
+<div class="nav-item">
+    <a href="{{ url_for('doctor.prescriptions') }}" class="nav-link">
+        <i class="fas fa-prescription"></i>
+        Kê đơn thuốc
+    </a>
+</div>
+{% endblock %}
+
+{% block page_title %}Lịch khám bệnh{% endblock %}
+
+{% block content %}
+<div class="row">
+    <!-- Calendar Section -->
+    <div class="col-md-8">
+        <div class="card">
+            <div class="card-body">
+                <!-- Calendar Navigation -->
+                <div class="calendar-header">
+                    <div class="calendar-nav">
+                        <button class="btn btn-outline-primary" onclick="previousMonth()">
+                            <i class="fas fa-chevron-left"></i>
+                        </button>
+                        <h3 class="mb-0" id="currentMonth"></h3>
+                        <button class="btn btn-outline-primary" onclick="nextMonth()">
+                            <i class="fas fa-chevron-right"></i>
+                        </button>
+                    </div>
+                    <button class="btn btn-primary" onclick="goToToday()">
+                        Hôm nay
+                    </button>
+                </div>
+
+                <!-- Calendar Grid -->
+                <div class="calendar">
+                    <div class="calendar-grid" id="weekdays">
+                        <div class="calendar-weekday">CN</div>
+                        <div class="calendar-weekday">T2</div>
+                        <div class="calendar-weekday">T3</div>
+                        <div class="calendar-weekday">T4</div>
+                        <div class="calendar-weekday">T5</div>
+                        <div class="calendar-weekday">T6</div>
+                        <div class="calendar-weekday">T7</div>
+                    </div>
+                    <div class="calendar-grid" id="calendar"></div>
+                </div>
+
+                <!-- Time Slots -->
+                <div class="time-slots" id="timeSlots"></div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Appointments List -->
+    <div class="col-md-4">
+        <div class="card">
+            <div class="card-header">
+                <h3 class="card-title mb-0" id="appointmentsDate">Lịch hẹn</h3>
+            </div>
+            <div class="card-body">
+                <div id="appointmentsList"></div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_scripts %}
+<script>
+    let currentDate = new Date();
+    let selectedDate = null;
+    let selectedTimeSlot = null;
+    let appointments = {};
+
+    // Initialize calendar
+    function initCalendar() {
+        updateCalendarHeader();
+        renderCalendar();
+        loadAppointments();
+    }
+
+    // Update calendar header
+    function updateCalendarHeader() {
+        const months = ['Tháng 1', 'Tháng 2', 'Tháng 3', 'Tháng 4', 'Tháng 5', 'Tháng 6',
+                       'Tháng 7', 'Tháng 8', 'Tháng 9', 'Tháng 10', 'Tháng 11', 'Tháng 12'];
+        document.getElementById('currentMonth').textContent = 
+            `${months[currentDate.getMonth()]} ${currentDate.getFullYear()}`;
+    }
+
+    // Render calendar
+    function renderCalendar() {
+        const calendar = document.getElementById('calendar');
+        calendar.innerHTML = '';
+
+        const firstDay = new Date(currentDate.getFullYear(), currentDate.getMonth(), 1);
+        const lastDay = new Date(currentDate.getFullYear(), currentDate.getMonth() + 1, 0);
+        
+        // Add empty cells for days before first day of month
+        for (let i = 0; i < firstDay.getDay(); i++) {
+            const emptyDay = document.createElement('div');
+            emptyDay.className = 'calendar-day';
+            calendar.appendChild(emptyDay);
+        }
+
+        // Add days of month
+        for (let date = 1; date <= lastDay.getDate(); date++) {
+            const dayEl = document.createElement('div');
+            dayEl.className = 'calendar-day';
+            dayEl.textContent = date;
+
+            const currentDateStr = `${currentDate.getFullYear()}-${currentDate.getMonth() + 1}-${date}`;
+            
+            if (appointments[currentDateStr]) {
+                dayEl.classList.add('has-appointments');
+            }
+
+            if (date === new Date().getDate() && 
+                currentDate.getMonth() === new Date().getMonth() &&
+                currentDate.getFullYear() === new Date().getFullYear()) {
+                dayEl.classList.add('today');
+            }
+
+            if (selectedDate && date === selectedDate.getDate() &&
+                currentDate.getMonth() === selectedDate.getMonth() &&
+                currentDate.getFullYear() === selectedDate.getFullYear()) {
+                dayEl.classList.add('selected');
+            }
+
+            dayEl.addEventListener('click', () => selectDate(date));
+            calendar.appendChild(dayEl);
+        }
+    }
+
+    // Load appointments for current month
+    function loadAppointments() {
+        const year = currentDate.getFullYear();
+        const month = currentDate.getMonth() + 1;
+        
+        fetch('/doctor/api/schedule')
+            .then(response => response.json())
+            .then(data => {
+                console.log("API Response:", data);  // Debugging Output
+                appointments = data.appointments_by_date || {};  // Ensure correct data structure
+                renderCalendar();
+            });
+    }
+
+    // Select date
+    function selectDate(date) {
+        selectedDate = new Date(currentDate.getFullYear(), currentDate.getMonth(), date);
+        renderCalendar();
+        renderTimeSlots();
+        loadDayAppointments();
+    }
+
+    // Render time slots
+    function renderTimeSlots() {
+        const timeSlotsContainer = document.getElementById('timeSlots');
+        timeSlotsContainer.innerHTML = '';
+
+        // Generate time slots from 8:00 to 17:00
+        for (let hour = 8; hour < 17; hour++) {
+            for (let minute of ['00', '30']) {
+                const timeSlot = document.createElement('div');
+                timeSlot.className = 'time-slot';
+                timeSlot.textContent = `${hour}:${minute}`;
+
+                // Check if slot is booked
+                const timeStr = `${hour}:${minute}`;
+                const dateKey = getDateString(selectedDate);
+                if (appointments[dateKey]) {
+                    timeSlot.classList.add('booked');
+                } else {
+                    timeSlot.addEventListener('click', () => selectTimeSlot(timeStr));
+                }
+
+                timeSlotsContainer.appendChild(timeSlot);
+            }
+        }
+    }
+
+    // Select time slot
+    function selectTimeSlot(time) {
+        const modal = document.getElementById('appointmentModal');
+        modal.classList.add('show');
+        selectedTimeSlot = time;
+    }
+
+    // Load appointments for selected day
+    function loadDayAppointments() {
+        const dateStr = getDateString(selectedDate);
+        const appointmentsContainer = document.getElementById('appointmentsList');
+        document.getElementById('appointmentsDate').textContent = 
+            `Lịch hẹn ngày ${selectedDate.getDate()}/${selectedDate.getMonth() + 1}/${selectedDate.getFullYear()}`;
+
+            fetch(`/doctor/api/schedule?date=${getDateString(selectedDate)}`)
+            .then(response => response.json())
+            .then(data => {
+                console.log("API Response:", data); // Debugging output
+
+                const appointmentsContainer = document.getElementById('appointmentsList');
+                const appointments = data.appointments?.filter(apt => apt.date === getDateString(selectedDate)) || [];
+
+                appointmentsContainer.innerHTML = appointments.length 
+                    ? appointments.map(apt => `
+                        <div class="card mb-2">
+                            <div class="card-body">
+                                <div class="d-flex justify-content-between align-items-center">
+                                    <div>
+                                        <h5 class="mb-1">${apt.time}</h5>
+                                        <p class="mb-0">${apt.patient_id}</p>
+                                        <small class="text-muted">${apt.status}</small>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    `).join('')
+                    : '<p class="text-center text-muted">Không có lịch hẹn</p>';
+            })
+            .catch(error => console.error("Error fetching appointments:", error));  // Catch errors
+    }
+
+    // Navigation functions
+    function previousMonth() {
+        currentDate = new Date(currentDate.getFullYear(), currentDate.getMonth() - 1);
+        initCalendar();
+    }
+
+    function nextMonth() {
+        currentDate = new Date(currentDate.getFullYear(), currentDate.getMonth() + 1);
+        initCalendar();
+    }
+
+    function goToToday() {
+        currentDate = new Date();
+        selectedDate = currentDate;
+        initCalendar();
+        renderTimeSlots();
+        loadDayAppointments();
+    }
+
+    // Utility functions
+    function getDateString(date) {
+    return `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, '0')}-${String(date.getDate()).padStart(2, '0')}`;
+    }
+
+    function getStatusColor(status) {
+        switch (status) {
+            case 'completed': return 'success';
+            case 'waiting': return 'warning';
+            case 'cancelled': return 'danger';
+            default: return 'secondary';
+        }
+    }
+
+    // Save appointment
+    function saveAppointment() {
+        const form = document.getElementById('appointmentForm');
+        const formData = new FormData(form);
+        
+        fetch('/api/appointments', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+            },
+            body: JSON.stringify({
+                date: getDateString(selectedDate),
+                time_slot: selectedTimeSlot,
+                ...Object.fromEntries(formData)
+            })
+        })
+        .then(response => response.json())
+        .then(result => {
+            if (result.success) {
+                document.getElementById('appointmentModal').classList.remove('show');
+                loadAppointments();
+                loadDayAppointments();
+            } else {
+                alert('Có lỗi xảy ra khi đặt lịch hẹn');
+            }
+        });
+    }
+
+    // Initialize
+    initCalendar();
+</script>
+{% endblock %}

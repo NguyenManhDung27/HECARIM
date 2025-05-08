@@ -1,0 +1,587 @@
+<!-- Payment Modal -->
+<div class="modal" id="paymentModal">
+    <div class="modal-dialog modal-lg">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">Thanh toán</h5>
+                <button type="button" class="modal-close">
+                    <i class="fas fa-times"></i>
+                </button>
+            </div>
+            <div class="modal-body">
+                <!-- Patient Info -->
+                <div id="paymentPatientInfo" class="alert alert-info mb-4" style="display: none;">
+                    <!-- Patient info will be displayed here -->
+                </div>
+
+                <!-- Invoice Items -->
+                <div class="card mb-4">
+                    <div class="card-header">
+                        <h6 class="card-title mb-0">Chi tiết hóa đơn</h6>
+                    </div>
+                    <div class="card-body">
+                        <div class="table-container mb-3">
+                            <table class="table">
+                                <thead>
+                                    <tr>
+                                        <th>Mục</th>
+                                        <th>Loại</th>
+                                        <th>Số lượng</th>
+                                        <th>Đơn giá</th>
+                                        <th>Thành tiền</th>
+                                        <th></th>
+                                    </tr>
+                                </thead>
+                                <tbody id="invoiceItems">
+                                    <!-- Invoice items will be added here -->
+                                </tbody>
+                            </table>
+                        </div>
+
+                        <!-- Add Item Buttons -->
+                        <div class="d-flex gap-2">
+                            <button type="button" class="btn btn-outline-primary" onclick="showServicesList()">
+                                <i class="fas fa-plus"></i>
+                                Thêm dịch vụ
+                            </button>
+                            <button type="button" class="btn btn-outline-primary" onclick="showMedicationsList()">
+                                <i class="fas fa-plus"></i>
+                                Thêm thuốc
+                            </button>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Payment Details -->
+                <div class="card">
+                    <div class="card-body">
+                        <div class="row mb-3">
+                            <div class="col-md-6">
+                                <h6>Tổng cộng</h6>
+                                <div class="form-group">
+                                    <div class="row mb-2">
+                                        <label class="col-6">Tạm tính:</label>
+                                        <div class="col-6 text-end" id="subtotal">0 ₫</div>
+                                    </div>
+                                    <div class="row mb-2">
+                                        <label class="col-6">Giảm giá:</label>
+                                        <div class="col-6">
+                                            <div class="input-group">
+                                                <input type="number" class="form-control" id="discountValue"
+                                                    onchange="calculateTotal()">
+                                                <select class="form-select" id="discountType"
+                                                    onchange="calculateTotal()">
+                                                    <option value="percent">%</option>
+                                                    <option value="amount">₫</option>
+                                                </select>
+                                            </div>
+                                        </div>
+                                    </div>
+                                    <div class="row mb-2">
+                                        <label class="col-6">Thuế (VAT 8%):</label>
+                                        <div class="col-6 text-end" id="tax">0 ₫</div>
+                                    </div>
+                                    <div class="row">
+                                        <label class="col-6"><strong>Tổng thanh toán:</strong></label>
+                                        <div class="col-6 text-end">
+                                            <strong id="total">0 ₫</strong>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="col-md-6">
+                                <h6>Phương thức thanh toán</h6>
+                                <div class="form-group mb-3">
+                                    <select class="form-select" id="paymentMethod">
+                                        <option value="cash">Tiền mặt</option>
+                                        <option value="card">Thẻ ngân hàng</option>
+                                        <option value="transfer">Chuyển khoản</option>
+                                        <option value="momo">Ví MoMo</option>
+                                        <option value="vnpay">VNPay</option>
+                                    </select>
+                                </div>
+                                <div class="form-group">
+                                    <label class="form-label">Ghi chú</label>
+                                    <textarea class="form-control" id="paymentNotes" rows="2"></textarea>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" onclick="closeModal('paymentModal')">
+                    Hủy
+                </button>
+                <button type="button" class="btn btn-warning" onclick="saveInvoice()">
+                    Lưu hóa đơn
+                </button>
+                <button type="button" class="btn btn-success" onclick="processPayment()">
+                    <i class="fas fa-check"></i>
+                    Xác nhận thanh toán
+                </button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Services List Modal -->
+<div class="modal" id="servicesModal">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">Chọn dịch vụ</h5>
+                <button type="button" class="modal-close" onclick="closeModal('servicesModal')">
+                    <i class="fas fa-times"></i>
+                </button>
+            </div>
+            <div class="modal-body">
+                <div class="list-group" id="servicesList">
+                    <!-- Services will be loaded here -->
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Medications List Modal -->
+<div class="modal" id="medicationsModal">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">Chọn thuốc</h5>
+                <button type="button" class="modal-close" onclick="closeModal('medicationsModal')">
+                    <i class="fas fa-times"></i>
+                </button>
+            </div>
+            <div class="modal-body">
+                <div class="list-group" id="medicationsList">
+                    <!-- Medications will be loaded here -->
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+    const currentUserId = "{{ current_user_id }}"; // Giá trị này phải là chuỗi 24 ký tự // Thay USER_ID_FROM_BACKEND bằng giá trị thực tế từ backend
+    let selectedPatient = null;
+    let invoiceItems = [];
+
+    function showMedicationsList() {
+        fetch('/receptionist/api/medications')
+            .then(response => response.json())
+            .then(medications => {
+                console.log(medications);
+                document.getElementById('medicationsList').innerHTML = medications
+                    .filter(med => med.stock.quantity > 0)
+                    .map(med => `
+                    <div class="medication-item">
+                        <button type="button" 
+                                class="btn btn-light w-100 text-start"
+                                onclick="addInvoiceItem('medication', JSON.parse(decodeURIComponent('${encodeURIComponent(JSON.stringify(med))}')))">
+                            <div>
+                                <h6 class="mb-1">${med.name}</h6>
+                                <small class="text-muted">${med.dosageForm} - ${med.strength}</small>
+                            </div>
+                            <div class="text-end">
+                                <strong>${formatCurrency(med.price)}</strong>
+                            </div>
+                        </button>
+                    </div>
+                `).join('');
+                document.getElementById('medicationsModal').classList.add('show');
+            });
+    }
+
+    function showServicesList() {
+        fetch('/receptionist/api/services')
+            .then(response => response.json())
+            .then(services => {
+                console.log(services);
+                document.getElementById('servicesList').innerHTML = services
+                    .map(service => `
+                    <div class="service-item">
+                        <button type="button" 
+                                class="btn btn-light w-100 text-start"
+                                onclick="addInvoiceItem('service', JSON.parse(decodeURIComponent('${encodeURIComponent(JSON.stringify(service))}')))">
+                            <div>
+                                <h6 class="mb-1">${service.name}</h6>
+                                <small class="text-muted">${service.description || 'Không có mô tả'}</small>
+                            </div>
+                            <div class="text-end">
+                                <strong>${formatCurrency(service.price)}</strong>
+                            </div>
+                        </button>
+                    </div>
+                `).join('');
+                document.getElementById('servicesModal').classList.add('show');
+            })
+            .catch(error => {
+                console.error('Lỗi khi tải danh sách dịch vụ:', error);
+            });
+    }
+
+    function addInvoiceItem(type, item) {
+        const newItem = {
+            type: type,
+            itemId: item._id,
+            name: item.name,
+            quantity: 1,
+            unitPrice: item.price,
+            totalPrice: item.price
+        };
+
+        invoiceItems.push(newItem);
+        updateInvoiceTable();
+        calculateTotal();
+
+        // Close the modal
+        document.getElementById(`${type}sModal`).classList.remove('show');
+    }
+
+    function updateInvoiceTable() {
+        document.getElementById('invoiceItems').innerHTML = invoiceItems.map((item, index) => `
+            <tr>
+                <td>${item.name}</td>
+                <td>${item.type === 'service' ? 'Dịch vụ' : 'Thuốc'}</td>
+                <td>
+                    <input type="number" 
+                           class="form-control form-control-sm" 
+                           style="width: 80px"
+                           value="${item.quantity}"
+                           min="1"
+                           onchange="updateItemQuantity(${index}, this.value)">
+                </td>
+                <td>${formatCurrency(item.unitPrice)}</td>
+                <td>${formatCurrency(item.totalPrice)}</td>
+                <td>
+                    <button type="button" 
+                            class="btn btn-danger btn-sm"
+                            onclick="removeInvoiceItem(${index})">
+                        <i class="fas fa-trash"></i>
+                    </button>
+                </td>
+            </tr>
+        `).join('');
+    }
+
+    function updateItemQuantity(index, quantity) {
+        invoiceItems[index].quantity = parseInt(quantity);
+        invoiceItems[index].totalPrice = invoiceItems[index].unitPrice * quantity;
+        updateInvoiceTable();
+        calculateTotal();
+    }
+
+    function removeInvoiceItem(index) {
+        invoiceItems.splice(index, 1);
+        updateInvoiceTable();
+        calculateTotal();
+    }
+
+    function calculateTotal() {
+        const subtotal = invoiceItems.reduce((sum, item) => sum + item.totalPrice, 0);
+        const discountType = document.getElementById('discountType').value;
+        const discountValue = parseFloat(document.getElementById('discountValue').value) || 0;
+
+        let discount = 0;
+        if (discountType === 'percent') {
+            discount = subtotal * (discountValue / 100);
+        } else {
+            discount = discountValue;
+        }
+
+        const afterDiscount = subtotal - discount;
+        const tax = afterDiscount * 0.08; // 8% VAT
+        const total = afterDiscount + tax;
+
+        document.getElementById('subtotal').textContent = formatCurrency(subtotal);
+        document.getElementById('tax').textContent = formatCurrency(tax);
+        document.getElementById('total').textContent = formatCurrency(total);
+    }
+
+    function processPayment() {
+        if (!selectedPatient) {
+            alert('Vui lòng chọn bệnh nhân');
+            return;
+        }
+
+        if (invoiceItems.length === 0) {
+            alert('Vui lòng thêm dịch vụ hoặc thuốc vào hóa đơn');
+            return;
+        }
+
+        // Thu thập thông tin hóa đơn
+        const invoice = {
+            patientId: selectedPatient._id,
+            items: invoiceItems,
+            discountType: document.getElementById('discountType').value,
+            discountValue: parseFloat(document.getElementById('discountValue').value) || 0,
+            paymentMethod: document.getElementById('paymentMethod').value,
+            notes: document.getElementById('paymentNotes').value,
+            paymentDate: new Date().toISOString() // Thêm thời gian hiện tại
+        };
+
+        console.log('Dữ liệu gửi lên:', invoice); // Kiểm tra dữ liệu gửi lên
+
+        // Gửi yêu cầu cập nhật hóa đơn
+        fetch('/receptionist/api/invoices', {
+            method: 'PUT',
+            headers: {
+                'Content-Type': 'application/json'
+            },
+            body: JSON.stringify(invoice)
+        })
+            .then(response => {
+                if (!response.ok) {
+                    throw new Error('Yêu cầu không hợp lệ');
+                }
+                return response.json();
+            })
+            .then(result => {
+                if (result.success) {
+                    alert('Thanh toán thành công!');
+                    closeModal('paymentModal');
+                    window.location.reload();
+                } else {
+                    alert(result.message || 'Có lỗi xảy ra khi xử lý thanh toán');
+                }
+            })
+            .catch(error => {
+                console.error('Lỗi khi xử lý thanh toán:', error);
+                alert('Đã xảy ra lỗi. Vui lòng thử lại.');
+            });
+    }
+
+    function formatCurrency(amount) {
+        return new Intl.NumberFormat('vi-VN', {
+            style: 'currency',
+            currency: 'VND'
+        }).format(amount);
+    }
+
+    function updateInvoiceDetails(invoice) {
+        if (!invoice) {
+            console.error('Hóa đơn không hợp lệ.');
+            return;
+        }
+
+        // Cập nhật giá trị giảm giá
+        if (invoice.discount) {
+            document.getElementById('discountValue').value = invoice.discount.value || 0;
+            document.getElementById('discountType').value = invoice.discount.type || 'amount';
+        }
+
+        // Cập nhật ghi chú thanh toán
+        document.getElementById('paymentNotes').value = invoice.notes || '';
+
+        // Tính toán lại tổng tiền
+        calculateTotal();
+    }
+
+    function openPaymentModal(invoice, appointmentType) {
+        // Hiển thị modal
+        document.getElementById('paymentModal').classList.add('show');
+
+        // Cập nhật thông tin giảm giá từ hóa đơn
+        updateInvoiceDetails(invoice);
+        // Tìm và thêm dịch vụ dựa trên loại lịch hẹn
+        if (appointmentType) {
+            fetchAndAddServiceByType(appointmentType);
+        }
+        // Cập nhật các thông tin khác nếu cần
+        if (invoice) {
+            selectedPatient = { _id: invoice.patientId }; // Gán bệnh nhân từ hóa đơn
+            console.log('Selected patient:', selectedPatient); // Kiểm tra bệnh nhân đã chọn
+            invoiceItems = invoice.items || []; // Gán danh sách mục hóa đơn
+            updateInvoiceTable(); // Cập nhật bảng hóa đơn
+            calculateTotal(); // Tính toán lại tổng tiền
+        }
+    }
+
+    function saveInvoice() {
+        if (!selectedPatient) {
+            alert('Vui lòng chọn bệnh nhân trước khi lưu hóa đơn.');
+            return;
+        }
+
+        if (invoiceItems.length === 0) {
+            alert('Vui lòng thêm dịch vụ hoặc thuốc vào hóa đơn trước khi lưu.');
+            return;
+        }
+        // Thu thập thông tin hóa đơn
+        const invoice = {
+            patientId: selectedPatient._id,
+            appointmentId: selectedPatient.appointmentId || null, // Nếu có liên kết với lịch hẹn
+            issueDate: new Date(),
+            status: 'Chưa thanh toán', // Mặc định là chưa thanh toán
+            items: invoiceItems.map(item => ({
+                type: item.type,
+                itemId: item.itemId,
+                name: item.name,
+                quantity: item.quantity,
+                unitPrice: item.unitPrice,
+                totalPrice: item.totalPrice
+            })),
+            subtotal: invoiceItems.reduce((sum, item) => sum + item.totalPrice, 0),
+            discount: {
+                type: document.getElementById('discountType').value,
+                value: parseFloat(document.getElementById('discountValue').value) || 0,
+                reason: document.getElementById('discountReason')?.value || ''
+            },
+            tax: invoiceItems.reduce((sum, item) => sum + item.totalPrice, 0) * 0.08, // 8% VAT
+            grandTotal: calculateTotalAmount(),
+            paymentMethod: document.getElementById('paymentMethod').value,
+            paymentDate: null, // Chưa thanh toán
+            issuedBy: currentUserId, // ID của người lập hóa đơn
+            notes: document.getElementById('paymentNotes').value,
+            createdAt: new Date(),
+            updatedAt: new Date()
+        };
+        // Gửi hóa đơn đến API
+        fetch('/receptionist/api/invoices', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json'
+            },
+            body: JSON.stringify(invoice)
+        })
+            .then(response => response.json())
+            .then(result => {
+                if (result.success) {
+                    closeModal('paymentModal');
+                    window.location.reload(); // Làm mới trang sau khi lưu
+                } else {
+                    alert('Có lỗi xảy ra khi lưu hóa đơn.');
+                }
+            })
+            .catch(error => {
+                console.error('Lỗi khi lưu hóa đơn:', error);
+                alert('Không thể lưu hóa đơn. Vui lòng thử lại.');
+            });
+    }
+
+    function fetchAndAddServiceByType(appointmentType) {
+        if (!appointmentType) {
+            console.error('Loại dịch vụ không hợp lệ.');
+            return;
+        }
+        console.log(appointmentType);
+
+        // Gửi yêu cầu tìm kiếm dịch vụ theo loại
+        fetch(`/receptionist/api/services/${appointmentType}`)
+            .then(response => response.json())
+            .then(services => {
+                if (services.length > 0) {
+                    // Lấy dịch vụ đầu tiên (hoặc tất cả nếu cần)
+                    const service = services[0]; // Hoặc lặp qua tất cả dịch vụ nếu cần
+                    addInvoiceItem('service', {
+                        _id: service._id,
+                        name: service.name,
+                        price: service.price
+                    });
+                } else {
+                    alert('Không tìm thấy dịch vụ phù hợp với loại lịch hẹn.');
+                }
+            })
+            .catch(error => {
+                console.error('Lỗi khi tìm kiếm dịch vụ:', error);
+                alert('Đã xảy ra lỗi khi tìm kiếm dịch vụ.');
+            });
+    }
+    function calculateTotalAmount() {
+        const subtotal = invoiceItems.reduce((sum, item) => sum + item.totalPrice, 0);
+        const discountType = document.getElementById('discountType').value;
+        const discountValue = parseFloat(document.getElementById('discountValue').value) || 0;
+
+        let discount = 0;
+        if (discountType === 'percent') {
+            discount = subtotal * (discountValue / 100);
+        } else {
+            discount = discountValue;
+        }
+
+        const afterDiscount = subtotal - discount;
+        const tax = afterDiscount * 0.08; // 8% VAT
+        return afterDiscount + tax;
+    }
+    function closeModal(modalId) {
+        const modal = document.getElementById(modalId);
+        if (modal) {
+            modal.classList.remove('show');
+        }
+
+        if (modalId === 'paymentModal') {
+            // Kiểm tra và reset các trường trong modal
+            const patientSearch = document.getElementById('paymentPatientSearch');
+            if (patientSearch) {
+                patientSearch.value = '';
+            }
+
+            const patientInfo = document.getElementById('paymentPatientInfo');
+            if (patientInfo) {
+                patientInfo.style.display = 'none';
+            }
+
+            const discountValue = document.getElementById('discountValue');
+            if (discountValue) {
+                discountValue.value = '';
+            }
+
+            const paymentNotes = document.getElementById('paymentNotes');
+            if (paymentNotes) {
+                paymentNotes.value = '';
+            }
+
+            // Reset danh sách hóa đơn
+            invoiceItems = [];
+            updateInvoiceTable();
+            calculateTotal();
+            selectedPatient = null;
+        }
+    }
+
+    function handleMedicationClick(button) {
+        const medication = JSON.parse(button.getAttribute('data-medication'));
+        console.log("Medication clicked:", medication);
+        addInvoiceItem('medication', medication);
+    }
+    // function closeModal(modalId) {
+    //     document.getElementById(modalId).classList.remove('show');
+    // }
+</script>
+
+<style>
+    .medication-item {
+        margin-bottom: 10px;
+    }
+
+    .medication-item button {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        padding: 10px;
+        border: 1px solid #ddd;
+        border-radius: 5px;
+        background-color: #f8f9fa;
+        transition: background-color 0.2s;
+    }
+
+    .medication-item button:hover {
+        background-color: #e9ecef;
+    }
+
+    .medication-item h6 {
+        margin: 0;
+        font-size: 1rem;
+    }
+
+    .medication-item small {
+        color: #6c757d;
+    }
+
+    .medication-item strong {
+        font-size: 1rem;
+        color: #000;
+    }
+</style>

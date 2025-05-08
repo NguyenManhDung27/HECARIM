@@ -1,0 +1,318 @@
+<!-- New Patient Modal -->
+<div class="modal" id="newPatientModal">
+    <div class="modal-dialog modal-lg">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">Đăng ký bệnh nhân mới</h5>
+                <button type="button" class="modal-close" onclick="closeModal('newPatientModal')">
+                    <i class="fas fa-times"></i>
+                </button>
+            </div>
+            <div class="modal-body">
+                <form id="patientForm">
+                    <!-- Personal Information -->
+                    <h6 class="mb-3">Thông tin cá nhân</h6>
+                    <div class="row mb-4">
+                        <div class="col-md-6">
+                            <div class="form-group mb-3">
+                                <label class="form-label">Họ và tên</label>
+                                <input type="text" class="form-control" name="fullName" required>
+                            </div>
+                        </div>
+                        <div class="col-md-6">
+                            <div class="form-group mb-3">
+                                <label class="form-label">Giới tính</label>
+                                <select class="form-select" name="gender" required>
+                                    <option value="">Chọn giới tính...</option>
+                                    <option value="Nam">Nam</option>
+                                    <option value="Nữ">Nữ</option>
+                                </select>
+                            </div>
+                        </div>
+                        <div class="col-md-6">
+                            <div class="form-group mb-3">
+                                <label class="form-label">Ngày sinh</label>
+                                <input type="date" class="form-control" name="dateOfBirth" required>
+                            </div>
+                        </div>
+                        <div class="col-md-6">
+                            <div class="form-group mb-3">
+                                <label class="form-label">CCCD/CMND</label>
+                                <input type="text" class="form-control" name="idNumber" required>
+                            </div>
+                        </div>
+                        <div class="col-12">
+                            <div class="form-group mb-3">
+                                <label class="form-label">Địa chỉ</label>
+                                <input type="text" class="form-control" name="address" required>
+                            </div>
+                        </div>
+                        <div class="col-md-6">
+                            <div class="form-group mb-3">
+                                <label class="form-label">Số điện thoại</label>
+                                <input type="tel" class="form-control" name="phone" required>
+                            </div>
+                        </div>
+                        <div class="col-md-6">
+                            <div class="form-group mb-3">
+                                <label class="form-label">Email</label>
+                                <input type="email" class="form-control" name="email">
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Emergency Contact -->
+                    <h6 class="mb-3">Thông tin liên hệ khẩn cấp</h6>
+                    <div class="row mb-4">
+                        <div class="col-md-6">
+                            <div class="form-group mb-3">
+                                <label class="form-label">Họ tên người liên hệ</label>
+                                <input type="text" class="form-control" name="emergencyContact.name" required>
+                            </div>
+                        </div>
+                        <div class="col-md-6">
+                            <div class="form-group mb-3">
+                                <label class="form-label">Mối quan hệ</label>
+                                <input type="text" class="form-control" name="emergencyContact.relationship" required>
+                            </div>
+                        </div>
+                        <div class="col-md-6">
+                            <div class="form-group mb-3">
+                                <label class="form-label">Số điện thoại</label>
+                                <input type="tel" class="form-control" name="emergencyContact.phone" required>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Health Information -->
+                    <h6 class="mb-3">Thông tin sức khỏe</h6>
+                    <div class="row mb-4">
+                        <div class="col-md-6">
+                            <div class="form-group mb-3">
+                                <label class="form-label">Nhóm máu</label>
+                                <select class="form-select" name="bloodType">
+                                    <option value="">Chọn nhóm máu...</option>
+                                    <option value="A+">A+</option>
+                                    <option value="A-">A-</option>
+                                    <option value="B+">B+</option>
+                                    <option value="B-">B-</option>
+                                    <option value="O+">O+</option>
+                                    <option value="O-">O-</option>
+                                    <option value="AB+">AB+</option>
+                                    <option value="AB-">AB-</option>
+                                </select>
+                            </div>
+                        </div>
+                        <div class="col-md-3">
+                            <div class="form-group mb-3">
+                                <label class="form-label">Chiều cao (cm)</label>
+                                <input type="number" class="form-control" name="height">
+                            </div>
+                        </div>
+                        <div class="col-md-3">
+                            <div class="form-group mb-3">
+                                <label class="form-label">Cân nặng (kg)</label>
+                                <input type="number" class="form-control" name="weight">
+                            </div>
+                        </div>
+                        <div class="col-12">
+                            <div class="form-group mb-3">
+                                <label class="form-label">Dị ứng</label>
+                                <input type="text" class="form-control" name="allergies"
+                                    placeholder="Các loại dị ứng, phân cách bằng dấu phẩy">
+                            </div>
+                        </div>
+                        <div class="col-12">
+                            <div class="form-group mb-3">
+                                <label class="form-label">Bệnh mãn tính</label>
+                                <input type="text" class="form-control" name="chronicDiseases"
+                                    placeholder="Các bệnh mãn tính, phân cách bằng dấu phẩy">
+                            </div>
+                        </div>
+                        <div class="col-12">
+                            <div class="form-group mb-3">
+                                <label class="form-label">Tiền sử bệnh gia đình</label>
+                                <textarea class="form-control" name="familyMedicalHistory" rows="3"></textarea>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Insurance Information -->
+                    <h6 class="mb-3">Thông tin bảo hiểm</h6>
+                    <div class="row">
+                        <div class="col-md-6">
+                            <div class="form-group mb-3">
+                                <label class="form-label">Công ty bảo hiểm</label>
+                                <input type="text" class="form-control" name="insurance.provider">
+                            </div>
+                        </div>
+                        <div class="col-md-6">
+                            <div class="form-group mb-3">
+                                <label class="form-label">Số thẻ bảo hiểm</label>
+                                <input type="text" class="form-control" name="insurance.policyNumber">
+                            </div>
+                        </div>
+                        <div class="col-md-6">
+                            <div class="form-group mb-3">
+                                <label class="form-label">Ngày hết hạn</label>
+                                <input type="date" class="form-control" name="insurance.expiryDate">
+                            </div>
+                        </div>
+                    </div>
+                </form>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" onclick="closeModal('newPatientModal')">
+                    Hủy
+                </button>
+                <button type="button" class="btn btn-primary" onclick="savePatient()">
+                    Đăng ký
+                </button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+    function savePatient() {
+        if (!validateForm()) {
+            return;
+        }
+
+        const form = document.getElementById('patientForm');
+        const formData = new FormData(form);
+
+        const personalInfo = {};
+        const healthInfo = {
+            allergies: [],
+            chronicDiseases: []
+        };
+
+        formData.forEach((value, key) => {
+            switch (key) {
+                // Personal Info
+                case 'fullName':
+                case 'gender':
+                case 'idNumber':
+                case 'address':
+                case 'phone':
+                case 'email':
+                    personalInfo[key] = value;
+                    break;
+                case 'dateOfBirth':
+                    personalInfo.dateOfBirth = new Date(value).toISOString(); // convert to ISO string
+                    break;
+
+                // Health Info
+                case 'bloodType':
+                case 'height':
+                case 'weight':
+                case 'familyMedicalHistory':
+                    healthInfo[key] = value;
+                    break;
+                case 'allergies':
+                case 'chronicDiseases':
+                    healthInfo[key] = value
+                        ? value.split(',').map(item => item.trim()).filter(item => item)
+                        : [];
+                    break;
+
+                // Các trường khác như emergencyContact, insurance không cần xử lý
+            }
+        });
+
+        const data = {
+            personalInfo,
+            healthInfo
+        };
+        fetch('/receptionist/api/patients', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+            },
+            body: JSON.stringify(data)
+        })
+            .then(response => {
+                if (!response.ok) {
+                    return response.json().then(err => {
+                        throw new Error(err.error || 'Có lỗi xảy ra khi đăng ký bệnh nhân');
+                    });
+                }
+                return response.json();
+            })
+            .then(result => {
+                if (result.success) {
+                    closeModal('newPatientModal');
+                    window.location.reload();
+                }
+            })
+            .catch(err => {
+                console.error('Lỗi:', err.message);
+                alert(err.message); // Hiển thị thông báo lỗi từ server
+            });
+    }
+
+
+
+    function showModal(modalId) {
+        const modal = document.getElementById(modalId);
+        modal.classList.add('show');
+        document.body.style.overflow = 'hidden';
+    }
+
+    function closeModal(modalId) {
+        const modal = document.getElementById(modalId);
+        modal.classList.remove('show');
+        document.body.style.overflow = '';
+
+        // Reset form
+        if (modalId === 'newPatientModal') {
+            document.getElementById('patientForm').reset();
+            clearValidation();
+        }
+    }
+
+    function clearValidation() {
+        // Remove any existing error messages
+        document.querySelectorAll('.error-message').forEach(el => el.remove());
+        document.querySelectorAll('.form-control.is-invalid').forEach(el => {
+            el.classList.remove('is-invalid');
+        });
+    }
+
+    function validateForm() {
+        const form = document.getElementById('patientForm');
+        const requiredFields = form.querySelectorAll('[required]');
+        let isValid = true;
+
+        clearValidation();
+
+        requiredFields.forEach(field => {
+            if (!field.value.trim()) {
+                isValid = false;
+                field.classList.add('is-invalid');
+
+                const errorDiv = document.createElement('div');
+                errorDiv.className = 'error-message';
+                errorDiv.textContent = 'Trường này là bắt buộc';
+                field.parentNode.appendChild(errorDiv);
+            }
+        });
+
+        // Phone number validation
+        const phoneFields = form.querySelectorAll('input[type="tel"]');
+        phoneFields.forEach(field => {
+            if (field.value && !/^[0-9]{10,11}$/.test(field.value)) {
+                isValid = false;
+                field.classList.add('is-invalid');
+
+                const errorDiv = document.createElement('div');
+                errorDiv.className = 'error-message';
+                errorDiv.textContent = 'Số điện thoại không hợp lệ';
+                field.parentNode.appendChild(errorDiv);
+            }
+        });
+
+        return isValid;
+    }
+</script>
