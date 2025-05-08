@@ -21,10 +21,16 @@
     <i class="fas fa-prescription"></i>
     <span>Đơn thuốc</span>
 </a>
+
 </a>
 <a href="{{ url_for('patient.change_password') }}" class="nav-link">
     <i class="fas fa-user"></i>
     Chỉnh sửa mật khẩu
+
+<a href="{{ url_for('patient.invoices') }}" class="nav-link">
+    <i class="fas fa-file-invoice"></i>
+    <span>Hóa đơn</span>
+
 </a>
 {% endblock %}
 
@@ -51,7 +57,7 @@
             </div>
         </div>
     </div>
-<!--
+    <!--
     Upcoming Appointments
     <div class="col">
         <div class="card">
@@ -151,4 +157,4 @@ Recent Records
     </div>
 </div>
 -->
-{% endblock %}
+    {% endblock %}

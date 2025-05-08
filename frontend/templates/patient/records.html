@@ -21,10 +21,16 @@
     <i class="fas fa-prescription"></i>
     <span>Đơn thuốc</span>
 </a>
+
 </a>
 <a href="{{ url_for('patient.change_password') }}" class="nav-link">
     <i class="fas fa-user"></i>
     Chỉnh sửa mật khẩu
+
+<a href="{{ url_for('patient.invoices') }}" class="nav-link">
+    <i class="fas fa-file-invoice"></i>
+    <span>Hóa đơn</span>
+
 </a>
 {% endblock %}
 
@@ -65,10 +71,9 @@
                                 {% endif %}
                             </td>
                             <td>
-                                <button type="button" 
-                                        class="btn btn-primary btn-sm" 
-                                        onclick="viewRecord('{{ record._id }}')">
-                                    <i class="fas fa-eye"></i> 
+                                <button type="button" class="btn btn-primary btn-sm"
+                                    onclick="viewRecord('{{ record._id }}')">
+                                    <i class="fas fa-eye"></i>
                                     Xem
                                 </button>
                             </td>
@@ -77,9 +82,9 @@
                     </tbody>
                 </table>
             </div>
-    
-    <!-- Medical Summary -->
-    <!--<div class="col-lg-4">
+
+            <!-- Medical Summary -->
+            <!--<div class="col-lg-4">
         <div class="card mb-4">
             <div class="card-header">
                 <h2 class="card-title">
@@ -141,8 +146,8 @@
             </div>
         </div>-->
 
-        <!-- Health Metrics -->
-        <!--<div class="card">
+            <!-- Health Metrics -->
+            <!--<div class="card">
             <div class="card-header">
                 <h2 class="card-title">
                     <i class="fas fa-chart-line me-2"></i>
@@ -186,110 +191,110 @@
                 {% endif %}
             </div>
         </div>-->
-<!-- View Record Modal -->
-<div class="modal" id="viewRecordModal">
-    <div class="modal-dialog modal-lg">
-        <div class="modal-content">
-            <div class="modal-header">
-                <h5 class="modal-title">Chi tiết hồ sơ bệnh án</h5>
-                <button type="button" class="btn-close" onclick="closeModal()"></button>
+            <!-- View Record Modal -->
+            <div class="modal" id="viewRecordModal">
+                <div class="modal-dialog modal-lg">
+                    <div class="modal-content">
+                        <div class="modal-header">
+                            <h5 class="modal-title">Chi tiết hồ sơ bệnh án</h5>
+                            <button type="button" class="btn-close" onclick="closeModal()"></button>
+                        </div>
+                        <div class="modal-body" id="recordDetails">
+                            <!-- Record details will be injected here -->
+                        </div>
+                    </div>
+                </div>
             </div>
-            <div class="modal-body" id="recordDetails">
-                <!-- Record details will be injected here -->
-            </div>
+
         </div>
     </div>
-</div>
 
-    </div>
-</div>
+    <style>
+        .medical-timeline {
+            position: relative;
+            padding: 2rem 0;
+        }
 
-<style>
-.medical-timeline {
-    position: relative;
-    padding: 2rem 0;
-}
+        .timeline-item {
+            position: relative;
+            padding-left: 3rem;
+            margin-bottom: 2rem;
+        }
 
-.timeline-item {
-    position: relative;
-    padding-left: 3rem;
-    margin-bottom: 2rem;
-}
+        .timeline-marker {
+            position: absolute;
+            left: 0;
+            top: 0;
+            width: 2rem;
+            height: 2rem;
+            border-radius: 50%;
+            background: var(--white);
+            border: 2px solid var(--primary);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
 
-.timeline-marker {
-    position: absolute;
-    left: 0;
-    top: 0;
-    width: 2rem;
-    height: 2rem;
-    border-radius: 50%;
-    background: var(--white);
-    border: 2px solid var(--primary);
-    display: flex;
-    align-items: center;
-    justify-content: center;
-}
+        .timeline-marker i {
+            font-size: 0.8rem;
+            color: var(--primary);
+        }
 
-.timeline-marker i {
-    font-size: 0.8rem;
-    color: var(--primary);
-}
+        .timeline-content {
+            position: relative;
+        }
 
-.timeline-content {
-    position: relative;
-}
+        .timeline-content::before {
+            content: '';
+            position: absolute;
+            left: -2rem;
+            top: 1rem;
+            width: 2rem;
+            height: 2px;
+            background: var(--gray-300);
+        }
 
-.timeline-content::before {
-    content: '';
-    position: absolute;
-    left: -2rem;
-    top: 1rem;
-    width: 2rem;
-    height: 2px;
-    background: var(--gray-300);
-}
+        .timeline-item:not(:last-child)::after {
+            content: '';
+            position: absolute;
+            left: 1rem;
+            top: 2rem;
+            bottom: -2rem;
+            width: 2px;
+            background: var(--gray-300);
+        }
 
-.timeline-item:not(:last-child)::after {
-    content: '';
-    position: absolute;
-    left: 1rem;
-    top: 2rem;
-    bottom: -2rem;
-    width: 2px;
-    background: var(--gray-300);
-}
+        .metric-item label {
+            font-weight: 500;
+            color: var(--text);
+            margin-bottom: 0.25rem;
+        }
 
-.metric-item label {
-    font-weight: 500;
-    color: var(--text);
-    margin-bottom: 0.25rem;
-}
+        .test-result-item {
+            padding: 1rem;
+            border: 1px solid var(--gray-200);
+            border-radius: var(--border-radius-md);
+        }
 
-.test-result-item {
-    padding: 1rem;
-    border: 1px solid var(--gray-200);
-    border-radius: var(--border-radius-md);
-}
-
-.test-result-item h6 {
-    margin-bottom: 0.5rem;
-    color: var(--text);
-}
-</style>
+        .test-result-item h6 {
+            margin-bottom: 0.5rem;
+            color: var(--text);
+        }
+    </style>
 
 
-{% endblock %}
+    {% endblock %}
 
-{% block extra_scripts %}
-<script>
-function viewRecord(recordId) {
-    fetch(`/patient/api/api/records/${recordId}`)
-        .then(response => response.json())
-        .then(record => {
-            const modal = document.getElementById('viewRecordModal');
-            const details = document.getElementById('recordDetails');
-            
-            details.innerHTML = `
+    {% block extra_scripts %}
+    <script>
+        function viewRecord(recordId) {
+            fetch(`/patient/api/api/records/${recordId}`)
+                .then(response => response.json())
+                .then(record => {
+                    const modal = document.getElementById('viewRecordModal');
+                    const details = document.getElementById('recordDetails');
+
+                    details.innerHTML = `
                 <div class="row mb-3">
                     <div class="col-md-6">
                         <h6>Thông tin bệnh nhân</h6>
@@ -343,31 +348,30 @@ function viewRecord(recordId) {
                     <p>${record.notes}</p>
                 </div>
             `;
-            
-            modal.classList.add('show');
-        });
-}
-// Close modal when clicking outside
-document.addEventListener('click', function(event) {
-        const modal = document.getElementById('viewRecordModal');
-        if (event.target === modal) {
-            modal.classList.remove('show');
+
+                    modal.classList.add('show');
+                });
         }
-    });
+        // Close modal when clicking outside
+        document.addEventListener('click', function (event) {
+            const modal = document.getElementById('viewRecordModal');
+            if (event.target === modal) {
+                modal.classList.remove('show');
+            }
+        });
 
-    // Close modal when clicking close button
-    document.querySelector('.btn-close').addEventListener('click', function() {
-        document.getElementById('viewRecordModal').classList.remove('show');
-    });
-    document.getElementById('searchMedicalRecords').addEventListener('input', function (e) {
-    const searchTerm = e.target.value.toLowerCase();
-    const rows = document.querySelectorAll('tbody tr');
+        // Close modal when clicking close button
+        document.querySelector('.btn-close').addEventListener('click', function () {
+            document.getElementById('viewRecordModal').classList.remove('show');
+        });
+        document.getElementById('searchMedicalRecords').addEventListener('input', function (e) {
+            const searchTerm = e.target.value.toLowerCase();
+            const rows = document.querySelectorAll('tbody tr');
 
-    rows.forEach(row => {
-        const text = row.textContent.toLowerCase();
-        row.style.display = text.includes(searchTerm) ? '' : 'none';
-    });
-});
-</script>
-{% endblock %}
-
+            rows.forEach(row => {
+                const text = row.textContent.toLowerCase();
+                row.style.display = text.includes(searchTerm) ? '' : 'none';
+            });
+        });
+    </script>
+    {% endblock %}

@@ -409,7 +409,6 @@
             alert('Vui lòng thêm dịch vụ hoặc thuốc vào hóa đơn trước khi lưu.');
             return;
         }
-        console.log('Lưu hóa đơn:', selectedPatient); // Kiểm tra dữ liệu hóa đơn
         // Thu thập thông tin hóa đơn
         const invoice = {
             patientId: selectedPatient._id,
@@ -439,7 +438,6 @@
             createdAt: new Date(),
             updatedAt: new Date()
         };
-        console.log('Dữ liệu hóa đơn:', invoice); // Kiểm tra dữ liệu hóa đơn
         // Gửi hóa đơn đến API
         fetch('/receptionist/api/invoices', {
             method: 'POST',
@@ -451,7 +449,6 @@
             .then(response => response.json())
             .then(result => {
                 if (result.success) {
-                    alert('Hóa đơn đã được lưu thành công!');
                     closeModal('paymentModal');
                     window.location.reload(); // Làm mới trang sau khi lưu
                 } else {
@@ -483,7 +480,6 @@
                         name: service.name,
                         price: service.price
                     });
-                    alert(`Dịch vụ "${service.name}" đã được thêm vào hóa đơn.`);
                 } else {
                     alert('Không tìm thấy dịch vụ phù hợp với loại lịch hẹn.');
                 }

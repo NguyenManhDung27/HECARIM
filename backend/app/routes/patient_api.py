@@ -1,5 +1,7 @@
 from flask import Blueprint, jsonify, request
 from flask_login import login_required, current_user
+
+from backend.app.utils.auth_utils import role_required
 from ..extensions import mongo
 from bson import ObjectId
 from datetime import datetime, timedelta
@@ -235,3 +237,59 @@ def get_medical_record(record_id):
     except Exception as e:
         print(f"Error fetching medical record: {e}")
         return jsonify({'error': 'An error occurred'}), 500
+    
+@patient_api.route('/invoices/details/<invoice_id>', methods=['GET'])
+@login_required
+@role_required('patient')
+def get_invoice_details(invoice_id):
+    try:
+        # Tìm hóa đơn theo ID
+        invoice = mongo.db.invoices.find_one({'_id': ObjectId(invoice_id)})
+        if not invoice:
+            return jsonify({'success': False, 'message': 'Hóa đơn không tồn tại'}), 404
+
+        # Chuyển đổi ObjectId sang chuỗi
+        invoice['_id'] = str(invoice['_id'])
+        invoice['patientId'] = str(invoice['patientId'])
+        if invoice.get('appointmentId'):
+            invoice['appointmentId'] = str(invoice['appointmentId'])
+        if invoice.get('issuedBy'):
+            invoice['issuedBy'] = str(invoice['issuedBy'])
+        # Truy vấn thông tin bệnh nhân
+        patient = mongo.db.patients.find_one({'_id': ObjectId(invoice['patientId'])})
+        invoice['patientName'] = patient['personalInfo']['fullName'] if patient else 'Không xác định'
+
+        # Trả về chi tiết hóa đơn
+        return jsonify({'success': True, 'invoice': invoice}), 200
+
+    except Exception as e:
+        print(f'Lỗi khi lấy chi tiết hóa đơn: {e}')
+        return jsonify({'success': False, 'message': 'Đã xảy ra lỗi khi lấy chi tiết hóa đơn'}), 500
+    
+@patient_api.route('/invoices', methods=['GET'])
+@login_required
+# @role_required('patient')
+def get_invoices():
+    print("get_invoices")
+    try:
+        invoices = mongo.db.invoices.find({'patientId': ObjectId(current_user.user_data.get('patient_id'))})
+        result = []
+        for invoice in invoices:
+            invoice['_id'] = str(invoice['_id'])
+            invoice['patientId'] = str(invoice['patientId'])
+            
+            # Truy vấn tên bệnh nhân từ collection patients
+            patient = mongo.db.patients.find_one({'_id': ObjectId(invoice['patientId'])})
+            invoice['patientName'] = patient['personalInfo']['fullName'] if patient else 'Không xác định'
+            # print(invoice['patientName'])
+            if invoice.get('appointmentId'):
+                invoice['appointmentId'] = str(invoice['appointmentId'])
+            invoice['issuedBy'] = str(invoice['issuedBy'])
+            result.append(invoice)
+
+        return jsonify({'success': True, 'invoices': result}), 200
+
+    except Exception as e:
+        print(f'Lỗi khi lấy danh sách hóa đơn: {e}')
+        return jsonify({'success': False, 'message': 'Đã xảy ra lỗi khi lấy danh sách hóa đơn'}), 500
+    

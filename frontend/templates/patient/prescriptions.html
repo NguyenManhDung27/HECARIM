@@ -21,10 +21,16 @@
     <i class="fas fa-prescription"></i>
     <span>Đơn thuốc</span>
 </a>
+
 </a>
 <a href="{{ url_for('patient.change_password') }}" class="nav-link">
     <i class="fas fa-user"></i>
     Chỉnh sửa mật khẩu
+
+<a href="{{ url_for('patient.invoices') }}" class="nav-link">
+    <i class="fas fa-file-invoice"></i>
+    <span>Hóa đơn</span>
+
 </a>
 {% endblock %}
 
@@ -81,31 +87,31 @@
 </script>
 
 <style>
-.accordion-button:not(.collapsed) {
-    background-color: var(--gray-100);
-    color: var(--primary);
-}
+    .accordion-button:not(.collapsed) {
+        background-color: var(--gray-100);
+        color: var(--primary);
+    }
 
-.prescription-details {
-    background-color: var(--white);
-    border-radius: var(--border-radius-md);
-    padding: var(--spacing-md);
-}
+    .prescription-details {
+        background-color: var(--white);
+        border-radius: var(--border-radius-md);
+        padding: var(--spacing-md);
+    }
 
-.filter-controls {
-    width: 300px;
-}
-
-@media (max-width: 768px) {
     .filter-controls {
-        width: 100%;
-        margin-top: var(--spacing-sm);
+        width: 300px;
     }
-    
-    .card-header {
-        flex-direction: column;
-        align-items: stretch;
+
+    @media (max-width: 768px) {
+        .filter-controls {
+            width: 100%;
+            margin-top: var(--spacing-sm);
+        }
+
+        .card-header {
+            flex-direction: column;
+            align-items: stretch;
+        }
     }
-}
 </style>
 {% endblock %}

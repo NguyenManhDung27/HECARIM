@@ -50,6 +50,27 @@ def create_appointment():
     }
     try:
         mongo.db.appointments.insert_one(appointment_data)
+        patient = mongo.db.patients.find_one({'_id': ObjectId(data['patient_id'])})
+        if not patient:
+            return jsonify({'error': 'Không tìm thấy bệnh nhân'}), 404
+        # Gửi email xác nhận lịch hẹn
+        try:
+            msg = Message(
+                subject='Xác nhận lịch hẹn',
+                recipients=[patient['personalInfo']['email']]
+            )
+            msg.html = f"""
+                <h1>Xin chào {patient['personalInfo']['fullName']}</h1>
+                <p>Lịch hẹn của bạn đã được đặt thành công.</p>
+                <p><strong>Thời gian:</strong> {data['appointment_date']} - {data['time_slot']}</p>
+                <p><strong>Loại khám:</strong> {data.get('type', 'Không có')}</p>
+                <p><strong>Lý do:</strong> {data.get('reason', 'Không có')}</p>
+                <p>Cảm ơn bạn đã sử dụng dịch vụ của chúng tôi!</p>
+            """
+            mail.send(msg)
+        except Exception as e:
+            print(f'Lỗi khi gửi email xác nhận lịch hẹn: {e}')
+            return jsonify({'success': False, 'message': 'Đã xảy ra lỗi khi gửi email xác nhận.'}), 500
     except Exception as e:
         return jsonify({'error': 'Internal Server Error'}), 500
     return jsonify({'success': True, "message": "Appointment created successfully"}), 200
@@ -436,9 +457,6 @@ def get_invoices():
     except Exception as e:
         print(f'Lỗi khi lấy danh sách hóa đơn: {e}')
         return jsonify({'success': False, 'message': 'Đã xảy ra lỗi khi lấy danh sách hóa đơn'}), 500
-    
-from flask import jsonify, request
-from bson.objectid import ObjectId
 
 @receptionist_api.route('/invoices/details/<invoice_id>', methods=['GET'])
 @login_required

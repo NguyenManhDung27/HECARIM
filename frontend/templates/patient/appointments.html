@@ -21,6 +21,7 @@
     <i class="fas fa-prescription"></i>
     <span>Đơn thuốc</span>
 </a>
+
 </a>
 <a href="{{ url_for('patient.change_password') }}" class="nav-link">
     <i class="fas fa-user"></i>
@@ -82,6 +83,72 @@
         <button type="submit" class="btn btn-primary"> <i class="fas fa-calendar-check me-2"></i>Đặt lịch </button> 
     </form> 
 </div> 
+
+<a href="{{ url_for('patient.invoices') }}" class="nav-link">
+    <i class="fas fa-file-invoice"></i>
+    <span>Hóa đơn</span>
+</a>
+{% endblock %}
+
+{% block content %}
+<!-- Appointment Booking Form -->
+<div class="card mb-4">
+    <div class="card-header">
+        <h2 class="card-title">
+            <i class="fas fa-calendar-plus me-2"></i>
+            Đặt lịch hẹn mới
+        </h2>
+    </div>
+    <div class="card-body">
+        <form method="POST" action="{{ url_for('patient_api.book_appointment') }}">
+            <div class="row">
+                <div class="col">
+                    <div class="form-group">
+                        <label class="form-label" for="department">Khoa khám bệnh</label>
+                        <select class="form-select" id="department" name="department" required>
+                            <option value="">Chọn khoa</option>
+                            {% for dept in departments %}
+                            <option value="{{ dept }}">{{ dept }}</option>
+                            {% endfor %}
+                        </select>
+                    </div>
+                </div>
+                <div class="col">
+                    <div class="form-group">
+                        <label class="form-label" for="doctor">Bác sĩ</label>
+                        <select class="form-select" id="doctor" name="doctor_id" required>
+                            <option value="">Chọn bác sĩ</option>
+                        </select>
+                    </div>
+                </div>
+            </div>
+            <div class="row">
+                <div class="col">
+                    <div class="form-group">
+                        <label class="form-label" for="date">Ngày khám</label>
+                        <input type="date" class="form-control" id="date" name="date" required>
+                    </div>
+                </div>
+                <div class="col">
+                    <div class="form-group">
+                        <label class="form-label" for="time">Giờ khám</label>
+                        <select class="form-select" id="time" name="time" required>
+                            <option value="">Chọn giờ</option>
+                        </select>
+                    </div>
+                </div>
+            </div>
+            <div class="form-group">
+                <label class="form-label" for="symptoms">Mô tả triệu chứng</label>
+                <textarea class="form-control" id="symptoms" name="symptoms" rows="3"
+                    placeholder="Mô tả ngắn gọn các triệu chứng của bạn"></textarea>
+            </div>
+            <button type="submit" class="btn btn-primary">
+                <i class="fas fa-calendar-check me-2"></i>Đặt lịch
+            </button>
+        </form>
+    </div>
+
 </div>
 
 
@@ -120,16 +187,18 @@
                         </td>
                         <!--<td>
                             {% if appointment.can_cancel %}
-                            <button type="button" 
-                                    class="btn btn-sm btn-danger"
-                                    onclick="cancelAppointment('{{ appointment._id}}')">
+
+                            <button type="button" class="btn btn-sm btn-danger"
+                                onclick="cancelAppointment('{{ appointment.id }}')">
+
                                 <i class="fas fa-times me-1"></i>Hủy
                             </button>
                             {% endif %}
                             {% if appointment.can_reschedule %}
-                            <button type="button" 
-                                    class="btn btn-sm btn-warning"
-                                    onclick="rescheduleAppointment('{{ appointment._id }}')">
+
+                            <button type="button" class="btn btn-sm btn-warning"
+                                onclick="rescheduleAppointment('{{ appointment.id }}')">
+
                                 <i class="fas fa-clock me-1"></i>Đổi lịch
                             </button>
                             {% endif %}
@@ -155,24 +224,26 @@ document.getElementById('department').addEventListener('change', function() {
                 doctorSelect.innerHTML = '<option value="">Chọn bác sĩ</option>';
                 doctors.forEach(doctor => {
                     doctorSelect.innerHTML += `
+
                         <option value="${doctor.id}">${doctor.name}</option>
                     `;
+                    });
+                    doctorSelect.disabled = false;
                 });
-                doctorSelect.disabled = false;
-            });
-    } else {
-        doctorSelect.innerHTML = '<option value="">Chọn bác sĩ</option>';
-        doctorSelect.disabled = true;
-    }
-});
+        } else {
+            doctorSelect.innerHTML = '<option value="">Chọn bác sĩ</option>';
+            doctorSelect.disabled = true;
+        }
+    });
 
-document.getElementById('doctor').addEventListener('change', function() {
-    updateAvailableTimeSlots();
-});
+    document.getElementById('doctor').addEventListener('change', function () {
+        updateAvailableTimeSlots();
+    });
 
-document.getElementById('date').addEventListener('change', function() {
-    updateAvailableTimeSlots();
-});
+    document.getElementById('date').addEventListener('change', function () {
+        updateAvailableTimeSlots();
+    });
+
 
 document.getElementById('time').addEventListener('change', function() {
     updateAvailableTimeSlots();
@@ -196,20 +267,9 @@ function updateAvailableTimeSlots() {
         timeSlotSelect.disabled = true; } }
 
 
-function cancelAppointment(appointmentId) {
-    if (confirm('Bạn có chắc muốn hủy lịch hẹn này?')) {
-        fetch(`/api/appointments/${appointmentId}`, {
-            method: 'DELETE'
-        }).then(response => {
-            if (response.ok) {
-                window.location.reload();
-            }
-        });
-    }
-}
 
-function rescheduleAppointment(appointmentId) {
-    window.location.href = `/patient/appointments/${appointmentId}/reschedule`;
-}
+    function rescheduleAppointment(appointmentId) {
+        window.location.href = `/patient/appointments/${appointmentId}/reschedule`;
+    }
 </script>
 {% endblock %}

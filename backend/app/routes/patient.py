@@ -164,6 +164,7 @@ def prescriptions():
 
 @patient_bp.route('/change_password', methods=['GET', 'POST'])
 @login_required
+
 def change_password():
     if request.method == 'POST':
         data = request.json
@@ -190,3 +191,4 @@ def change_password():
         return jsonify({'success': True, 'message': 'Đổi mật khẩu thành công'})
 
     return render_template('patient/changepassword.html', notifications_count = 3)
+
