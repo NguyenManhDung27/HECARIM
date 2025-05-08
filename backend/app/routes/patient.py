@@ -174,3 +174,8 @@ def profile():
         return "Patient profile not found", 404
     
     return render_template('auth/profile.html', patient=patient, notifications_count=3)
+
+@patient_bp.route('/invoices')
+@login_required
+def invoices():
+    return render_template('patient/invoices.html', notifications_count=3)

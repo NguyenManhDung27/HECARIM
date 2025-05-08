@@ -436,9 +436,6 @@ def get_invoices():
     except Exception as e:
         print(f'Lỗi khi lấy danh sách hóa đơn: {e}')
         return jsonify({'success': False, 'message': 'Đã xảy ra lỗi khi lấy danh sách hóa đơn'}), 500
-    
-from flask import jsonify, request
-from bson.objectid import ObjectId
 
 @receptionist_api.route('/invoices/details/<invoice_id>', methods=['GET'])
 @login_required

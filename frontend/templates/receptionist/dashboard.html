@@ -266,7 +266,6 @@
             .then(response => response.json())
             .then(result => {
                 if (result.success) {
-                    alert('Lịch hẹn đã được cập nhật thành "đã check-in".');
                     window.location.reload(); // Làm mới trang để cập nhật danh sách
                 } else {
                     alert('Không thể cập nhật trạng thái lịch hẹn.');
