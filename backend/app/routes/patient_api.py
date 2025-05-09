@@ -6,11 +6,112 @@ from backend.app.utils.auth_utils import role_required
 from backend.app import mongo, mail
 from bson import ObjectId
 from datetime import datetime, timedelta
+import sys
+import os
+import pandas as pd
+import numpy as np
+
+# Thêm thư mục gốc vào sys.path để có thể import module từ AI/
+sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), '../../../')))
+from AI.test import load_data, preprocess_data, train_decision_tree, predict_disease, fuzzy_match
 
 # mail = Mail()
 patient_api = Blueprint('patient_api', __name__)
 
+# Tải và khởi tạo mô hình AI lúc khởi động ứng dụng
+try:
+    ai_model = None
+    symptom_names = None
+    
+    def initialize_ai_model():
+        global ai_model, symptom_names
+        # Đường dẫn tương đối từ thư mục hiện tại đến file dataset.csv
+        file_path = os.path.abspath(os.path.join(os.path.dirname(__file__), '../../../AI/dataset.csv'))
+        data = load_data(file_path)
+        if data is not None:
+            disease_names, symptoms_data, symptom_names = preprocess_data(data)
+            ai_model = train_decision_tree(symptoms_data, disease_names)
+            return True
+        return False
+    
+    # Khởi tạo mô hình khi server khởi động
+    model_initialized = initialize_ai_model()
+except Exception as e:
+    print(f"Lỗi khi khởi tạo mô hình AI: {e}")
+    model_initialized = False
 
+@patient_api.route('/predict_from_text', methods=['POST'])
+@login_required
+def predict_from_text():
+    global ai_model, symptom_names
+    
+    # Kiểm tra xem mô hình đã được khởi tạo chưa
+    if ai_model is None or symptom_names is None:
+        success = initialize_ai_model()
+        if not success:
+            return jsonify({
+                'success': False,
+                'message': 'Không thể khởi tạo mô hình AI. Vui lòng liên hệ quản trị viên.'
+            }), 500
+    
+    try:
+        data = request.get_json()
+        symptoms_text = data.get('symptoms_text', '')
+        
+        if not symptoms_text:
+            return jsonify({
+                'success': False,
+                'message': 'Không có triệu chứng được cung cấp'
+            }), 400
+        
+        # Tách chuỗi triệu chứng dựa trên dấu phẩy
+        input_symptoms = [s.strip() for s in symptoms_text.split(',') if s.strip()]
+        
+        if not input_symptoms:
+            return jsonify({
+                'success': False,
+                'message': 'Không có triệu chứng được cung cấp sau khi xử lý'
+            }), 400
+        
+        # Thực hiện fuzzy matching cho mỗi triệu chứng nhập vào
+        matched_symptoms = []
+        for symptom in input_symptoms:
+            matches = fuzzy_match(symptom, symptom_names, threshold=0.5)
+            if matches:
+                # Thêm triệu chứng khớp nhất vào danh sách
+                matched_symptoms.append(matches[0][0])
+        
+        if not matched_symptoms:
+            return jsonify({
+                'success': False,
+                'message': 'Không thể tìm thấy triệu chứng phù hợp trong cơ sở dữ liệu'
+            }), 400
+        
+        # Dự đoán bệnh dựa trên các triệu chứng đã khớp
+        predictions = predict_disease(ai_model, matched_symptoms, symptom_names)
+        
+        # Lọc ra các dự đoán có xác suất > 0 và lấy top 5
+        filtered_predictions = [
+            {
+                'disease': disease,
+                'probability': round(float(probability) * 100, 2)
+            }
+            for disease, probability in predictions[:5]
+            if probability > 0
+        ]
+        
+        return jsonify({
+            'success': True,
+            'matched_symptoms': matched_symptoms,
+            'predictions': filtered_predictions
+        })
+        
+    except Exception as e:
+        print(f"Lỗi khi dự đoán bệnh: {e}")
+        return jsonify({
+            'success': False,
+            'message': 'Đã xảy ra lỗi khi dự đoán. Vui lòng thử lại.'
+        }), 500
 
 @patient_api.route('/doctors/<department>', methods=['GET'])
 @login_required
