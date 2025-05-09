@@ -406,71 +406,107 @@
 
 {% block content %}
 <div class="row">
-    <!-- Upcoming Appointments -->
+    <!-- Patient Information -->
     <div class="col-md-6">
         <div class="card">
             <div class="card-header">
                 <h2 class="card-title">
-                    <i class="fas fa-calendar-alt me-2"></i>
-                    Lịch hẹn sắp tới
+                    <i class="fas fa-user me-2"></i>
+                    Thông tin bệnh nhân
                 </h2>
             </div>
             <div class="card-body">
-                {% if upcoming_appointments %}
-                <ul class="list-unstyled">
-                    {% for appointment in upcoming_appointments %}
-                    <li class="mb-3">
+                {% if patient %}
+                <div class="patient-info">
+                    <div class="info-item mb-3">
+                        <label>Họ và tên</label>
                         <div class="d-flex justify-content-between">
-                            <div>
-                                <strong>{{ appointment.datetime }}</strong>
-                                <p class="mb-0">{{ appointment.department }} - {{ appointment.doctor_name }}</p>
-                            </div>
-                            <span class="badge badge-{{ appointment.status_color }}">
-                                {{ appointment.status }}
-                            </span>
+                            <span>{{ patient.personalInfo.fullName }}</span>
                         </div>
-                    </li>
-                    {% endfor %}
-                </ul>
+                    </div>
+                    <div class="info-item mb-3">
+                        <label>Mã bệnh nhân</label>
+                        <div class="d-flex justify-content-between">
+                            <span>{{ patient._id }}</span>
+                        </div>
+                    </div>
+                    <div class="info-item mb-3">
+                        <label>Ngày sinh</label>
+                        <div class="d-flex justify-content-between">
+                            <span>{{ patient.personalInfo.dateOfBirth }}</span>
+                        </div>
+                    </div>
+                    <div class="info-item mb-3">
+                        <label>Giới tính</label>
+                        <div class="d-flex justify-content-between">
+                            <span>{{ patient.personalInfo.gender }}</span>
+                        </div>
+                    </div>
+                    <div class="info-item mb-3">
+                        <label>Số điện thoại</label>
+                        <div class="d-flex justify-content-between">
+                            <span>{{ patient.personalInfo.phone }}</span>
+                        </div>
+                    </div>
+                    <div class="info-item">
+                        <label>Địa chỉ</label>
+                        <div class="d-flex justify-content-between">
+                            <span>{{ patient.personalInfo.address }}</span>
+                        </div>
+                    </div>
+                </div>
                 {% else %}
-                <p class="text-muted">Không có lịch hẹn sắp tới</p>
+                <p class="text-muted">Không có thông tin bệnh nhân</p>
                 {% endif %}
             </div>
         </div>
     </div>
+</div>
 
-    <!-- Recent Medical Records -->
-    <div class="col-md-6">
-        <div class="card">
-            <div class="card-header">
-                <h2 class="card-title">
-                    <i class="fas fa-file-medical me-2"></i>
-                    Hồ sơ bệnh án gần đây
-                </h2>
+<!-- Health Metrics -->
+<div class="col-md-6">
+    <div class="card">
+        <div class="card-header">
+            <h2 class="card-title">
+                <i class="fas fa-chart-line me-2"></i>
+                Chỉ số sức khỏe
+            </h2>
+        </div>
+        <div class="card-body">
+            {% if health_metrics %}
+            <div class="health-metrics">
+                <div class="metric-item mb-3">
+                    <label>Huyết áp</label>
+                    <div class="d-flex justify-content-between">
+                        <span>{{ health_metrics.blood_pressure }}</span>
+                        <small class="text-muted">{{ health_metrics.blood_pressure_date }}</small>
+                    </div>
+                </div>
+                <div class="metric-item mb-3">
+                    <label>Nhịp tim</label>
+                    <div class="d-flex justify-content-between">
+                        <span>{{ health_metrics.heart_rate }} BPM</span>
+                        <small class="text-muted">{{ health_metrics.heart_rate_date }}</small>
+                    </div>
+                </div>
+                <div class="metric-item mb-3">
+                    <label>Cân nặng</label>
+                    <div class="d-flex justify-content-between">
+                        <span>{{ health_metrics.weight }} kg</span>
+                        <small class="text-muted">{{ health_metrics.weight_date }}</small>
+                    </div>
+                </div>
+                <div class="metric-item">
+                    <label>Chiều cao</label>
+                    <div class="d-flex justify-content-between">
+                        <span>{{ health_metrics.height }} cm</span>
+                        <small class="text-muted">{{ health_metrics.height_date }}</small>
+                    </div>
+                </div>
             </div>
-            <div class="card-body">
-                {% if recent_records %}
-                <ul class="list-unstyled">
-                    {% for record in recent_records %}
-                    <li class="mb-3">
-                        <div class="d-flex justify-content-between">
-                            <div>
-                                <strong>{{ record.visitDate }}</strong>
-                                <p class="mb-0">{{ record.diagnosis }}</p>
-                            </div>
-                            <button class="btn btn-primary btn-sm"
-                                    onclick="viewRecord('{{ record._id }}')">
-                                <i class="fas fa-eye"></i>
-                                Xem
-                            </button>
-                        </div>
-                    </li>
-                    {% endfor %}
-                </ul>
-                {% else %}
-                <p class="text-muted">Không có hồ sơ bệnh án gần đây</p>
-                {% endif %}
-            </div>
+            {% else %}
+            <p class="text-muted">Chưa có dữ liệu chỉ số sức khỏe</p>
+            {% endif %}
         </div>
     </div>
 </div>
