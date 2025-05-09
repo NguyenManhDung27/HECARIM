@@ -412,57 +412,24 @@
             <div class="card-header">
                 <h2 class="card-title">
                     <i class="fas fa-user me-2"></i>
-                    Thông tin bệnh nhân
+                    Lịch hẹn sắp tới
                 </h2>
             </div>
             <div class="card-body">
-                {% if patient %}
-                <div class="patient-info">
-                    <div class="info-item mb-3">
-                        <label>Họ và tên</label>
-                        <div class="d-flex justify-content-between">
+                {%if upcoming_appointments|length != 0 %}
+                    {% for appointment in upcoming_appointments %}
+                    <div class="d-flex justify-content-between">
                             <div>
                                 <strong>{{ appointment.datetime }} - {{appointment.timeSlot}}</strong>
                                 <p class="mb-0">{{ appointment.doctor_name }}</p>
                             </div>
-                            <span class="badge badge-{{ appointment.status_color }}">
-                                {{ appointment.status }}
+                        <span class="badge badge-{{ appointment.status_color }}">
+                            {{ appointment.status }}
                             </span>
-                        </div>
                     </div>
-                    <div class="info-item mb-3">
-                        <label>Mã bệnh nhân</label>
-                        <div class="d-flex justify-content-between">
-                            <span>{{ patient._id }}</span>
-                        </div>
-                    </div>
-                    <div class="info-item mb-3">
-                        <label>Ngày sinh</label>
-                        <div class="d-flex justify-content-between">
-                            <span>{{ patient.personalInfo.dateOfBirth }}</span>
-                        </div>
-                    </div>
-                    <div class="info-item mb-3">
-                        <label>Giới tính</label>
-                        <div class="d-flex justify-content-between">
-                            <span>{{ patient.personalInfo.gender }}</span>
-                        </div>
-                    </div>
-                    <div class="info-item mb-3">
-                        <label>Số điện thoại</label>
-                        <div class="d-flex justify-content-between">
-                            <span>{{ patient.personalInfo.phone }}</span>
-                        </div>
-                    </div>
-                    <div class="info-item">
-                        <label>Địa chỉ</label>
-                        <div class="d-flex justify-content-between">
-                            <span>{{ patient.personalInfo.address }}</span>
-                        </div>
-                    </div>
-                </div>
+                    {% endfor %}
                 {% else %}
-                <p class="text-muted">Không có thông tin bệnh nhân</p>
+                    <p class="text-muted">Không có lịch hẹn nào trong thời gian tới.</p>
                 {% endif %}
             </div>
         </div>

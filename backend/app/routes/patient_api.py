@@ -2,6 +2,7 @@ from flask import Blueprint, jsonify, request
 from flask_login import login_required, current_user
 from flask_mail import Mail, Message
 
+from ai.test import fuzzy_match, load_data, predict_disease, preprocess_data, train_decision_tree
 from backend.app.utils.auth_utils import role_required
 from backend.app import mongo, mail
 from bson import ObjectId
@@ -13,7 +14,7 @@ import numpy as np
 
 # Thêm thư mục gốc vào sys.path để có thể import module từ AI/
 sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), '../../../')))
-from AI.test import load_data, preprocess_data, train_decision_tree, predict_disease, fuzzy_match
+# from AI.test import load_data, preprocess_data, train_decision_tree, predict_disease, fuzzy_match
 
 # mail = Mail()
 patient_api = Blueprint('patient_api', __name__)
