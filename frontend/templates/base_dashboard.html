@@ -1,5 +1,6 @@
 <!DOCTYPE html>
 <html lang="vi">
+
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -7,6 +8,7 @@
     <link rel="stylesheet" href="/static/css/dashboard.css">
     {% block extra_css %}{% endblock %}
 </head>
+
 <body>
     <div class="dashboard-container">
         <!-- Sidebar -->
@@ -74,10 +76,10 @@
         }
 
         // Add active class to current nav item
-        document.addEventListener('DOMContentLoaded', function() {
+        document.addEventListener('DOMContentLoaded', function () {
             const currentPath = window.location.pathname;
             const navLinks = document.querySelectorAll('.nav-link');
-            
+
             navLinks.forEach(link => {
                 if (link.getAttribute('href') === currentPath) {
                     link.classList.add('active');
@@ -88,4 +90,5 @@
 
     {% block extra_scripts %}{% endblock %}
 </body>
+
 </html>

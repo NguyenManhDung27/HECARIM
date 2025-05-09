@@ -2,6 +2,347 @@
 
 {% block title %}Chi tiết Bệnh nhân{% endblock %}
 
+{% block extra_css %}
+<style>
+    :root {
+        --primary: #2c6bff;
+        --primary-dark: #1e4db7;
+        --secondary: #00ddeb;
+        --bg: #f4f7ff;
+        --white: #ffffff;
+        --text: #1a1a1a;
+        --text-light: #6b7280;
+        --danger: #dc2626;
+        --gray-200: #e5e7eb;
+        --border-radius: 12px;
+        --border-radius-lg: 16px;
+        --spacing-xs: 0.25rem;
+        --spacing-sm: 0.5rem;
+        --spacing-md: 1rem;
+        --spacing-lg: 1.5rem;
+        --spacing-xl: 2rem;
+    }
+
+    .row {
+        display: flex;
+        flex-wrap: wrap;
+        margin: 0;
+        width: 100%;
+        gap: var(--spacing-lg);
+        padding: var(--spacing-md) 0;
+        background: linear-gradient(180deg, #ffffff, #f8fafc);
+        border-radius: var(--border-radius-lg);
+        box-shadow: 0 4px 12px rgba(44, 107, 255, 0.1);
+    }
+
+    .col-md-4 {
+        flex: 1 1 33.333333%;
+        max-width: 33.333333%;
+        padding: var(--spacing-sm);
+        min-width: 250px;
+    }
+
+    .col-md-8 {
+        flex: 1 1 66.666667%;
+        max-width: 66.666667%;
+        padding: var(--spacing-sm);
+        min-width: 300px;
+    }
+
+    .card {
+        background: var(--white);
+        border-radius: var(--border-radius-lg);
+        box-shadow: 0 8px 24px rgba(44, 107, 255, 0.15);
+        transition: transform 0.3s ease, box-shadow 0.3s ease;
+        position: relative;
+        overflow: hidden;
+    }
+
+    .card:hover {
+        transform: translateY(-4px);
+        box-shadow: 0 12px 32px rgba(44, 107, 255, 0.2);
+    }
+
+    .card::before {
+        content: '';
+        position: absolute;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 4px;
+        background: linear-gradient(90deg, var(--primary), var(--secondary));
+    }
+
+    .card-header {
+        padding: var(--spacing-md) var(--spacing-lg);
+        border-bottom: 1px solid var(--gray-200);
+        background: #f8fafc;
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+    }
+
+    .card-title {
+        font-family: 'Montserrat', sans-serif;
+        font-size: 1.25rem;
+        font-weight: 600;
+        color: var(--text);
+        margin: 0;
+    }
+
+    .card-body {
+        padding: var(--spacing-xl);
+    }
+
+    .patient-avatar {
+        width: 80px;
+        height: 80px;
+        background: linear-gradient(45deg, var(--primary), var(--secondary));
+        color: var(--white);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        border-radius: 50%;
+        font-size: 2rem;
+        font-weight: 600;
+        margin: 0 auto;
+    }
+
+    .patient-info p,
+    .health-info p,
+    .insurance-info p {
+        font-size: 0.9rem;
+        color: var(--text);
+        margin-bottom: var(--spacing-sm);
+    }
+
+    .health-info ul,
+    .insurance-info ul {
+        margin-bottom: var(--spacing-sm);
+        font-size: 0.9rem;
+        color: var(--text);
+    }
+
+    .health-info h6,
+    .insurance-info h6 {
+        font-family: 'Montserrat', sans-serif;
+        font-size: 1rem;
+        font-weight: 600;
+        color: var(--text);
+        margin-bottom: var(--spacing-md);
+    }
+
+    .text-muted {
+        color: var(--text-light);
+        font-size: 0.9rem;
+    }
+
+    .table-container {
+        overflow-x: auto;
+    }
+
+    .table {
+        width: 100%;
+        border-collapse: separate;
+        border-spacing: 0;
+    }
+
+    .table th,
+    .table td {
+        padding: var(--spacing-md);
+        text-align: left;
+        font-size: 0.9rem;
+        color: var(--text);
+    }
+
+    .table th {
+        background: #f8fafc;
+        font-family: 'Montserrat', sans-serif;
+        font-weight: 600;
+        border-bottom: 1px solid var(--gray-200);
+    }
+
+    .table td {
+        border-bottom: 1px solid var(--gray-200);
+    }
+
+    .table tr:last-child td {
+        border-bottom: none;
+    }
+
+    .btn-primary,
+    .btn-sm {
+        display: inline-flex;
+        align-items: center;
+        gap: var(--spacing-sm);
+        padding: var(--spacing-sm) var(--spacing-md);
+        border: none;
+        border-radius: var(--border-radius);
+        font-size: 0.9rem;
+        font-weight: 500;
+        cursor: pointer;
+        transition: all 0.3s ease;
+        position: relative;
+        z-index: 1;
+    }
+
+    .btn-primary {
+        background: linear-gradient(45deg, var(--primary), var(--secondary));
+        color: var(--white);
+    }
+
+    .btn-primary:hover {
+        background: linear-gradient(45deg, var(--primary-dark), var(--secondary));
+        box-shadow: 0 4px 12px rgba(44, 107, 255, 0.3);
+    }
+
+    .btn-sm {
+        padding: var(--spacing-xs) var(--spacing-sm);
+        font-size: 0.85rem;
+    }
+
+    .badge {
+        padding: var(--spacing-xs) var(--spacing-sm);
+        border-radius: var(--border-radius);
+        font-size: 0.85rem;
+        font-weight: 500;
+    }
+
+    .badge-success {
+        background: #d1fae5;
+        color: #047857;
+    }
+
+    .badge-warning {
+        background: #fef3c7;
+        color: #d97706;
+    }
+
+    .timeline {
+        position: relative;
+        padding-left: var(--spacing-xl);
+    }
+
+    .timeline-item {
+        position: relative;
+        margin-bottom: var(--spacing-lg);
+    }
+
+    .timeline-marker {
+        position: absolute;
+        left: -28px;
+        top: 0;
+        width: 16px;
+        height: 16px;
+        background: var(--primary);
+        border-radius: 50%;
+        border: 3px solid var(--white);
+        box-shadow: 0 0 0 3px rgba(44, 107, 255, 0.2);
+    }
+
+    .timeline-content {
+        padding-left: var(--spacing-md);
+    }
+
+    .timeline::before {
+        content: '';
+        position: absolute;
+        left: -20px;
+        top: 0;
+        bottom: 0;
+        width: 2px;
+        background: var(--gray-200);
+    }
+
+    @media (max-width: 576px) {
+        .row {
+            padding: var(--spacing-sm) 0;
+            gap: var(--spacing-md);
+        }
+
+        .col-md-4,
+        .col-md-8 {
+            flex: 1 1 100%;
+            max-width: 100%;
+            min-width: 0;
+        }
+    }
+</style>
+{% endblock %}
+
+{% block sidebar_menu %}
+<style>
+    .nav-item {
+        margin-bottom: var(--spacing-sm);
+    }
+
+    .nav-link {
+        display: flex;
+        align-items: center;
+        gap: var(--spacing-sm);
+        padding: var(--spacing-md) var(--spacing-lg);
+        color: var(--text-light);
+        font-size: 0.95rem;
+        font-weight: 500;
+        border-radius: var(--border-radius);
+        transition: all 0.3s ease;
+        text-decoration: none;
+        position: relative;
+        z-index: 1;
+        cursor: pointer;
+    }
+
+    .nav-link:hover {
+        background: rgba(44, 107, 255, 0.1);
+        color: var(--primary);
+    }
+
+    .nav-link.active {
+        background: var(--primary);
+        color: var(--white);
+        font-weight: 600;
+        box-shadow: 0 2px 8px rgba(44, 107, 255, 0.2);
+    }
+
+    .nav-link i {
+        font-size: 1.1rem;
+    }
+</style>
+
+<div class="nav-item">
+    <a href="{{ url_for('doctor.dashboard') }}" class="nav-link">
+        <i class="fas fa-home"></i>
+        Tổng quan
+    </a>
+</div>
+<div class="nav-item">
+    <a href="{{ url_for('doctor.schedule_page') }}" class="nav-link">
+        <i class="fas fa-calendar-alt"></i>
+        Lịch khám bệnh
+    </a>
+</div>
+<div class="nav-item">
+    <a href="{{ url_for('doctor.patients') }}" class="nav-link">
+        <i class="fas fa-users"></i>
+        Danh sách bệnh nhân
+    </a>
+</div>
+<div class="nav-item">
+    <a href="{{ url_for('doctor.medical_records') }}" class="nav-link">
+        <i class="fas fa-file-medical"></i>
+        Hồ sơ bệnh án
+    </a>
+</div>
+<div class="nav-item">
+    <a href="{{ url_for('doctor.prescriptions') }}" class="nav-link">
+        <i class="fas fa-prescription"></i>
+        Kê đơn thuốc
+    </a>
+</div>
+{% endblock %}
+
+{% block page_title %}Chi tiết Bệnh nhân{% endblock %}
+
 {% block content %}
 <div class="row">
     <!-- Patient Information -->
@@ -41,26 +382,26 @@
                     <p>
                         <strong>Dị ứng:</strong><br>
                         {% if patient.healthInfo.allergies %}
-                            <ul class="list-unstyled ps-3">
-                            {% for allergy in patient.healthInfo.allergies %}
-                                <li>- {{ allergy }}</li>
-                            {% endfor %}
-                            </ul>
-                        {% else %}
-                            <span class="text-muted">Không</span>
-                        {% endif %}
+                    <ul class="list-unstyled ps-3">
+                        {% for allergy in patient.healthInfo.allergies %}
+                        <li>- {{ allergy }}</li>
+                        {% endfor %}
+                    </ul>
+                    {% else %}
+                    <span class="text-muted">Không</span>
+                    {% endif %}
                     </p>
                     <p>
                         <strong>Bệnh mãn tính:</strong><br>
                         {% if patient.healthInfo.chronicDiseases %}
-                            <ul class="list-unstyled ps-3">
-                            {% for disease in patient.healthInfo.chronicDiseases %}
-                                <li>- {{ disease }}</li>
-                            {% endfor %}
-                            </ul>
-                        {% else %}
-                            <span class="text-muted">Không</span>
-                        {% endif %}
+                    <ul class="list-unstyled ps-3">
+                        {% for disease in patient.healthInfo.chronicDiseases %}
+                        <li>- {{ disease }}</li>
+                        {% endfor %}
+                    </ul>
+                    {% else %}
+                    <span class="text-muted">Không</span>
+                    {% endif %}
                     </p>
                 </div>
 
@@ -69,11 +410,11 @@
                 <div class="insurance-info">
                     <h6>Thông tin bảo hiểm</h6>
                     {% if patient.insurance %}
-                        <p><strong>Công ty:</strong> {{ patient.insurance.provider }}</p>
-                        <p><strong>Số thẻ:</strong> {{ patient.insurance.policyNumber }}</p>
-                        <p><strong>Hết hạn:</strong> {{ patient.insurance.expiryDate.strftime('%d/%m/%Y') }}</p>
+                    <p><strong>Công ty:</strong> {{ patient.insurance.provider }}</p>
+                    <p><strong>Số thẻ:</strong> {{ patient.insurance.policyNumber }}</p>
+                    <p><strong>Hết hạn:</strong> {{ patient.insurance.expiryDate.strftime('%d/%m/%Y') }}</p>
                     {% else %}
-                        <p class="text-muted">Không có thông tin bảo hiểm</p>
+                    <p class="text-muted">Không có thông tin bảo hiểm</p>
                     {% endif %}
                 </div>
             </div>
@@ -166,12 +507,14 @@
                                 <td>{{ prescription.medications | length }} loại</td>
                                 <td>{{ prescription.doctorName }}</td>
                                 <td>
-                                    <span class="badge badge-{{ 'success' if prescription.status == 'dispensed' else 'warning' }}">
+                                    <span
+                                        class="badge badge-{{ 'success' if prescription.status == 'dispensed' else 'warning' }}">
                                         {{ 'Đã phát' if prescription.status == 'dispensed' else 'Chưa phát' }}
                                     </span>
                                 </td>
                                 <td>
-                                    <button class="btn btn-sm btn-primary" onclick="viewPrescription('{{ prescription._id }}')">
+                                    <button class="btn btn-sm btn-primary"
+                                        onclick="viewPrescription('{{ prescription._id }}')">
                                         <i class="fas fa-eye"></i>
                                     </button>
                                 </td>

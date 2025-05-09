@@ -1,36 +1,348 @@
 {% extends "base.html" %}
 
-{% block title %}Hồ sơ bệnh án{% endblock %}
+{% block title %}Hồ sơ bệnh án - Bệnh nhân{% endblock %}
 
 {% block page_title %}Hồ sơ bệnh án{% endblock %}
 
-{% block sidebar_menu %}
-<a href="{{ url_for('patient.dashboard') }}" class="nav-link">
-    <i class="fas fa-home"></i>
-    <span>Trang chủ</span>
-</a>
-<a href="{{ url_for('patient.appointments') }}" class="nav-link">
-    <i class="fas fa-calendar-alt"></i>
-    <span>Lịch hẹn</span>
-</a>
-<a href="{{ url_for('patient.records') }}" class="nav-link">
-    <i class="fas fa-file-medical"></i>
-    <span>Hồ sơ bệnh án</span>
-</a>
-<a href="{{ url_for('patient.prescriptions') }}" class="nav-link">
-    <i class="fas fa-prescription"></i>
-    <span>Đơn thuốc</span>
-</a>
-<a href="{{ url_for('patient.change_password') }}" class="nav-link">
-    <i class="fas fa-user"></i>
-    Chỉnh sửa mật khẩu
-</a>
-<a href="{{ url_for('patient.invoices') }}" class="nav-link">
-    <i class="fas fa-file-invoice"></i>
-    <span>Hóa đơn</span>
-</a>
+{% block extra_css %}
+<style>
+    .row {
+        display: flex;
+        flex-wrap: wrap;
+        margin: 0;
+        width: 100%;
+        gap: var(--spacing-lg);
+        padding: var(--spacing-md) 0;
+        background: linear-gradient(180deg, var(--white), #f8fafc);
+        border-radius: var(--border-radius-lg);
+        box-shadow: 0 4px 12px rgba(44, 107, 255, 0.1);
+    }
+
+    .card {
+        background: var(--white);
+        border-radius: var(--border-radius-lg);
+        box-shadow: 0 8px 24px rgba(44, 107, 255, 0.15);
+        transition: transform 0.3s ease, box-shadow 0.3s ease;
+        position: relative;
+        overflow: hidden;
+    }
+
+    .card:hover {
+        transform: translateY(-4px);
+        box-shadow: 0 12px 32px rgba(44, 107, 255, 0.2);
+    }
+
+    .card::before {
+        content: '';
+        position: absolute;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 4px;
+        background: linear-gradient(90deg, var(--primary), var(--secondary));
+    }
+
+    .card-header {
+        padding: var(--spacing-md) var(--spacing-lg);
+        border-bottom: 1px solid var(--gray-200);
+        background: #f8fafc;
+    }
+
+    .card-title {
+        font-family: 'Montserrat', sans-serif;
+        font-size: 1.25rem;
+        font-weight: 600;
+        color: var(--text);
+        margin: 0;
+        display: flex;
+        align-items: center;
+        gap: var(--spacing-sm);
+    }
+
+    .card-body {
+        padding: var(--spacing-xl);
+    }
+
+    .table-container {
+        overflow-x: auto;
+    }
+
+    .table {
+        width: 100%;
+        border-collapse: separate;
+        border-spacing: 0;
+    }
+
+    .table th,
+    .table td {
+        padding: var(--spacing-md);
+        text-align: left;
+        font-size: 0.9rem;
+        color: var(--text);
+    }
+
+    .table th {
+        background: #f8fafc;
+        font-family: 'Montserrat', sans-serif;
+        font-weight: 600;
+        border-bottom: 1px solid var(--gray-200);
+    }
+
+    .table td {
+        border-bottom: 1px solid var(--gray-200);
+    }
+
+    .table tr:last-child td {
+        border-bottom: none;
+    }
+
+    .table-sm th,
+    .table-sm td {
+        padding: var(--spacing-sm);
+    }
+
+    .btn-primary {
+        display: inline-flex;
+        align-items: center;
+        gap: var(--spacing-sm);
+        padding: var(--spacing-sm) var(--spacing-md);
+        border: none;
+        border-radius: var(--border-radius);
+        font-size: 0.9rem;
+        font-weight: 500;
+        cursor: pointer;
+        transition: all 0.3s ease;
+        background: linear-gradient(45deg, var(--primary), var(--secondary));
+        color: var(--white);
+        position: relative;
+        z-index: 1;
+    }
+
+    .btn-primary:hover {
+        background: linear-gradient(45deg, var(--primary-dark), var(--secondary));
+        box-shadow: 0 4px 12px rgba(44, 107, 255, 0.3);
+    }
+
+    .btn-sm {
+        padding: var(--spacing-xs) var(--spacing-sm);
+        font-size: 0.85rem;
+    }
+
+    .badge {
+        padding: var(--spacing-xs) var(--spacing-sm);
+        border-radius: var(--border-radius);
+        font-size: 0.85rem;
+        font-weight: 500;
+    }
+
+    .badge-warning {
+        background: #fef3c7;
+        color: #d97706;
+    }
+
+    .badge-secondary {
+        background: #e5e7eb;
+        color: #4b5563;
+    }
+
+    .text-muted {
+        color: var(--text-light);
+        font-size: 0.9rem;
+    }
+
+    .text-danger {
+        color: var(--danger);
+    }
+
+    .text-warning {
+        color: #d97706;
+    }
+
+    .modal {
+        display: none;
+        position: fixed;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
+        background: rgba(0, 0, 0, 0.5);
+        z-index: 1050;
+    }
+
+    .modal.show {
+        display: block;
+    }
+
+    .modal-dialog {
+        max-width: 800px;
+        margin: var(--spacing-xl) auto;
+    }
+
+    .modal-content {
+        background: var(--white);
+        border-radius: var(--border-radius-lg);
+        box-shadow: 0 8px 24px rgba(44, 107, 255, 0.15);
+    }
+
+    .modal-header {
+        padding: var(--spacing-md) var(--spacing-lg);
+        border-bottom: 1px solid var(--gray-200);
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+    }
+
+    .modal-title {
+        font-family: 'Montserrat', sans-serif;
+        font-size: 1.25rem;
+        font-weight: 600;
+        color: var(--text);
+    }
+
+    .modal-body {
+        padding: var(--spacing-xl);
+    }
+
+    .btn-close {
+        background: none;
+        border: none;
+        font-size: 1rem;
+        color: var(--text-light);
+        cursor: pointer;
+        transition: color 0.3s ease;
+    }
+
+    .btn-close:hover {
+        color: var(--text);
+    }
+
+    .medical-summary h6,
+    .metric-item label {
+        font-family: 'Montserrat', sans-serif;
+        font-size: 0.9rem;
+        font-weight: 500;
+        margin-bottom: var(--spacing-sm);
+    }
+
+    .metric-item {
+        margin-bottom: var(--spacing-md);
+    }
+
+    .metric-item .d-flex {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+    }
+
+    .mb-3 {
+        margin-bottom: var(--spacing-md);
+    }
+
+    .list-unstyled {
+        padding-left: var(--spacing-md);
+        font-size: 0.9rem;
+        color: var(--text);
+    }
+
+    .col-md-6 {
+        flex: 1 1 50%;
+        max-width: 50%;
+        padding: var(--spacing-sm);
+    }
+
+    @media (max-width: 768px) {
+        .row {
+            padding: var(--spacing-sm) 0;
+            gap: var(--spacing-md);
+        }
+
+        .col-md-6 {
+            flex: 1 1 100%;
+            max-width: 100%;
+        }
+
+        .modal-dialog {
+            margin: var(--spacing-md) auto;
+            max-width: 95%;
+        }
+    }
+</style>
 {% endblock %}
 
+{% block sidebar_menu %}
+<style>
+    .nav-item {
+        margin-bottom: var(--spacing-sm);
+    }
+
+    .nav-link {
+        display: flex;
+        align-items: center;
+        gap: var(--spacing-sm);
+        padding: var(--spacing-md) var(--spacing-lg);
+        color: var(--text-light);
+        font-size: 0.95rem;
+        font-weight: 500;
+        border-radius: var(--border-radius);
+        transition: all 0.3s ease;
+        text-decoration: none;
+        position: relative;
+        z-index: 1;
+        cursor: pointer;
+    }
+
+    .nav-link:hover {
+        background: rgba(44, 107, 255, 0.1);
+        color: var(--primary);
+    }
+
+    .nav-link.active {
+        background: var(--primary);
+        color: var(--white);
+        font-weight: 600;
+        box-shadow: 0 2px 8px rgba(44, 107, 255, 0.2);
+    }
+
+    .nav-link i {
+        font-size: 1.1rem;
+    }
+
+    .nav-link span {
+        font-family: 'Inter', sans-serif;
+    }
+</style>
+
+<div class="nav-item">
+    <a href="{{ url_for('patient.dashboard') }}" class="nav-link">
+        <i class="fas fa-home"></i>
+        <span>Trang chủ</span>
+    </a>
+</div>
+<div class="nav-item">
+    <a href="{{ url_for('patient.appointments') }}" class="nav-link">
+        <i class="fas fa-calendar-alt"></i>
+        <span>Lịch hẹn</span>
+    </a>
+</div>
+<div class="nav-item">
+    <a href="{{ url_for('patient.records') }}" class="nav-link active">
+        <i class="fas fa-file-medical"></i>
+        <span>Hồ sơ bệnh án</span>
+    </a>
+</div>
+<div class="nav-item">
+    <a href="{{ url_for('patient.prescriptions') }}" class="nav-link">
+        <i class="fas fa-prescription"></i>
+        <span>Đơn thuốc</span>
+    </a>
+</div>
+<div class="nav-item">
+    <a href="{{ url_for('patient.invoices') }}" class="nav-link">
+        <i class="fas fa-file-invoice"></i>
+        <span>Hóa đơn</span>
+    </a>
+</div>
+{% endblock %}
 
 {% block content %}
 <div class="row">
@@ -81,113 +393,115 @@
             </div>
 
             <!-- Medical Summary -->
-            <!--<div class="col-lg-4">
-        <div class="card mb-4">
-            <div class="card-header">
-                <h2 class="card-title">
-                    <i class="fas fa-notes-medical me-2"></i>
-                    Tổng quan
-                </h2>
-            </div>
-            <div class="card-body">
-                {% if medical_summary %}
-                <div class="medical-summary">
-                    {% if medical_summary.allergies %}
-                    <div class="mb-3">
-                        <h6 class="text-danger">
-                            <i class="fas fa-exclamation-circle me-2"></i>
-                            Dị ứng
-                        </h6>
-                        <ul class="list-unstyled">
-                            {% for allergy in medical_summary.allergies %}
-                            <li>{{ allergy }}</li>
-                            {% endfor %}
-                        </ul>
+            <div class="col-lg-4">
+                <div class="card mb-4">
+                    <div class="card-header">
+                        <h2 class="card-title">
+                            <i class="fas fa-notes-medical me-2"></i>
+                            Tổng quan
+                        </h2>
                     </div>
-                    {% endif %}
+                    <div class="card-body">
+                        {% if medical_summary %}
+                        <div class="medical-summary">
+                            {% if medical_summary.allergies %}
+                            <div class="mb-3">
+                                <h6 class="text-danger">
+                                    <i class="fas fa-exclamation-circle me-2"></i>
+                                    Dị ứng
+                                </h6>
+                                <ul class="list-unstyled">
+                                    {% for allergy in medical_summary.allergies %}
+                                    <li>{{ allergy }}</li>
+                                    {% endfor %}
+                                </ul>
+                            </div>
+                            {% endif %}
 
-                    {% if medical_summary.chronic_conditions %}
-                    <div class="mb-3">
-                        <h6 class="text-warning">
-                            <i class="fas fa-heartbeat me-2"></i>
-                            Bệnh mãn tính
-                        </h6>
-                        <ul class="list-unstyled">
-                            {% for condition in medical_summary.chronic_conditions %}
-                            <li>{{ condition }}</li>
-                            {% endfor %}
-                        </ul>
-                    </div>
-                    {% endif %}
+                            {% if medical_summary.chronic_conditions %}
+                            <div class="mb-3">
+                                <h6 class="text-warning">
+                                    <i class="fas fa-heartbeat me-2"></i>
+                                    Bệnh mãn tính
+                                </h6>
+                                <ul class="list-unstyled">
+                                    {% for condition in medical_summary.chronic_conditions %}
+                                    <li>{{ condition }}</li>
+                                    {% endfor %}
+                                </ul>
+                            </div>
+                            {% endif %}
 
-                    {% if medical_summary.surgeries %}
-                    <div class="mb-3">
-                        <h6>
-                            <i class="fas fa-hospital me-2"></i>
-                            Tiền sử phẫu thuật
-                        </h6>
-                        <ul class="list-unstyled">
-                            {% for surgery in medical_summary.surgeries %}
-                            <li>
-                                <strong>{{ surgery.date }}</strong>
-                                <p>{{ surgery.procedure }}</p>
-                            </li>
-                            {% endfor %}
-                        </ul>
-                    </div>
-                    {% endif %}
-                </div>
-                {% else %}
-                <p class="text-muted">Chưa có thông tin tổng quan</p>
-                {% endif %}
-            </div>
-        </div>-->
-
-            <!-- Health Metrics -->
-            <!--<div class="card">
-            <div class="card-header">
-                <h2 class="card-title">
-                    <i class="fas fa-chart-line me-2"></i>
-                    Chỉ số sức khỏe
-                </h2>
-            </div>
-            <div class="card-body">
-                {% if health_metrics %}
-                <div class="health-metrics">
-                    <div class="metric-item mb-3">
-                        <label>Huyết áp</label>
-                        <div class="d-flex justify-content-between">
-                            <span>{{ health_metrics.blood_pressure }}</span>
-                            <small class="text-muted">{{ health_metrics.blood_pressure_date }}</small>
+                            {% if medical_summary.surgeries %}
+                            <div class="mb-3">
+                                <h6>
+                                    <i class="fas fa-hospital me-2"></i>
+                                    Tiền sử phẫu thuật
+                                </h6>
+                                <ul class="list-unstyled">
+                                    {% for surgery in medical_summary.surgeries %}
+                                    <li>
+                                        <strong>{{ surgery.date }}</strong>
+                                        <p>{{ surgery.procedure }}</p>
+                                    </li>
+                                    {% endfor %}
+                                </ul>
+                            </div>
+                            {% endif %}
                         </div>
-                    </div>
-                    <div class="metric-item mb-3">
-                        <label>Nhịp tim</label>
-                        <div class="d-flex justify-content-between">
-                            <span>{{ health_metrics.heart_rate }} BPM</span>
-                            <small class="text-muted">{{ health_metrics.heart_rate_date }}</small>
-                        </div>
-                    </div>
-                    <div class="metric-item mb-3">
-                        <label>Cân nặng</label>
-                        <div class="d-flex justify-content-between">
-                            <span>{{ health_metrics.weight }} kg</span>
-                            <small class="text-muted">{{ health_metrics.weight_date }}</small>
-                        </div>
-                    </div>
-                    <div class="metric-item">
-                        <label>Chiều cao</label>
-                        <div class="d-flex justify-content-between">
-                            <span>{{ health_metrics.height }} cm</span>
-                            <small class="text-muted">{{ health_metrics.height_date }}</small>
-                        </div>
+                        {% else %}
+                        <p class="text-muted">Chưa có thông tin tổng quan</p>
+                        {% endif %}
                     </div>
                 </div>
-                {% else %}
-                <p class="text-muted">Chưa có dữ liệu chỉ số sức khỏe</p>
-                {% endif %}
+
+                <!-- Health Metrics -->
+                <div class="card">
+                    <div class="card-header">
+                        <h2 class="card-title">
+                            <i class="fas fa-chart-line me-2"></i>
+                            Chỉ số sức khỏe
+                        </h2>
+                    </div>
+                    <div class="card-body">
+                        {% if health_metrics %}
+                        <div class="health-metrics">
+                            <div class="metric-item mb-3">
+                                <label>Huyết áp</label>
+                                <div class="d-flex justify-content-between">
+                                    <span>{{ health_metrics.blood_pressure }}</span>
+                                    <small class="text-muted">{{ health_metrics.blood_pressure_date }}</small>
+                                </div>
+                            </div>
+                            <div class="metric-item mb-3">
+                                <label>Nhịp tim</label>
+                                <div class="d-flex justify-content-between">
+                                    <span>{{ health_metrics.heart_rate }} BPM</span>
+                                    <small class="text-muted">{{ health_metrics.heart_rate_date }}</small>
+                                </div>
+                            </div>
+                            <div class="metric-item mb-3">
+                                <label>Cân nặng</label>
+                                <div class="d-flex justify-content-between">
+                                    <span>{{ health_metrics.weight }} kg</span>
+                                    <small class="text-muted">{{ health_metrics.weight_date }}</small>
+                                </div>
+                            </div>
+                            <div class="metric-item">
+                                <label>Chiều cao</label>
+                                <div class="d-flex justify-content-between">
+                                    <span>{{ health_metrics.height }} cm</span>
+                                    <small class="text-muted">{{ health_metrics.height_date }}</small>
+                                </div>
+                            </div>
+                        </div>
+                        {% else %}
+                        <p class="text-muted">Chưa có dữ liệu chỉ số sức khỏe</p>
+                        {% endif %}
+                    </div>
+                </div>
             </div>
-        </div>-->
+
             <!-- View Record Modal -->
             <div class="modal" id="viewRecordModal">
                 <div class="modal-dialog modal-lg">
@@ -202,173 +516,101 @@
                     </div>
                 </div>
             </div>
-
         </div>
     </div>
+</div>
+{% endblock %}
 
-    <style>
-        .medical-timeline {
-            position: relative;
-            padding: 2rem 0;
-        }
+{% block extra_scripts %}
+<script>
+    function viewRecord(recordId) {
+        fetch(`/patient/api/api/records/${recordId}`)
+            .then(response => response.json())
+            .then(record => {
+                const modal = document.getElementById('viewRecordModal');
+                const details = document.getElementById('recordDetails');
 
-        .timeline-item {
-            position: relative;
-            padding-left: 3rem;
-            margin-bottom: 2rem;
-        }
-
-        .timeline-marker {
-            position: absolute;
-            left: 0;
-            top: 0;
-            width: 2rem;
-            height: 2rem;
-            border-radius: 50%;
-            background: var(--white);
-            border: 2px solid var(--primary);
-            display: flex;
-            align-items: center;
-            justify-content: center;
-        }
-
-        .timeline-marker i {
-            font-size: 0.8rem;
-            color: var(--primary);
-        }
-
-        .timeline-content {
-            position: relative;
-        }
-
-        .timeline-content::before {
-            content: '';
-            position: absolute;
-            left: -2rem;
-            top: 1rem;
-            width: 2rem;
-            height: 2px;
-            background: var(--gray-300);
-        }
-
-        .timeline-item:not(:last-child)::after {
-            content: '';
-            position: absolute;
-            left: 1rem;
-            top: 2rem;
-            bottom: -2rem;
-            width: 2px;
-            background: var(--gray-300);
-        }
-
-        .metric-item label {
-            font-weight: 500;
-            color: var(--text);
-            margin-bottom: 0.25rem;
-        }
-
-        .test-result-item {
-            padding: 1rem;
-            border: 1px solid var(--gray-200);
-            border-radius: var(--border-radius-md);
-        }
-
-        .test-result-item h6 {
-            margin-bottom: 0.5rem;
-            color: var(--text);
-        }
-    </style>
-
-
-    {% endblock %}
-
-    {% block extra_scripts %}
-    <script>
-        function viewRecord(recordId) {
-            fetch(`/patient/api/api/records/${recordId}`)
-                .then(response => response.json())
-                .then(record => {
-                    const modal = document.getElementById('viewRecordModal');
-                    const details = document.getElementById('recordDetails');
-
-                    details.innerHTML = `
-                <div class="row mb-3">
-                    <div class="col-md-6">
-                        <h6>Thông tin bệnh nhân</h6>
-                        <p><strong>Họ tên:</strong> ${record.patient_name || "N/A"}</p>
-                        <p><strong>Mã BN:</strong> ${record.patientId}</p>
-                        <p><strong>Ngày khám:</strong> ${record.visitDate}</p>
+                details.innerHTML = `
+                    <div class="row mb-3">
+                        <div class="col-md-6">
+                            <h6>Thông tin bệnh nhân</h6>
+                            <p><strong>Họ tên:</strong> ${record.patient_name || "N/A"}</p>
+                            <p><strong>Mã BN:</strong> ${record.patientId}</p>
+                            <p><strong>Ngày khám:</strong> ${record.visitDate}</p>
+                        </div>
+                        <div class="col-md-6">
+                            <h6>Dấu hiệu sinh tồn</h6>
+                            <p><strong>Nhiệt độ:</strong> ${record.vital_signs.temperature}°C</p>
+                            <p><strong>Huyết áp:</strong> ${record.vital_signs.blood_pressure.systolic}/${record.vital_signs.blood_pressure.diastolic} mmHg</p>
+                            <p><strong>Nhịp tim:</strong> ${record.vital_signs.heart_rate} bpm</p>
+                            <p><strong>Nhịp thở:</strong> ${record.vital_signs.respiratoryRate} nhịp/phút</p>
+                        </div>
                     </div>
-                    <div class="col-md-6">
-                        <h6>Dấu hiệu sinh tồn</h6>
-                        <p><strong>Nhiệt độ:</strong> ${record.vital_signs.temperature}°C</p>
-                        <p><strong>Huyết áp:</strong> ${record.vital_signs.blood_pressure.systolic}/${record.vital_signs.blood_pressure.diastolic} mmHg</p>
-                        <p><strong>Nhịp tim:</strong> ${record.vital_signs.heart_rate} bpm</p>
-                        <p><strong>Nhịp thở:</strong> ${record.vital_signs.respiratoryRate} nhịp/phút</p>
+                    <div class="mb-3">
+                        <h6>Triệu chứng</h6>
+                        <p>${record.symptoms}</p>
                     </div>
-                </div>
-                <div class="mb-3">
-                    <h6>Triệu chứng</h6>
-                    <p>${record.symptoms}</p>
-                </div>
-                <div class="mb-3">
-                    <h6>Chẩn đoán</h6>
-                    <p>${record.diagnosis}</p>
-                </div>
-                <div class="mb-3">
-                    <h6>Điều trị</h6>
-                    <div class="table-container">
-                        <table class="table table-sm">
-                            <thead>
-                                <tr>
-                                    <th>Thuốc</th>
-                                    <th>Liều lượng</th>
-                                    <th>Tần suất</th>
-                                    <th>Thời gian</th>
-                                </tr>
-                            </thead>
-                            <tbody>
-                                ${record.treatment.medications.map(med => `
+                    <div class="mb-3">
+                        <h6>Chẩn đoán</h6>
+                        <p>${record.diagnosis}</p>
+                    </div>
+                    <div class="mb-3">
+                        <h6>Điều trị</h6>
+                        <div class="table-container">
+                            <table class="table table-sm">
+                                <thead>
                                     <tr>
-                                        <td>${med.name}</td>
-                                        <td>${med.dosage}</td>
-                                        <td>${med.frequency}</td>
-                                        <td>${med.duration}</td>
+                                        <th>Thuốc</th>
+                                        <th>Liều lượng</th>
+                                        <th>Tần suất</th>
+                                        <th>Thời gian</th>
                                     </tr>
-                                `).join('')}
-                            </tbody>
-                        </table>
+                                </thead>
+                                <tbody>
+                                    ${record.treatment.medications.map(med => `
+                                        <tr>
+                                            <td>${med.name}</td>
+                                            <td>${med.dosage}</td>
+                                            <td>${med.frequency}</td>
+                                            <td>${med.duration}</td>
+                                        </tr>
+                                    `).join('')}
+                                </tbody>
+                            </table>
+                        </div>
                     </div>
-                </div>
-                <div class="mb-3">
-                    <h6>Ghi chú</h6>
-                    <p>${record.notes}</p>
-                </div>
-            `;
+                    <div class="mb-3">
+                        <h6>Ghi chú</h6>
+                        <p>${record.notes}</p>
+                    </div>
+                `;
 
-                    modal.classList.add('show');
-                });
-        }
-        // Close modal when clicking outside
-        document.addEventListener('click', function (event) {
-            const modal = document.getElementById('viewRecordModal');
-            if (event.target === modal) {
-                modal.classList.remove('show');
-            }
-        });
-
-        // Close modal when clicking close button
-        document.querySelector('.btn-close').addEventListener('click', function () {
-            document.getElementById('viewRecordModal').classList.remove('show');
-        });
-        document.getElementById('searchMedicalRecords').addEventListener('input', function (e) {
-            const searchTerm = e.target.value.toLowerCase();
-            const rows = document.querySelectorAll('tbody tr');
-
-            rows.forEach(row => {
-                const text = row.textContent.toLowerCase();
-                row.style.display = text.includes(searchTerm) ? '' : 'none';
+                modal.classList.add('show');
             });
+    }
+
+    // Close modal when clicking outside
+    document.addEventListener('click', function (event) {
+        const modal = document.getElementById('viewRecordModal');
+        if (event.target === modal) {
+            modal.classList.remove('show');
+        }
+    });
+
+    // Close modal when clicking close button
+    function closeModal() {
+        document.getElementById('viewRecordModal').classList.remove('show');
+    }
+
+    // Search functionality
+    document.getElementById('searchMedicalRecords')?.addEventListener('input', function (e) {
+        const searchTerm = e.target.value.toLowerCase();
+        const rows = document.querySelectorAll('tbody tr');
+
+        rows.forEach(row => {
+            const text = row.textContent.toLowerCase();
+            row.style.display = text.includes(searchTerm) ? '' : 'none';
         });
-    </script>
-    {% endblock %}
+    });
+</script>
+{% endblock %}

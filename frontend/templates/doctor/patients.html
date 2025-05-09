@@ -2,7 +2,362 @@
 
 {% block title %}Danh sách Bệnh nhân{% endblock %}
 
+{% block extra_css %}
+<style>
+    :root {
+        --primary: #2c6bff;
+        --primary-dark: #1e4db7;
+        --secondary: #00ddeb;
+        --bg: #f4f7ff;
+        --white: #ffffff;
+        --text: #1a1a1a;
+        --text-light: #6b7280;
+        --danger: #dc2626;
+        --gray-200: #e5e7eb;
+        --border-radius: 12px;
+        --border-radius-lg: 16px;
+        --spacing-xs: 0.25rem;
+        --spacing-sm: 0.5rem;
+        --spacing-md: 1rem;
+        --spacing-lg: 1.5rem;
+        --spacing-xl: 2rem;
+    }
+
+    .row {
+        display: flex;
+        flex-wrap: wrap;
+        margin: 0;
+        width: 100%;
+        gap: var(--spacing-lg);
+        padding: var(--spacing-md) 0;
+        background: linear-gradient(180deg, #ffffff, #f8fafc);
+        border-radius: var(--border-radius-lg);
+        box-shadow: 0 4px 12px rgba(44, 107, 255, 0.1);
+    }
+
+    .col-md-4 {
+        flex: 1 1 30%;
+        max-width: 33.333333%;
+        padding: var(--spacing-sm);
+        min-width: 250px;
+    }
+
+    .card {
+        background: var(--white);
+        border-radius: var(--border-radius-lg);
+        box-shadow: 0 8px 24px rgba(44, 107, 255, 0.15);
+        transition: transform 0.3s ease, box-shadow 0.3s ease;
+        position: relative;
+        overflow: hidden;
+    }
+
+    .card:hover {
+        transform: translateY(-4px);
+        box-shadow: 0 12px 32px rgba(44, 107, 255, 0.2);
+    }
+
+    .card::before {
+        content: '';
+        position: absolute;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 4px;
+        background: linear-gradient(90deg, var(--primary), var(--secondary));
+    }
+
+    .card-body {
+        padding: var(--spacing-xl);
+    }
+
+    .input-group {
+        display: flex;
+        align-items: center;
+        border-radius: var(--border-radius);
+        overflow: hidden;
+        border: 1px solid var(--gray-200);
+        position: relative;
+        z-index: 1;
+    }
+
+    .form-control {
+        border: none;
+        padding: var(--spacing-sm) var(--spacing-md);
+        font-size: 0.9rem;
+        flex: 1;
+        background: var(--white);
+    }
+
+    .form-control:focus {
+        outline: none;
+        box-shadow: 0 0 0 2px var(--primary);
+    }
+
+    .form-label {
+        font-family: 'Montserrat', sans-serif;
+        font-size: 0.9rem;
+        font-weight: 500;
+        color: var(--text);
+        margin-bottom: var(--spacing-xs);
+    }
+
+    .table-container {
+        overflow-x: auto;
+    }
+
+    .table {
+        width: 100%;
+        border-collapse: separate;
+        border-spacing: 0;
+    }
+
+    .table th,
+    .table td {
+        padding: var(--spacing-md);
+        text-align: left;
+        font-size: 0.9rem;
+        color: var(--text);
+    }
+
+    .table th {
+        background: #f8fafc;
+        font-family: 'Montserrat', sans-serif;
+        font-weight: 600;
+        border-bottom: 1px solid var(--gray-200);
+    }
+
+    .table td {
+        border-bottom: 1px solid var(--gray-200);
+    }
+
+    .table tr:last-child td {
+        border-bottom: none;
+    }
+
+    .btn-primary,
+    .btn-secondary {
+        display: inline-flex;
+        align-items: center;
+        gap: var(--spacing-sm);
+        padding: var(--spacing-sm) var(--spacing-md);
+        border: none;
+        border-radius: var(--border-radius);
+        font-size: 0.9rem;
+        font-weight: 500;
+        cursor: pointer;
+        transition: all 0.3s ease;
+        position: relative;
+        z-index: 1;
+    }
+
+    .btn-primary {
+        background: linear-gradient(45deg, var(--primary), var(--secondary));
+        color: var(--white);
+    }
+
+    .btn-primary:hover {
+        background: linear-gradient(45deg, var(--primary-dark), var(--secondary));
+        box-shadow: 0 4px 12px rgba(44, 107, 255, 0.3);
+    }
+
+    .btn-secondary {
+        background: #e5e7eb;
+        color: var(--text);
+    }
+
+    .btn-secondary:hover {
+        background: #d1d5db;
+        box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+    }
+
+    .pagination {
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        flex-wrap: nowrap;
+        list-style: none;
+        padding: 0;
+        margin: var(--spacing-lg) 0 0;
+    }
+
+    .pagination .page-item {
+        margin: 0 var(--spacing-xs);
+    }
+
+    .page-link {
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        padding: var(--spacing-sm) var(--spacing-md);
+        border-radius: var(--border-radius);
+        font-size: 0.9rem;
+        color: var(--text);
+        background: var(--white);
+        border: 1px solid var(--gray-200);
+        transition: all 0.3s ease;
+        text-decoration: none;
+        position: relative;
+        z-index: 1;
+    }
+
+    .page-link:hover {
+        background: rgba(44, 107, 255, 0.1);
+        border-color: var(--primary);
+        color: var(--primary);
+    }
+
+    .page-item.active .page-link {
+        background: var(--primary);
+        color: var(--white);
+        border-color: var(--primary);
+    }
+
+    .page-item.disabled .page-link {
+        background: var(--gray-200);
+        color: var(--text-light);
+        cursor: not-allowed;
+    }
+
+    .modal {
+        position: fixed;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
+        background: rgba(0, 0, 0, 0.5);
+        display: none;
+        align-items: center;
+        justify-content: center;
+        z-index: 1050;
+    }
+
+    .modal.show {
+        display: flex;
+    }
+
+    .modal-dialog {
+        max-width: 800px;
+        width: 90%;
+        background: var(--white);
+        border-radius: var(--border-radius-lg);
+        box-shadow: 0 8px 24px rgba(44, 107, 255, 0.2);
+    }
+
+    .modal-content {
+        border: none;
+    }
+
+    .modal-header {
+        padding: var(--spacing-md) var(--spacing-lg);
+        border-bottom: 1px solid var(--gray-200);
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+    }
+
+    .modal-title {
+        font-family: 'Montserrat', sans-serif;
+        font-size: 1.25rem;
+        font-weight: 600;
+        color: var(--text);
+    }
+
+    .modal-close {
+        background: none;
+        border: none;
+        font-size: 1rem;
+        color: var(--text-light);
+        cursor: pointer;
+        transition: color 0.3s ease;
+        position: relative;
+        z-index: 1;
+    }
+
+    .modal-close:hover {
+        color: var(--primary);
+    }
+
+    .modal-body {
+        padding: var(--spacing-xl);
+    }
+
+    .modal-body h6 {
+        font-family: 'Montserrat', sans-serif;
+        font-size: 1rem;
+        font-weight: 600;
+        color: var(--text);
+        margin-bottom: var(--spacing-md);
+    }
+
+    .modal-body p {
+        font-size: 0.9rem;
+        color: var(--text);
+        margin-bottom: var(--spacing-sm);
+    }
+
+    .text-muted {
+        color: var(--text-light);
+        font-size: 0.9rem;
+    }
+
+    @media (max-width: 576px) {
+        .row {
+            padding: var(--spacing-sm) 0;
+            gap: var(--spacing-md);
+        }
+
+        .col-md-4 {
+            flex: 1 1 100%;
+            max-width: 100%;
+            min-width: 0;
+        }
+
+        .modal-dialog {
+            width: 95%;
+        }
+    }
+</style>
+{% endblock %}
+
 {% block sidebar_menu %}
+<style>
+    .nav-item {
+        margin-bottom: var(--spacing-sm);
+    }
+
+    .nav-link {
+        display: flex;
+        align-items: center;
+        gap: var(--spacing-sm);
+        padding: var(--spacing-md) var(--spacing-lg);
+        color: var(--text-light);
+        font-size: 0.95rem;
+        font-weight: 500;
+        border-radius: var(--border-radius);
+        transition: all 0.3s ease;
+        text-decoration: none;
+        position: relative;
+        z-index: 1;
+        cursor: pointer;
+    }
+
+    .nav-link:hover {
+        background: rgba(44, 107, 255, 0.1);
+        color: var(--primary);
+    }
+
+    .nav-link.active {
+        background: var(--primary);
+        color: var(--white);
+        font-weight: 600;
+        box-shadow: 0 2px 8px rgba(44, 107, 255, 0.2);
+    }
+
+    .nav-link i {
+        font-size: 1.1rem;
+    }
+</style>
+
 <div class="nav-item">
     <a href="{{ url_for('doctor.dashboard') }}" class="nav-link">
         <i class="fas fa-home"></i>
@@ -16,7 +371,7 @@
     </a>
 </div>
 <div class="nav-item">
-    <a href="#" class="nav-link active">
+    <a href="{{ url_for('doctor.patients') }}" class="nav-link active">
         <i class="fas fa-users"></i>
         Danh sách bệnh nhân
     </a>
@@ -39,61 +394,18 @@
 
 {% block content %}
 <!-- Search and Filter -->
-<!--<div class="card mb-4">
-    <div class="card-body">
-        <form class="row g-3" method="GET">
-            <div class="col-md-4">
-                <div class="input-group">
-                    <input type="text" 
-                           class="form-control" 
-                           name="search" 
-                           placeholder="Tìm theo mã BN, tên, số điện thoại..."
-                           value="{{ request.args.get('search', '') }}">
-                    <button class="btn btn-primary" type="submit">
-                        <i class="fas fa-search"></i>
-                        Tìm kiếm
-                    </button>
-                </div>
-            </div>
-            <div class="col-md-3">
-                <select class="form-select" name="blood_type">
-                    <option value="">Nhóm máu</option>
-                    <option value="A+" {% if request.args.get('blood_type') == 'A+' %}selected{% endif %}>A+</option>
-                    <option value="A-" {% if request.args.get('blood_type') == 'A-' %}selected{% endif %}>A-</option>
-                    <option value="B+" {% if request.args.get('blood_type') == 'B+' %}selected{% endif %}>B+</option>
-                    <option value="B-" {% if request.args.get('blood_type') == 'B-' %}selected{% endif %}>B-</option>
-                    <option value="O+" {% if request.args.get('blood_type') == 'O+' %}selected{% endif %}>O+</option>
-                    <option value="O-" {% if request.args.get('blood_type') == 'O-' %}selected{% endif %}>O-</option>
-                    <option value="AB+" {% if request.args.get('blood_type') == 'AB+' %}selected{% endif %}>AB+</option>
-                    <option value="AB-" {% if request.args.get('blood_type') == 'AB-' %}selected{% endif %}>AB-</option>
-                </select>
-            </div>
-            <div class="col-md-3">
-                <select class="form-select" name="gender">
-                    <option value="">Giới tính</option>
-                    <option value="Nam" {% if request.args.get('gender') == 'Nam' %}selected{% endif %}>Nam</option>
-                    <option value="Nữ" {% if request.args.get('gender') == 'Nữ' %}selected{% endif %}>Nữ</option>
-                </select>
-            </div>
-            <div class="col-md-2">
-                <button type="button" class="btn btn-secondary w-100" onclick="clearFilters()">
-                    <i class="fas fa-undo"></i>
-                    Đặt lại
-                </button>
-            </div>
-        </form>
-    </div>
-</div>-->
-<div class="col-md-4">
-    <label class="form-label">Tìm kiếm bệnh nhân</label>
-    <div class="input-group">
-        <input type="text" id="searchMedicalRecords" class="form-control"
-               placeholder="Nhập mã bệnh nhân, họ tên, ngày sinh hoặc số điện thoại" onkeyup="searchPatients()">
+<div class="row">
+    <div class="col-md-4">
+        <label class="form-label">Tìm kiếm bệnh nhân</label>
+        <div class="input-group">
+            <input type="text" id="searchMedicalRecords" class="form-control"
+                placeholder="Nhập mã bệnh nhân, họ tên, ngày sinh hoặc số điện thoại" onkeyup="searchPatients()">
+        </div>
     </div>
 </div>
 
 <!-- Patients List -->
-<div class="card">
+<div class="card mt-4">
     <div class="card-body">
         <div class="table-container">
             <table class="table">
@@ -104,7 +416,6 @@
                         <th>Giới tính</th>
                         <th>Ngày sinh</th>
                         <th>Số điện thoại</th>
-                       <!-- <th>Lần khám gần nhất</th>-->
                         <th>Thao tác</th>
                     </tr>
                 </thead>
@@ -116,26 +427,12 @@
                         <td>{{ patient.personalInfo.gender }}</td>
                         <td>{{ patient.personalInfo.dateOfBirth.strftime('%d/%m/%Y') }}</td>
                         <td>{{ patient.personalInfo.phone }}</td>
-                        <!--<td>
-                            {% if patient.last_visit %}
-                                {{ patient.last_visit.strftime('%d/%m/%Y') }}
-                            {% else %}
-                            <span class="text-muted">Chưa có</span>
-                            {% endif %}
-                        </td>-->
                         <td>
-                            <button type="button" 
-                                    class="btn btn-primary btn-sm"
-                                    onclick="viewPatient('{{ patient._id }}')">
+                            <button type="button" class="btn btn-primary btn-sm"
+                                onclick="viewPatient('{{ patient._id }}')">
                                 <i class="fas fa-eye"></i>
                                 Chi tiết
                             </button>
-                           <!-- <button type="button" 
-                                    class="btn btn-secondary btn-sm"
-                                    onclick="viewHistory('{{ patient._id }}')">
-                                <i class="fas fa-history"></i>
-                                Lịch sử
-                            </button>-->
                         </td>
                     </tr>
                     {% endfor %}
@@ -238,7 +535,7 @@
                         </div>
                     </div>
                 `;
-                
+
                 document.getElementById('patientModal').classList.add('show');
             });
     }
@@ -248,7 +545,7 @@
             .then(response => response.json())
             .then(history => {
                 const historyEl = document.getElementById('patientHistory');
-                
+
                 if (history.length === 0) {
                     historyEl.innerHTML = '<p class="text-center text-muted">Chưa có lịch sử khám bệnh</p>';
                 } else {
@@ -267,55 +564,40 @@
                         </div>
                     `).join('');
                 }
-                
+
                 document.getElementById('historyModal').classList.add('show');
             });
     }
+
     function searchPatients() {
-    const searchTerm = document.getElementById('searchMedicalRecords').value.toLowerCase();
-    const rows = document.querySelectorAll(".table tbody tr");
+        const searchTerm = document.getElementById('searchMedicalRecords').value.toLowerCase();
+        const rows = document.querySelectorAll(".table tbody tr");
 
-    rows.forEach(row => {
-        const name = row.cells[1].textContent.toLowerCase();  // Lấy tên bệnh nhân từ cột thứ 2
-        const id = row.cells[0].textContent.toLowerCase();    // Lấy mã BN từ cột thứ 1
-        const phone = row.cells[4].textContent.toLowerCase(); // Số điện thoại
+        rows.forEach(row => {
+            const name = row.cells[1].textContent.toLowerCase();  // Lấy tên bệnh nhân từ cột thứ 2
+            const id = row.cells[0].textContent.toLowerCase();    // Lấy mã BN từ cột thứ 1
+            const phone = row.cells[4].textContent.toLowerCase(); // Số điện thoại
 
-        if (name.includes(searchTerm) || id.includes(searchTerm) || phone.includes(searchTerm)) {
-            row.style.display = "";  // Hiển thị nếu khớp
-        } else {
-            row.style.display = "none";  // Ẩn nếu không khớp
-        }
-    });
+            if (name.includes(searchTerm) || id.includes(searchTerm) || phone.includes(searchTerm)) {
+                row.style.display = "";  // Hiển thị nếu khớp
+            } else {
+                row.style.display = "none";  // Ẩn nếu không khớp
+            }
+        });
     }
-
 
     // Close modals
     document.querySelectorAll('.modal-close').forEach(button => {
-        button.addEventListener('click', function() {
+        button.addEventListener('click', function () {
             this.closest('.modal').classList.remove('show');
         });
     });
 
     // Close modal when clicking outside
-    document.addEventListener('click', function(event) {
+    document.addEventListener('click', function (event) {
         if (event.target.classList.contains('modal')) {
             event.target.classList.remove('show');
         }
     });
 </script>
-<style>
-    .pagination {
-        display: flex;
-        align-items: center;
-        justify-content: center;
-        flex-wrap: nowrap; /* Đảm bảo các phần tử nằm trên cùng một dòng */
-        list-style: none; /* Loại bỏ dấu chấm đen nếu có */
-        padding: 0; /* Loại bỏ khoảng cách thừa */
-        margin: 0; /* Loại bỏ khoảng cách thừa */
-    }
-
-    .pagination .page-item {
-        margin: 0 5px; /* Thêm khoảng cách giữa các nút */
-    }
-</style>
 {% endblock %}

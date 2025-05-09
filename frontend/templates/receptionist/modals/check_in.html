@@ -13,10 +13,8 @@
                 <div class="form-group mb-4">
                     <label class="form-label">Tìm kiếm bệnh nhân</label>
                     <div class="input-group">
-                        <input type="text" 
-                               class="form-control" 
-                               id="checkInPatientSearch" 
-                               placeholder="Nhập mã BN hoặc quét mã QR...">
+                        <input type="text" class="form-control" id="checkInPatientSearch"
+                            placeholder="Nhập mã BN hoặc quét mã QR...">
                         <button class="btn btn-primary" type="button" onclick="searchCheckInPatient()">
                             <i class="fas fa-search"></i>
                         </button>
@@ -48,10 +46,8 @@
 
                     <div class="form-group mb-3">
                         <label class="form-label">Ghi chú</label>
-                        <textarea class="form-control" 
-                                  id="checkInNotes" 
-                                  rows="2" 
-                                  placeholder="Ghi chú thêm nếu cần..."></textarea>
+                        <textarea class="form-control" id="checkInNotes" rows="2"
+                            placeholder="Ghi chú thêm nếu cần..."></textarea>
                     </div>
 
                     <!-- Vital Signs -->
@@ -64,42 +60,31 @@
                                 <div class="col-md-6">
                                     <div class="form-group mb-3">
                                         <label class="form-label">Nhiệt độ (°C)</label>
-                                        <input type="number" 
-                                               class="form-control" 
-                                               id="temperature" 
-                                               step="0.1">
+                                        <input type="number" class="form-control" id="temperature" step="0.1">
                                     </div>
                                 </div>
                                 <div class="col-md-6">
                                     <div class="form-group mb-3">
                                         <label class="form-label">Huyết áp (mmHg)</label>
                                         <div class="input-group">
-                                            <input type="number" 
-                                                   class="form-control" 
-                                                   id="systolic" 
-                                                   placeholder="Tâm thu">
+                                            <input type="number" class="form-control" id="systolic"
+                                                placeholder="Tâm thu">
                                             <span class="input-group-text">/</span>
-                                            <input type="number" 
-                                                   class="form-control" 
-                                                   id="diastolic" 
-                                                   placeholder="Tâm trương">
+                                            <input type="number" class="form-control" id="diastolic"
+                                                placeholder="Tâm trương">
                                         </div>
                                     </div>
                                 </div>
                                 <div class="col-md-6">
                                     <div class="form-group mb-3">
                                         <label class="form-label">Nhịp tim (nhịp/phút)</label>
-                                        <input type="number" 
-                                               class="form-control" 
-                                               id="heartRate">
+                                        <input type="number" class="form-control" id="heartRate">
                                     </div>
                                 </div>
                                 <div class="col-md-6">
                                     <div class="form-group mb-3">
                                         <label class="form-label">Nhịp thở (lần/phút)</label>
-                                        <input type="number" 
-                                               class="form-control" 
-                                               id="respiratoryRate">
+                                        <input type="number" class="form-control" id="respiratoryRate">
                                     </div>
                                 </div>
                             </div>
@@ -117,11 +102,8 @@
                 <button type="button" class="btn btn-secondary" onclick="closeModal('checkInModal')">
                     Hủy
                 </button>
-                <button type="button" 
-                        class="btn btn-primary" 
-                        id="confirmCheckIn" 
-                        style="display: none;"
-                        onclick="processCheckIn()">
+                <button type="button" class="btn btn-primary" id="confirmCheckIn" style="display: none;"
+                    onclick="processCheckIn()">
                     Xác nhận Check-in
                 </button>
             </div>
@@ -134,7 +116,7 @@
 
     function searchCheckInPatient() {
         const searchTerm = document.getElementById('checkInPatientSearch').value;
-        
+
         if (!searchTerm) {
             alert('Vui lòng nhập mã bệnh nhân hoặc quét mã QR');
             return;
@@ -211,15 +193,15 @@
                 vitalSigns: vitalSigns
             })
         })
-        .then(response => response.json())
-        .then(result => {
-            if (result.success) {
-                closeModal('checkInModal');
-                window.location.reload();
-            } else {
-                alert('Có lỗi xảy ra khi check-in');
-            }
-        });
+            .then(response => response.json())
+            .then(result => {
+                if (result.success) {
+                    closeModal('checkInModal');
+                    window.location.reload();
+                } else {
+                    alert('Có lỗi xảy ra khi check-in');
+                }
+            });
     }
 
     function openQRScanner() {

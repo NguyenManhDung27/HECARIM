@@ -1,75 +1,72 @@
 <!DOCTYPE html>
 <html lang="vi">
+
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Đăng nhập - Hệ thống Quản lý Y tế</title>
 
     <!-- Google Fonts -->
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&family=Montserrat:wght@500;600;700&display=swap" rel="stylesheet">
-    
+    <link
+        href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&family=Montserrat:wght@500;600;700&display=swap"
+        rel="stylesheet">
+
     <!-- Font Awesome -->
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
-    
+
     <!-- Base CSS -->
     <link rel="stylesheet" href="{{ url_for('static', filename='css/base.css') }}">
     <link rel="stylesheet" href="{{ url_for('static', filename='css/components.css') }}">
-    
+
     <style>
+        :root {
+            --primary: #2c6bff;
+            --primary-dark: #1e4db7;
+            --secondary: #00ddeb;
+            --bg: #f4f7ff;
+            --white: #ffffff;
+            --text: #1a1a1a;
+            --text-light: #6b7280;
+            --danger: #dc2626;
+            --gray-200: #e5e7eb;
+            --border-radius: 12px;
+            --border-radius-lg: 16px;
+            --spacing-xs: 0.25rem;
+            --spacing-sm: 0.5rem;
+            --spacing-md: 1rem;
+            --spacing-lg: 1.5rem;
+            --spacing-xl: 2rem;
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
         body {
             min-height: 100vh;
             display: flex;
             align-items: center;
             justify-content: center;
-            background-color: var(--bg);
+            background: linear-gradient(135deg, #e0e7ff 0%, #f4f7ff 100%),
+            url('{{ url_for("static", filename="static/images/bg.jpg") }}');
+            background-size: cover;
+            background-position: center;
             padding: var(--spacing-md);
+            font-family: 'Inter', sans-serif;
         }
+
 
         .login-container {
             width: 100%;
-            max-width: 400px;
+            max-width: 440px;
+            margin: 0 auto;
         }
 
         .login-header {
             text-align: center;
             margin-bottom: var(--spacing-xl);
-        }
-
-        .login-logo {
-            font-size: 2rem;
-            color: var(--primary);
-            margin-bottom: var(--spacing-sm);
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            gap: var(--spacing-sm);
-        }
-
-        .login-logo i {
-            font-size: 2.5rem;
-        }
-
-        .login-subtitle {
-            color: var(--text-light);
-        }
-
-        .login-card {
-            background-color: var(--white);
-            border-radius: var(--border-radius-lg);
-            box-shadow: 0 10px 25px rgba(0, 0, 0, 0.1);
-            padding: var(--spacing-xl);
-            transition: transform 0.3s ease, box-shadow 0.3s ease;
-        }
-
-        .login-card:hover {
-            transform: translateY(-2px);
-            box-shadow: 0 15px 30px rgba(0, 0, 0, 0.15);
-        }
-
-        .login-header {
-            text-align: center;
-            margin-bottom: var(--spacing-xl);
-            padding: var(--spacing-md);
         }
 
         .login-logo {
@@ -80,53 +77,139 @@
             margin-bottom: var(--spacing-md);
         }
 
+        .login-logo img {
+            width: 48px;
+            height: 48px;
+            object-fit: contain;
+        }
+
+        .login-logo .system-name {
+            font-family: 'Montserrat', sans-serif;
+            font-size: 2rem;
+            font-weight: 700;
+            color: var(--primary);
+            background: linear-gradient(45deg, var(--primary), var(--secondary));
+            -webkit-background-clip: text;
+            background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+
         .login-subtitle {
             color: var(--text-light);
-            font-size: 1.1rem;
+            font-size: 1rem;
             font-weight: 500;
             margin-top: var(--spacing-sm);
+            opacity: 0.9;
+        }
+
+        .login-card {
+            background: var(--white);
+            border-radius: var(--border-radius-lg);
+            box-shadow: 0 8px 24px rgba(44, 107, 255, 0.15);
+            padding: var(--spacing-xl);
+            position: relative;
+            overflow: hidden;
+            transition: transform 0.3s ease, box-shadow 0.3s ease;
+        }
+
+        .login-card::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 4px;
+            background: linear-gradient(90deg, var(--primary), var(--secondary));
+        }
+
+        .login-card:hover {
+            transform: translateY(-4px);
+            box-shadow: 0 12px 32px rgba(44, 107, 255, 0.2);
         }
 
         .login-tabs {
             display: flex;
             margin-bottom: var(--spacing-lg);
-            border-bottom: 2px solid var(--gray-200);
-            padding: 0 var(--spacing-md);
+            background: #f8fafc;
+            border-radius: var(--border-radius);
+            padding: 4px;
         }
 
         .login-tab {
             flex: 1;
             text-align: center;
-            padding: var(--spacing-md) var(--spacing-sm);
+            padding: var(--spacing-sm) var(--spacing-md);
             color: var(--text-light);
             cursor: pointer;
-            position: relative;
+            font-size: 0.95rem;
             font-weight: 500;
-            transition: color 0.3s ease;
+            border-radius: var(--border-radius);
+            transition: all 0.3s ease;
         }
 
         .login-tab:hover {
+            background: rgba(44, 107, 255, 0.1);
             color: var(--primary);
         }
 
         .login-tab.active {
-            color: var(--primary);
-            font-weight: 500;
+            background: var(--primary);
+            color: var(--white);
+            font-weight: 600;
+            box-shadow: 0 2px 8px rgba(44, 107, 255, 0.2);
         }
 
-        .login-tab.active::after {
-            content: '';
-            position: absolute;
-            bottom: -2px;
-            left: 0;
-            width: 100%;
-            height: 2px;
-            background-color: var(--primary);
+        .form-group {
+            margin-bottom: var(--spacing-lg);
+        }
+
+        .form-label {
+            display: block;
+            font-size: 0.9rem;
+            font-weight: 500;
+            color: var(--text);
+            margin-bottom: var(--spacing-sm);
+        }
+
+        .input-group {
+            position: relative;
+            display: flex;
+            align-items: center;
+            background: #f8fafc;
+            border: 1px solid var(--gray-200);
+            border-radius: var(--border-radius);
+            padding: var(--spacing-sm);
+            transition: all 0.3s ease;
+        }
+
+        .input-group:hover {
+            border-color: var(--primary);
+            box-shadow: 0 0 0 3px rgba(44, 107, 255, 0.1);
+        }
+
+        .input-group i {
+            color: var(--text-light);
+            font-size: 1.1rem;
+            margin: 0 var(--spacing-sm);
+        }
+
+        .form-control {
+            flex: 1;
+            border: none;
+            background: none;
+            font-size: 1rem;
+            padding: var(--spacing-sm) 0;
+            color: var(--text);
+            outline: none;
+        }
+
+        .form-control:focus {
+            outline: none;
         }
 
         .error-message {
             color: var(--danger);
-            font-size: 0.875rem;
+            font-size: 0.85rem;
             margin-top: var(--spacing-xs);
             display: none;
         }
@@ -134,8 +217,69 @@
         .error-message.show {
             display: block;
         }
+
+        .forgot-password {
+            display: block;
+            text-align: right;
+            font-size: 0.85rem;
+            color: var(--primary);
+            text-decoration: none;
+            margin-top: var(--spacing-sm);
+            transition: color 0.3s ease;
+        }
+
+        .forgot-password:hover {
+            color: var(--primary-dark);
+            text-decoration: underline;
+        }
+
+        .btn-primary {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: var(--spacing-sm);
+            background: linear-gradient(45deg, var(--primary), var(--secondary));
+            color: var(--white);
+            font-weight: 600;
+            padding: var(--spacing-md) var(--spacing-lg);
+            border: none;
+            border-radius: var(--border-radius);
+            cursor: pointer;
+            transition: all 0.3s ease;
+            font-size: 1rem;
+        }
+
+        .btn-primary:hover {
+            background: linear-gradient(45deg, var(--primary-dark), var(--secondary));
+            box-shadow: 0 4px 12px rgba(44, 107, 255, 0.3);
+            transform: translateY(-1px);
+        }
+
+        .btn-primary:active {
+            transform: translateY(0);
+        }
+
+        .alert {
+            padding: var(--spacing-md);
+            border-radius: var(--border-radius);
+            font-size: 0.9rem;
+            margin-top: var(--spacing-md);
+        }
+
+        .alert-success {
+            background: #e6ffed;
+            color: #15803d;
+            border: 1px solid #86efac;
+        }
+
+        .alert-danger {
+            background: #fee2e2;
+            color: #b91c1c;
+            border: 1px solid #f87171;
+        }
     </style>
 </head>
+
 <body>
     <div class="login-container">
         <!-- Login Header -->
@@ -157,21 +301,16 @@
             </div>
 
             <!-- Login Form -->
-            <form id="loginForm"  method="POST">
+            <form id="loginForm" method="POST">
                 <input type="hidden" name="role" id="roleInput" value="doctor">
-                
+
                 <!-- Username Field -->
                 <div class="form-group">
                     <label class="form-label" for="username">Tên đăng nhập</label>
                     <div class="input-group">
                         <i class="fas fa-user"></i>
-                        <input type="text"
-                               id="username"
-                               name="username"
-                               class="form-control"
-                               placeholder="Nhập tên đăng nhập"
-                               required
-                               autocomplete="username">
+                        <input type="text" id="username" name="username" class="form-control"
+                            placeholder="Nhập tên đăng nhập" required autocomplete="username">
                     </div>
                     <div class="error-message" id="usernameError"></div>
                 </div>
@@ -181,16 +320,11 @@
                     <label class="form-label" for="password">Mật khẩu</label>
                     <div class="input-group">
                         <i class="fas fa-lock"></i>
-                        <input type="password"
-                               id="password"
-                               name="password"
-                               class="form-control"
-                               placeholder="Nhập mật khẩu"
-                               required
-                               autocomplete="current-password">
+                        <input type="password" id="password" name="password" class="form-control"
+                            placeholder="Nhập mật khẩu" required autocomplete="current-password">
                     </div>
                     <div class="error-message" id="passwordError"></div>
-                    <a href="#" class="forgot-password">Quên mật khẩu?</a>
+                    <!-- <a href="#" class="forgot-password">Quên mật khẩu?</a> -->
                 </div>
 
                 <!-- Submit Button -->
@@ -203,13 +337,13 @@
 
                 <!-- Flash Messages -->
                 {% with messages = get_flashed_messages(with_categories=true) %}
-                    {% if messages %}
-                        {% for category, message in messages %}
-                            <div class="alert alert-{{ category }} mt-3">
-                                {{ message }}
-                            </div>
-                        {% endfor %}
-                    {% endif %}
+                {% if messages %}
+                {% for category, message in messages %}
+                <div class="alert alert-{{ category }} mt-3">
+                    {{ message }}
+                </div>
+                {% endfor %}
+                {% endif %}
                 {% endwith %}
             </form>
         </div>
@@ -267,4 +401,5 @@
         });
     </script>
 </body>
+
 </html>

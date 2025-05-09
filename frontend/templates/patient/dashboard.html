@@ -2,157 +2,597 @@
 
 {% block title %}Trang chủ - Bệnh nhân{% endblock %}
 
-{% block page_title %}Trang chủ{% endblock %}
+{% block page_title %}Trang chủ bệnh nhân{% endblock %}
+
+{% block extra_css %}
+<style>
+    .row {
+        display: flex;
+        flex-wrap: wrap;
+        margin: 0;
+        width: 100%;
+        gap: var(--spacing-lg);
+        padding: var(--spacing-md) 0;
+    }
+
+    .col-12, .col-md-6, .col-md-4 {
+        padding: var(--spacing-sm);
+    }
+
+    .col-12 {
+        flex: 1 1 100%;
+        max-width: 100%;
+    }
+
+    .col-md-6 {
+        flex: 1 1 50%;
+        max-width: 50%;
+    }
+
+    .col-md-4 {
+        flex: 1 1 33.333%;
+        max-width: 33.333%;
+    }
+
+    .card {
+        background: var(--white);
+        border-radius: var(--border-radius-lg);
+        box-shadow: 0 8px 24px rgba(44, 107, 255, 0.15);
+        transition: transform 0.3s ease, box-shadow 0.3s ease;
+        position: relative;
+        overflow: hidden;
+    }
+
+    .card:hover {
+        transform: translateY(-4px);
+        box-shadow: 0 12px 32px rgba(44, 107, 255, 0.2);
+    }
+
+    .card::before {
+        content: '';
+        position: absolute;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 4px;
+        background: linear-gradient(90deg, var(--primary), var(--secondary));
+    }
+
+    .card-header {
+        padding: var(--spacing-md) var(--spacing-lg);
+        border-bottom: 1px solid var(--gray-200);
+        background: #f8fafc;
+    }
+
+    .card-title {
+        font-family: 'Montserrat', sans-serif;
+        font-size: 1.25rem;
+        font-weight: 600;
+        color: var(--text);
+        margin: 0;
+        display: flex;
+        align-items: center;
+        gap: var(--spacing-sm);
+    }
+
+    .card-body {
+        padding: var(--spacing-xl);
+    }
+
+    .chat-button {
+        position: fixed;
+        bottom: var(--spacing-lg);
+        right: var(--spacing-lg);
+        width: 60px;
+        height: 60px;
+        background: linear-gradient(45deg, var(--primary), var(--secondary));
+        border-radius: 50%;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        box-shadow: 0 4px 12px rgba(44, 107, 255, 0.3);
+        cursor: pointer;
+        z-index: 1000;
+        transition: transform 0.3s ease;
+    }
+
+    .chat-button:hover {
+        transform: scale(1.1);
+    }
+
+    .chat-button i {
+        color: var(--white);
+        font-size: 1.5rem;
+    }
+
+    .chat-window {
+        position: fixed;
+        bottom: 80px;
+        right: var(--spacing-lg);
+        width: 360px;
+        height: 500px;
+        background: var(--white);
+        border-radius: var(--border-radius-lg);
+        box-shadow: 0 8px 24px rgba(44, 107, 255, 0.15);
+        display: none;
+        flex-direction: column;
+        z-index: 1000;
+        animation: slideUp 0.3s ease;
+    }
+
+    .chat-window.open {
+        display: flex;
+    }
+
+    .chat-header {
+        padding: var(--spacing-md);
+        background: #f8fafc;
+        border-bottom: 1px solid var(--gray-200);
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        border-radius: var(--border-radius-lg) var(--border-radius-lg) 0 0;
+    }
+
+    .chat-header h3 {
+        font-family: 'Montserrat', sans-serif;
+        font-size: 1rem;
+        font-weight: 600;
+        color: var(--text);
+        margin: 0;
+        display: flex;
+        align-items: center;
+        gap: var(--spacing-sm);
+    }
+
+    .chat-header button {
+        background: none;
+        border: none;
+        color: var(--text-light);
+        font-size: 1rem;
+        cursor: pointer;
+        transition: color 0.3s ease;
+    }
+
+    .chat-header button:hover {
+        color: var(--text);
+    }
+
+    .chat-messages {
+        flex: 1;
+        overflow-y: auto;
+        padding: var(--spacing-md);
+        background: var(--white);
+    }
+
+    .chat-message {
+        margin-bottom: var(--spacing-md);
+        padding: var(--spacing-sm);
+        border-radius: var(--border-radius);
+        max-width: 80%;
+        font-size: 0.9rem;
+    }
+
+    .chat-message.user {
+        background: #e0f7fa;
+        margin-left: auto;
+        text-align: right;
+    }
+
+    .chat-message.bot {
+        background: #f8fafc;
+        margin-right: auto;
+    }
+
+    .chat-input {
+        display: flex;
+        padding: var(--spacing-sm);
+        background: #f8fafc;
+        border-top: 1px solid var(--gray-200);
+    }
+
+    .chat-input input {
+        flex: 1;
+        border: 1px solid var(--gray-200);
+        border-radius: var(--border-radius);
+        padding: var(--spacing-sm);
+        font-size: 0.9rem;
+    }
+
+    .chat-input button {
+        margin-left: var(--spacing-sm);
+        padding: var(--spacing-sm) var(--spacing-md);
+        border-radius: var(--border-radius);
+        background: var(--primary);
+        color: var(--white);
+        border: none;
+        cursor: pointer;
+        transition: all 0.3s ease;
+    }
+
+    .chat-input button:hover {
+        background: var(--primary-dark);
+    }
+    
+    .chat-input {
+        background: #fff;
+    }
+
+    .suggestions-list {
+        list-style: none;
+        padding: 0;
+        margin: var(--spacing-sm) 0;
+    }
+
+    .suggestions-list li {
+        padding: var(--spacing-sm);
+        border-radius: var(--border-radius);
+        cursor: pointer;
+        transition: background 0.3s ease;
+    }
+
+    .suggestions-list li:hover {
+        background: rgba(44, 107, 255, 0.1);
+    }
+
+    .selected-symptoms {
+        margin: var(--spacing-md);
+        padding: var(--spacing-sm);
+        background: #e0f7fa;
+        border-radius: var(--border-radius);
+        display: flex;
+        flex-wrap: wrap;
+        gap: var(--spacing-sm);
+        align-items: center;
+    }
+
+    .btn-primary {
+        background: linear-gradient(45deg, var(--primary), var(--secondary));
+        color: var(--white);
+        border: none;
+        padding: var(--spacing-sm) var(--spacing-md);
+        border-radius: var(--border-radius);
+        font-size: 0.9rem;
+        cursor: pointer;
+        transition: all 0.3s ease;
+    }
+
+    .btn-primary:hover {
+        background: linear-gradient(45deg, var(--primary-dark), var(--secondary));
+        box-shadow: 0 4px 12px rgba(44, 107, 255, 0.3);
+    }
+
+    .btn-secondary {
+        background: #6c757d;
+        color: var(--white);
+        border: none;
+        padding: var(--spacing-sm) var(--spacing-md);
+        border-radius: var(--border-radius);
+        font-size: 0.9rem;
+        cursor: pointer;
+        transition: all 0.3s ease;
+    }
+
+    .btn-secondary:hover {
+        background: #5a6268;
+        box-shadow: 0 4px 12px rgba(108, 117, 125, 0.3);
+    }
+
+    .badge {
+        padding: var(--spacing-xs) var(--spacing-sm);
+        border-radius: var(--border-radius);
+        font-size: 0.85rem;
+        font-weight: 500;
+    }
+
+    .text-muted {
+        color: var(--text-light);
+        font-size: 0.9rem;
+    }
+
+    @keyframes slideUp {
+        from {
+            transform: translateY(20px);
+            opacity: 0;
+        }
+        to {
+            transform: translateY(0);
+            opacity: 1;
+        }
+    }
+
+    @media (max-width: 768px) {
+        .row {
+            padding: var(--spacing-sm) 0;
+            gap: var(--spacing-md);
+        }
+
+        .col-md-6, .col-md-4 {
+            flex: 1 1 100%;
+            max-width: 100%;
+        }
+
+        .chat-window {
+            width: 90%;
+            height: 80vh;
+            bottom: 70px;
+            right: var(--spacing-sm);
+        }
+
+        .chat-button {
+            bottom: var(--spacing-md);
+            right: var(--spacing-md);
+            width: 50px;
+            height: 50px;
+        }
+    }
+</style>
+{% endblock %}
 
 {% block sidebar_menu %}
-<a href="{{ url_for('patient.dashboard') }}" class="nav-link">
-    <i class="fas fa-home"></i>
-    <span>Trang chủ</span>
-</a>
-<a href="{{ url_for('patient.appointments') }}" class="nav-link">
-    <i class="fas fa-calendar-alt"></i>
-    <span>Lịch hẹn</span>
-</a>
-<a href="{{ url_for('patient.records') }}" class="nav-link">
-    <i class="fas fa-file-medical"></i>
-    <span>Hồ sơ bệnh án</span>
-</a>
-<a href="{{ url_for('patient.prescriptions') }}" class="nav-link">
-    <i class="fas fa-prescription"></i>
-    <span>Đơn thuốc</span>
-</a>
-<a href="{{ url_for('patient.change_password') }}" class="nav-link">
-    <i class="fas fa-user"></i>
-    Chỉnh sửa mật khẩu
-</a>
-<a href="{{ url_for('patient.invoices') }}" class="nav-link">
-    <i class="fas fa-file-invoice"></i>
-    <span>Hóa đơn</span>
+<style>
+    .nav-item {
+        margin-bottom: var(--spacing-sm);
+    }
 
-</a>
+    .nav-link {
+        display: flex;
+        align-items: center;
+        gap: var(--spacing-sm);
+        padding: var(--spacing-md) var(--spacing-lg);
+        color: var(--text-light);
+        font-size: 0.95rem;
+        font-weight: 500;
+        border-radius: var(--border-radius);
+        transition: all 0.3s ease;
+        text-decoration: none;
+        position: relative;
+        z-index: 1;
+        cursor: pointer;
+    }
+
+    .nav-link:hover {
+        background: rgba(44, 107, 255, 0.1);
+        color: var(--primary);
+    }
+
+    .nav-link.active {
+        background: var(--primary);
+        color: var(--white);
+        font-weight: 600;
+        box-shadow: 0 2px 8px rgba(44, 107, 255, 0.2);
+    }
+
+    .nav-link i {
+        font-size: 1.1rem;
+    }
+
+    .nav-link span {
+        font-family: 'Inter', sans-serif;
+    }
+</style>
+
+<div class="nav-item">
+    <a href="{{ url_for('patient.dashboard') }}" class="nav-link active">
+        <i class="fas fa-home"></i>
+        <span>Trang chủ</span>
+    </a>
+</div>
+<div class="nav-item">
+    <a href="{{ url_for('patient.appointments') }}" class="nav-link">
+        <i class="fas fa-calendar-alt"></i>
+        <span>Lịch hẹn</span>
+    </a>
+</div>
+<div class="nav-item">
+    <a href="{{ url_for('patient.records') }}" class="nav-link">
+        <i class="fas fa-file-medical"></i>
+        <span>Hồ sơ bệnh án</span>
+    </a>
+</div>
+<div class="nav-item">
+    <a href="{{ url_for('patient.prescriptions') }}" class="nav-link">
+        <i class="fas fa-prescription"></i>
+        <span>Đơn thuốc</span>
+    </a>
+</div>
+<div class="nav-item">
+    <a href="{{ url_for('patient.invoices') }}" class="nav-link">
+        <i class="fas fa-file-invoice"></i>
+        <span>Hóa đơn</span>
+    </a>
+</div>
 {% endblock %}
 
 {% block content %}
 <div class="row">
-    <!-- Personal Information -->
-    <div class="col">
+    <!-- Upcoming Appointments -->
+    <div class="col-md-6">
         <div class="card">
             <div class="card-header">
                 <h2 class="card-title">
-                    <i class="fas fa-user-circle me-2"></i>
-                    Thông tin cá nhân
-                </h2>
-            </div>
-            <div class="card-body">
-                <div class="patient-info">
-                    <p><strong>Họ tên:</strong> {{ patient.personalInfo.fullName }}</p>
-                    <p><strong>Ngày sinh:</strong> {{ patient.personalInfo.dateOfBirth }}</p>
-                    <p><strong>Giới tính:</strong> {{ patient.personalInfo.gender }}</p>
-                    <p><strong>Địa chỉ:</strong> {{ patient.personalInfo.address }}</p>
-                    <p><strong>Số điện thoại:</strong> {{ patient.personalInfo.phone }}</p>
-                    <p><strong>Email:</strong> {{ patient.personalInfo.email }}</p>
-                </div>
-            </div>
-        </div>
-    </div>
-    <!--
-    Upcoming Appointments
-    <div class="col">
-        <div class="card">
-            <div class="card-header">
-                <h2 class="card-title">
-                    <i class="fas fa-calendar-check me-2"></i>
+                    <i class="fas fa-calendar-alt me-2"></i>
                     Lịch hẹn sắp tới
                 </h2>
             </div>
             <div class="card-body">
                 {% if upcoming_appointments %}
-                <div class="table-container">
-                    <table class="table">
-                        <thead>
-                            <tr>
-                                <th>Ngày giờ</th>
-                                <th>Bác sĩ</th>
-                                <th>Khoa</th>
-                                <th>Trạng thái</th>
-                            </tr>
-                        </thead>
-                        <tbody>
-                            {% for appointment in upcoming_appointments %}
-                            <tr>
-                                <td>{{ appointment.datetime }}</td>
-                                <td>{{ appointment.doctor_name }}</td>
-                                <td>{{ appointment.department }}</td>
-                                <td>
-                                    <span class="badge badge-{{ appointment.status_color }}">
-                                        {{ appointment.status }}
-                                    </span>
-                                </td>
-                            </tr>
-                            {% endfor %}
-                        </tbody>
-                    </table>
-                </div>
+                <ul class="list-unstyled">
+                    {% for appointment in upcoming_appointments %}
+                    <li class="mb-3">
+                        <div class="d-flex justify-content-between">
+                            <div>
+                                <strong>{{ appointment.datetime }}</strong>
+                                <p class="mb-0">{{ appointment.department }} - {{ appointment.doctor_name }}</p>
+                            </div>
+                            <span class="badge badge-{{ appointment.status_color }}">
+                                {{ appointment.status }}
+                            </span>
+                        </div>
+                    </li>
+                    {% endfor %}
+                </ul>
                 {% else %}
                 <p class="text-muted">Không có lịch hẹn sắp tới</p>
                 {% endif %}
-                <a href="{{ url_for('patient.appointments') }}" class="btn btn-primary mt-3">
-                    <i class="fas fa-plus me-2"></i>Đặt lịch hẹn
-                </a>
+            </div>
+        </div>
+    </div>
+
+    <!-- Recent Medical Records -->
+    <div class="col-md-6">
+        <div class="card">
+            <div class="card-header">
+                <h2 class="card-title">
+                    <i class="fas fa-file-medical me-2"></i>
+                    Hồ sơ bệnh án gần đây
+                </h2>
+            </div>
+            <div class="card-body">
+                {% if recent_records %}
+                <ul class="list-unstyled">
+                    {% for record in recent_records %}
+                    <li class="mb-3">
+                        <div class="d-flex justify-content-between">
+                            <div>
+                                <strong>{{ record.visitDate }}</strong>
+                                <p class="mb-0">{{ record.diagnosis }}</p>
+                            </div>
+                            <button class="btn btn-primary btn-sm"
+                                    onclick="viewRecord('{{ record._id }}')">
+                                <i class="fas fa-eye"></i>
+                                Xem
+                            </button>
+                        </div>
+                    </li>
+                    {% endfor %}
+                </ul>
+                {% else %}
+                <p class="text-muted">Không có hồ sơ bệnh án gần đây</p>
+                {% endif %}
             </div>
         </div>
     </div>
 </div>
 
-Recent Records 
-<div class="card mt-4">
-    <div class="card-header">
-        <h2 class="card-title">
-            <i class="fas fa-history me-2"></i>
-            Lịch sử khám gần đây
-        </h2>
-    </div>
-    <div class="card-body">
-        {% if recent_records %}
-        <div class="table-container">
-            <table class="table">
-                <thead>
-                    <tr>
-                        <th>Ngày khám</th>
-                        <th>Bác sĩ</th>
-                        <th>Chẩn đoán</th>
-                        <th>Kê đơn</th>
-                        <th></th>
-                    </tr>
-                </thead>
-                <tbody>
-                    {% for record in recent_records %}
-                    <tr>
-                        <td>{{ record.date }}</td>
-                        <td>{{ record.doctor_name }}</td>
-                        <td>{{ record.diagnosis }}</td>
-                        <td>
-                            {% if record.has_prescription %}
-                            <span class="badge badge-success">Có</span>
-                            {% else %}
-                            <span class="badge badge-secondary">Không</span>
-                            {% endif %}
-                        </td>
-                        <td>
-                            <a href="{{ url_for('patient.records', record_id=record.id) }}" 
-                               class="btn btn-sm btn-outline-primary">
-                                <i class="fas fa-eye me-1"></i>Chi tiết
-                            </a>
-                        </td>
-                    </tr>
-                    {% endfor %}
-                </tbody>
-            </table>
+<!-- AI Chat Button -->
+<div class="chat-button" onclick="toggleChatWindow()">
+    <i class="fas fa-robot"></i>
+</div>
+
+<!-- AI Chat Window -->
+<div class="chat-window" id="chatWindow">
+    <div class="chat-header">
+        <h3><i class="fas fa-robot me-2"></i>Dự đoán bệnh bằng AI</h3>
+        <div>
+            <button onclick="minimizeChatWindow()"><i class="fas fa-minus"></i></button>
+            <button onclick="closeChatWindow()"><i class="fas fa-times"></i></button>
         </div>
-        {% else %}
-        <p class="text-muted">Chưa có lịch sử khám bệnh</p>
-        {% endif %}
+    </div>
+    <div class="chat-messages" id="chatMessages">
+        <div class="chat-message bot">
+            Xin chào! Tôi là trợ lý ảo HecaAI. Nhập các triệu chứng của bạn, cách nhau bởi dấu phẩy (ví dụ: sốt, ho, đau đầu), và tôi sẽ dự đoán bệnh của bạn ngay lập tức!
+        </div>
+    </div>
+    <div class="chat-input">
+        <input type="text" id="directInput" placeholder="Nhập các triệu chứng">
+        <button onclick="predictFromText()">Dự đoán</button>
     </div>
 </div>
--->
-    {% endblock %}
+{% endblock %}
+
+{% block extra_scripts %}
+<script>
+    function toggleChatWindow() {
+        const chatWindow = document.getElementById('chatWindow');
+        chatWindow.classList.toggle('open');
+        if (chatWindow.classList.contains('open')) {
+            document.getElementById('directInput').focus();
+        }
+    }
+
+    function minimizeChatWindow() {
+        document.getElementById('chatWindow').classList.remove('open');
+    }
+
+    function closeChatWindow() {
+        document.getElementById('chatWindow').classList.remove('open');
+        const messages = document.getElementById('chatMessages');
+        messages.innerHTML = '<div class="chat-message bot">Xin chào! Tôi là trợ lý ảo của bạn. Nhập các triệu chứng của bạn, cách nhau bởi dấu phẩy (ví dụ: sốt, ho, đau đầu), và tôi sẽ dự đoán bệnh của bạn ngay lập tức!</div>';
+        document.getElementById('directInput').value = '';
+    }
+
+    function appendMessage(content, type) {
+        const messages = document.getElementById('chatMessages');
+        const message = document.createElement('div');
+        message.className = `chat-message ${type}`;
+        message.innerHTML = content;
+        messages.appendChild(message);
+        messages.scrollTop = messages.scrollHeight;
+    }
+    
+    async function predictFromText() {
+        const input = document.getElementById('directInput');
+        const symptomsText = input.value.trim();
+        
+        if (!symptomsText) {
+            appendMessage('Vui lòng nhập các triệu chứng để dự đoán.', 'bot');
+            return;
+        }
+        
+        appendMessage(`Triệu chứng của bạn: ${symptomsText}`, 'user');
+        
+        try {
+            appendMessage('Đang phân tích triệu chứng và dự đoán bệnh...', 'bot');
+            
+            const response = await fetch('/patient/api/predict_from_text', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ symptoms_text: symptomsText })
+            });
+            
+            const data = await response.json();
+            
+            if (data.success) {
+                // Chỉ hiển thị kết quả dự đoán bệnh (không hiển thị các triệu chứng đã khớp)
+                if (data.predictions && data.predictions.length > 0) {
+                    let content = 'Kết quả dự đoán bệnh:<ul>';
+                    data.predictions.forEach(pred => {
+                        content += `<li>${pred.disease}: ${pred.probability}%</li>`;
+                    });
+                    content += '</ul>';
+                    
+                    // Thêm thông báo miễn trừ trách nhiệm
+                    content += '<p style="margin-top: 10px; font-style: italic; color: #666; font-size: 0.9em;">Lưu ý: Đây chỉ là dự đoán dựa trên các triệu chứng đã cung cấp và không thay thế cho tư vấn y tế chuyên nghiệp. Vui lòng tham khảo ý kiến bác sĩ để có chẩn đoán chính xác.</p>';
+                    
+                    appendMessage(content, 'bot');
+                } else {
+                    appendMessage('Không thể dự đoán bệnh từ các triệu chứng đã cung cấp. Vui lòng thử lại với các triệu chứng khác.', 'bot');
+                }
+                
+                // Xóa nội dung input
+                input.value = '';
+            } else {
+                appendMessage(data.message || 'Không thể dự đoán bệnh. Vui lòng thử lại.', 'bot');
+            }
+        } catch (error) {
+            console.error(error);
+            appendMessage('Đã xảy ra lỗi khi dự đoán. Vui lòng thử lại.', 'bot');
+        }
+    }
+    
+    document.getElementById('directInput').addEventListener('keypress', function(e) {
+        if (e.key === 'Enter') {
+            predictFromText();
+        }
+    });
+
+    function viewRecord(recordId) {
+        fetch(`/patient/api/records/${recordId}`)
+            .then(response => response.json())
+            .then(record => {
+                alert(`Chi tiết hồ sơ: ${record.diagnosis}`);
+            });
+    }
+</script>
+{% endblock %}

@@ -33,3 +33,7 @@ ENV/
 .vscode/
 *.swp
 *.swo
+
+# Large files
+AI/dataset.csv
+AI/dataset.csv.pickle

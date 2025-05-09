@@ -2,41 +2,457 @@
 
 {% block title %}Hóa đơn - Bệnh nhân{% endblock %}
 
-{% block page_title %}Quản lý hóa đơn {% endblock %}
+{% block page_title %}Quản lý hóa đơn{% endblock %}
+
+{% block extra_css %}
+<style>
+    .row {
+        display: flex;
+        flex-wrap: wrap;
+        margin: 0;
+        width: 100%;
+        gap: var(--spacing-lg);
+        padding: var(--spacing-md) 0;
+    }
+
+    .col-12 {
+        flex: 1 1 100%;
+        max-width: 100%;
+        padding: var(--spacing-sm);
+    }
+
+    .col-md-6 {
+        flex: 1 1 50%;
+        max-width: 50%;
+        padding: var(--spacing-sm);
+    }
+
+    .card {
+        background: var(--white);
+        border-radius: var(--border-radius-lg);
+        box-shadow: 0 8px 24px rgba(44, 107, 255, 0.15);
+        transition: transform 0.3s ease, box-shadow 0.3s ease;
+        position: relative;
+        overflow: hidden;
+    }
+
+    .card:hover {
+        transform: translateY(-4px);
+        box-shadow: 0 12px 32px rgba(44, 107, 255, 0.2);
+    }
+
+    .card::before {
+        content: '';
+        position: absolute;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 4px;
+        background: linear-gradient(90deg, var(--primary), var(--secondary));
+    }
+
+    .card-header {
+        padding: var(--spacing-md) var(--spacing-lg);
+        border-bottom: 1px solid var(--gray-200);
+        background: #f8fafc;
+    }
+
+    .card-title {
+        font-family: 'Montserrat', sans-serif;
+        font-size: 1.25rem;
+        font-weight: 600;
+        color: var(--text);
+        margin: 0;
+    }
+
+    .card-body {
+        padding: var(--spacing-xl);
+    }
+
+    .table-container {
+        overflow-x: auto;
+        margin-bottom: var(--spacing-md);
+    }
+
+    .table-responsive {
+        width: 100%;
+        max-height: 400px;
+        overflow-y: auto;
+    }
+
+    .table {
+        width: 100%;
+        border-collapse: separate;
+        border-spacing: 0;
+    }
+
+    .table-striped tbody tr:nth-of-type(odd) {
+        background: #f8fafc;
+    }
+
+    .table th,
+    .table td {
+        padding: var(--spacing-md);
+        text-align: left;
+        font-size: 0.9rem;
+        color: var(--text);
+    }
+
+    .table th {
+        background: #f8fafc;
+        font-family: 'Montserrat', sans-serif;
+        font-weight: 600;
+        border-bottom: 1px solid var(--gray-200);
+    }
+
+    .table td {
+        border-bottom: 1px solid var(--gray-200);
+    }
+
+    .table tr:last-child td {
+        border-bottom: none;
+    }
+
+    .input-group {
+        display: flex;
+        align-items: center;
+        gap: var(--spacing-sm);
+    }
+
+    .form-control,
+    .form-select {
+        border: 1px solid var(--gray-200);
+        border-radius: var(--border-radius);
+        padding: var(--spacing-sm) var(--spacing-md);
+        font-size: 0.9rem;
+        background: var(--white);
+        transition: all 0.3s ease;
+        width: 100%;
+        position: relative;
+        z-index: 1;
+    }
+
+    .form-control:focus,
+    .form-select:focus {
+        outline: none;
+        border-color: var(--primary);
+        box-shadow: 0 0 0 2px rgba(44, 107, 255, 0.2);
+    }
+
+    .form-select {
+        width: auto;
+    }
+
+    .btn-primary,
+    .btn-info,
+    .btn-secondary,
+    .btn-outline-primary {
+        display: inline-flex;
+        align-items: center;
+        gap: var(--spacing-sm);
+        padding: var(--spacing-sm) var(--spacing-md);
+        border-radius: var(--border-radius);
+        font-size: 0.9rem;
+        font-weight: 500;
+        cursor: pointer;
+        transition: all 0.3s ease;
+        position: relative;
+        z-index: 1;
+    }
+
+    .btn-primary {
+        background: linear-gradient(45deg, var(--primary), var(--secondary));
+        color: var(--white);
+        border: none;
+    }
+
+    .btn-primary:hover {
+        background: linear-gradient(45deg, var(--primary-dark), var(--secondary));
+        box-shadow: 0 4px 12px rgba(44, 107, 255, 0.3);
+    }
+
+    .btn-info {
+        background: #17a2b8;
+        color: var(--white);
+        border: none;
+    }
+
+    .btn-info:hover {
+        background: #138496;
+        box-shadow: 0 4px 12px rgba(23, 162, 184, 0.3);
+    }
+
+    .btn-secondary {
+        background: #6c757d;
+        color: var(--white);
+        border: none;
+    }
+
+    .btn-secondary:hover {
+        background: #5a6268;
+        box-shadow: 0 4px 12px rgba(108, 117, 125, 0.3);
+    }
+
+    .btn-outline-primary {
+        background: transparent;
+        color: var(--primary);
+        border: 1px solid var(--primary);
+    }
+
+    .btn-outline-primary:hover {
+        background: rgba(44, 107, 255, 0.1);
+        border-color: var(--primary-dark);
+        color: var(--primary-dark);
+    }
+
+    .btn-sm {
+        padding: var(--spacing-xs) var(--spacing-sm);
+        font-size: 0.85rem;
+        margin: 0 var(--spacing-xs);
+    }
+
+    .badge {
+        padding: var(--spacing-xs) var(--spacing-sm);
+        border-radius: var(--border-radius);
+        font-size: 0.85rem;
+        font-weight: 500;
+    }
+
+    .bg-success {
+        background: #d1fae5;
+        color: #047857;
+    }
+
+    .bg-warning {
+        background: #fef3c7;
+        color: #d97706;
+    }
+
+    .modal {
+        display: none;
+        position: fixed;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
+        background: rgba(0, 0, 0, 0.5);
+        z-index: 1050;
+    }
+
+    .modal.show {
+        display: block;
+    }
+
+    .modal-dialog {
+        max-width: 800px;
+        margin: var(--spacing-xl) auto;
+    }
+
+    .modal-content {
+        background: var(--white);
+        border-radius: var(--border-radius-lg);
+        box-shadow: 0 8px 24px rgba(44, 107, 255, 0.15);
+    }
+
+    .modal-header {
+        padding: var(--spacing-md) var(--spacing-lg);
+        border-bottom: 1px solid var(--gray-200);
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+    }
+
+    .modal-title {
+        font-family: 'Montserrat', sans-serif;
+        font-size: 1.25rem;
+        font-weight: 600;
+        color: var(--text);
+    }
+
+    .modal-body {
+        padding: var(--spacing-xl);
+    }
+
+    .modal-footer {
+        padding: var(--spacing-md) var(--spacing-lg);
+        border-top: 1px solid var(--gray-200);
+        display: flex;
+        justify-content: flex-end;
+        gap: var(--spacing-sm);
+    }
+
+    .modal-close {
+        background: none;
+        border: none;
+        font-size: 1rem;
+        color: var(--text-light);
+        cursor: pointer;
+        transition: color 0.3s ease;
+    }
+
+    .modal-close:hover {
+        color: var(--text);
+    }
+
+    .alert-info {
+        background: #e0f7fa;
+        color: #055160;
+        border: 1px solid #4dd0e1;
+        padding: var(--spacing-md);
+        border-radius: var(--border-radius);
+        margin-bottom: var(--spacing-lg);
+    }
+
+    .form-group {
+        margin-bottom: var(--spacing-md);
+    }
+
+    .form-label {
+        font-family: 'Montserrat', sans-serif;
+        font-size: 0.9rem;
+        font-weight: 500;
+        color: var(--text);
+        margin-bottom: var(--spacing-xs);
+    }
+
+    .d-flex {
+        display: flex;
+        gap: var(--spacing-sm);
+    }
+
+    .justify-content-end {
+        justify-content: flex-end;
+    }
+
+    .text-end {
+        text-align: right;
+    }
+
+    .mb-4 {
+        margin-bottom: var(--spacing-lg);
+    }
+
+    @media print {
+        .no-print {
+            display: none !important;
+        }
+
+        .modal {
+            position: absolute;
+            left: 0;
+            top: 0;
+            margin: 0;
+            padding: 0;
+            overflow: visible !important;
+        }
+    }
+
+    @media (max-width: 768px) {
+        .row {
+            padding: var(--spacing-sm) 0;
+            gap: var(--spacing-md);
+        }
+
+        .col-md-6 {
+            flex: 1 1 100%;
+            max-width: 100%;
+        }
+
+        .modal-dialog {
+            margin: var(--spacing-md) auto;
+            max-width: 95%;
+        }
+
+        .d-flex {
+            flex-direction: column;
+            align-items: stretch;
+        }
+    }
+</style>
+{% endblock %}
 
 {% block sidebar_menu %}
-<a href="{{ url_for('patient.dashboard') }}" class="nav-link">
-    <i class="fas fa-home"></i>
-    <span>Trang chủ</span>
-</a>
-<a href="{{ url_for('patient.appointments') }}" class="nav-link">
-    <i class="fas fa-calendar-alt"></i>
-    <span>Lịch hẹn</span>
-</a>
-<a href="{{ url_for('patient.records') }}" class="nav-link">
-    <i class="fas fa-file-medical"></i>
-    <span>Hồ sơ bệnh án</span>
-</a>
-<a href="{{ url_for('patient.prescriptions') }}" class="nav-link">
-    <i class="fas fa-prescription"></i>
-    <span>Đơn thuốc</span>
-</a>
-<a href="{{ url_for('patient.change_password') }}" class="nav-link">
-    <i class="fas fa-user"></i>
-    Chỉnh sửa mật khẩu
-</a>
-<a href="{{ url_for('patient.invoices') }}" class="nav-link">
-    <i class="fas fa-file-invoice"></i>
-    <span>Hóa đơn</span>
-</a>
+<style>
+    .nav-item {
+        margin-bottom: var(--spacing-sm);
+    }
+
+    .nav-link {
+        display: flex;
+        align-items: center;
+        gap: var(--spacing-sm);
+        padding: var(--spacing-md) var(--spacing-lg);
+        color: var(--text-light);
+        font-size: 0.95rem;
+        font-weight: 500;
+        border-radius: var(--border-radius);
+        transition: all 0.3s ease;
+        text-decoration: none;
+        position: relative;
+        z-index: 1;
+        cursor: pointer;
+    }
+
+    .nav-link:hover {
+        background: rgba(44, 107, 255, 0.1);
+        color: var(--primary);
+    }
+
+    .nav-link.active {
+        background: var(--primary);
+        color: var(--white);
+        font-weight: 600;
+        box-shadow: 0 2px 8px rgba(44, 107, 255, 0.2);
+    }
+
+    .nav-link i {
+        font-size: 1.1rem;
+    }
+
+    .nav-link span {
+        font-family: 'Inter', sans-serif;
+    }
+</style>
+
+<div class="nav-item">
+    <a href="{{ url_for('patient.dashboard') }}" class="nav-link">
+        <i class="fas fa-home"></i>
+        <span>Trang chủ</span>
+    </a>
+</div>
+<div class="nav-item">
+    <a href="{{ url_for('patient.appointments') }}" class="nav-link">
+        <i class="fas fa-calendar-alt"></i>
+        <span>Lịch hẹn</span>
+    </a>
+</div>
+<div class="nav-item">
+    <a href="{{ url_for('patient.records') }}" class="nav-link">
+        <i class="fas fa-file-medical"></i>
+        <span>Hồ sơ bệnh án</span>
+    </a>
+</div>
+<div class="nav-item">
+    <a href="{{ url_for('patient.prescriptions') }}" class="nav-link">
+        <i class="fas fa-prescription"></i>
+        <span>Đơn thuốc</span>
+    </a>
+</div>
+<div class="nav-item">
+    <a href="{{ url_for('patient.invoices') }}" class="nav-link active">
+        <i class="fas fa-file-invoice"></i>
+        <span>Hóa đơn</span>
+    </a>
+</div>
 {% endblock %}
-<!-- Invoices View -->
+
 {% block content %}
+<!-- Invoices View -->
 <div class="invoices" id="invoiceModel">
     <div class="row">
         <div class="col-12">
             <div class="card">
-                <div class="modal-header">
+                <div class="card-header">
                     <h5 class="card-title mb-0">Danh sách hóa đơn</h5>
                 </div>
                 <div class="card-body">
@@ -53,12 +469,12 @@
                         </div>
                         <div class="col-md-6">
                             <div class="d-flex gap-2 justify-content-end">
-                                <select class="form-select" id="filterStatus" style="width: auto;">
+                                <select class="form-select" id="filterStatus">
                                     <option value="">Tất cả trạng thái</option>
                                     <option value="paid">Đã thanh toán</option>
                                     <option value="unpaid">Chưa thanh toán</option>
                                 </select>
-                                <input type="date" class="form-control" id="filterDate" style="width: auto;">
+                                <input type="date" class="form-control" id="filterDate">
                             </div>
                         </div>
                     </div>
@@ -188,7 +604,6 @@
 </div>
 {% endblock %}
 
-
 {% block extra_scripts %}
 <script>
     document.addEventListener('DOMContentLoaded', function () {
@@ -203,13 +618,12 @@
     }
 
     function loadInvoices() {
-        console.log('Loading invoices...'); // Log khi bắt đầu tải hóa đơn
+        console.log('Loading invoices...');
         fetch('/patient/api/invoices')
             .then(response => response.json())
             .then(data => {
-
                 if (data.success && Array.isArray(data.invoices)) {
-                    displayInvoices(data.invoices); // Truyền mảng invoices vào hàm
+                    displayInvoices(data.invoices);
                 } else {
                     console.error('Dữ liệu không hợp lệ:', data);
                     alert('Không thể tải danh sách hóa đơn.');
@@ -229,55 +643,50 @@
 
         const tbody = document.getElementById('invoicesTableBody');
         tbody.innerHTML = invoices.map(invoice => `
-        <tr>
-            <td>${invoice._id}</td>
-            <td>${invoice.patientName}</td>
-            <td>${formatDate(invoice.issueDate)}</td>
-            <td>${formatCurrency(invoice.grandTotal)}</td>
-            <td>
-                <span class="badge ${invoice.status === 'Đã thanh toán' ? 'bg-success' : 'bg-warning'}">
-                    ${invoice.status}
-                </span>
-            </td>
-            <td>
-                <button class="btn btn-sm btn-info" onclick="viewInvoiceDetails('${invoice._id}')">
-                    <i class="fas fa-eye"></i>
-                </button>
-                <button class="btn btn-sm btn-primary" onclick="printInvoice('${invoice._id}')">
-                    <i class="fas fa-print"></i>
-                </button>
-            </td>
-        </tr>
-    `).join('');
+            <tr>
+                <td>${invoice._id}</td>
+                <td>${invoice.patientName}</td>
+                <td>${formatDate(invoice.issueDate)}</td>
+                <td>${formatCurrency(invoice.grandTotal)}</td>
+                <td>
+                    <span class="badge ${invoice.status === 'Đã thanh toán' ? 'bg-success' : 'bg-warning'}">
+                        ${invoice.status}
+                    </span>
+                </td>
+                <td>
+                    <button class="btn btn-sm btn-info" onclick="viewInvoiceDetails('${invoice._id}')">
+                        <i class="fas fa-eye"></i>
+                    </button>
+                    <button class="btn btn-sm btn-primary" onclick="printInvoice('${invoice._id}')">
+                        <i class="fas fa-print"></i>
+                    </button>
+                </td>
+            </tr>
+        `).join('');
     }
 
     function filterInvoices() {
         const searchText = document.getElementById('searchInvoice').value.toLowerCase();
-        const status = document.getElementById('filterStatus').value;
-        const date = document.getElementById('filterDate').value; // Giá trị ngày từ input (yyyy-MM-dd)
+        const status = document.getElementByIdVirtua('filterStatus').value;
+        const date = document.getElementById('filterDate').value;
 
         const rows = document.querySelectorAll('#invoicesTableBody tr');
         rows.forEach(row => {
             let show = true;
 
-            // Tìm kiếm theo từ khóa
             if (searchText) {
                 const text = row.textContent.toLowerCase();
                 show = show && text.includes(searchText);
             }
 
-            // Lọc theo trạng thái
             if (status) {
                 const rowStatus = row.querySelector('.badge').textContent.trim().toLowerCase();
                 show = show && (status === 'paid' ? rowStatus === 'đã thanh toán' : rowStatus === 'chưa thanh toán');
             }
 
-            // Lọc theo ngày
             if (date) {
-                const rowDate = row.children[2]?.textContent.trim(); // Ngày trong cột thứ 3 (dd/MM/yyyy)
-                console.log(`Row Date: ${rowDate}, Filter Date: ${date}`); // Log giá trị ngày
-                const formattedRowDate = formatDateToISO(rowDate); // Chuyển sang yyyy-MM-dd
-                console.log(`Formatted Row Date: ${formattedRowDate}`);
+                const rowDate = row.children[2]?.textContent.trim();
+                const formattedRowDate = formatDateToISO(rowDate);
                 show = show && formattedRowDate === date;
             }
 
@@ -286,8 +695,7 @@
     }
 
     function formatDateToISO(dateString) {
-        // Tách phần ngày (bỏ qua thời gian nếu có)
-        const datePart = dateString.split(' ')[1]; // Lấy phần sau dấu cách
+        const datePart = dateString.split(' ')[0];
         if (!datePart) {
             console.error(`Invalid date format: ${dateString}`);
             return null;
@@ -296,18 +704,17 @@
         const parts = datePart.split('/');
         if (parts.length !== 3) {
             console.error(`Invalid date format: ${dateString}`);
-            return null; // Trả về null nếu định dạng không hợp lệ
+            return null;
         }
 
         const [day, month, year] = parts;
-        return `${year}-${month}-${day}`;
+        return `${year}-${month.padStart(2, '0')}-${day.padStart(2, '0')}`;
     }
 
     function viewInvoiceDetails(invoiceId) {
         fetch(`/patient/api/invoices/details/${invoiceId}`)
             .then(response => response.json())
             .then(data => {
-                console.log('Invoice details:', data); // Kiểm tra dữ liệu trả về
                 if (data.success) {
                     displayInvoiceDetails(data.invoice);
                     document.getElementById('invoiceDetailModal').classList.add('show');
@@ -322,7 +729,6 @@
     }
 
     function displayInvoiceDetails(invoice) {
-        // Display patient info
         document.getElementById('invoicePatientInfo').innerHTML = `
             <strong>Thông tin bệnh nhân:</strong><br>
             Họ tên: ${invoice.patientName}<br>
@@ -330,7 +736,6 @@
             Ngày lập: ${formatDate(invoice.issueDate)}
         `;
 
-        // Display invoice items
         document.getElementById('invoiceDetailItems').innerHTML = invoice.items.map(item => `
             <tr>
                 <td>${item.name}</td>
@@ -341,13 +746,11 @@
             </tr>
         `).join('');
 
-        // Display payment details
         document.getElementById('detailSubtotal').textContent = formatCurrency(invoice.subtotal);
         document.getElementById('detailDiscount').textContent = formatCurrency(invoice.discount?.value || 0);
         document.getElementById('detailTax').textContent = formatCurrency(invoice.tax);
         document.getElementById('detailTotal').textContent = formatCurrency(invoice.grandTotal);
 
-        // Display payment info
         document.getElementById('detailPaymentMethod').textContent = getPaymentMethodText(invoice.paymentMethod);
         document.getElementById('detailPaymentDate').textContent = invoice.paymentDate ? formatDate(invoice.paymentDate) : '-';
         document.getElementById('detailNotes').textContent = invoice.notes || '-';
@@ -365,7 +768,6 @@
     }
 
     function printInvoice(invoiceId) {
-        // Implementation for printing invoice
         window.print();
     }
 
@@ -402,61 +804,4 @@
         document.getElementById(modalId).classList.remove('show');
     }
 </script>
-{% endblock %}
-{% block extra_styles %}
-
-<style>
-    .medication-item {
-        margin-bottom: 10px;
-    }
-
-    .medication-item button {
-        display: flex;
-        justify-content: space-between;
-        align-items: center;
-        padding: 10px;
-        border: 1px solid #ddd;
-        border-radius: 5px;
-        background-color: #f8f9fa;
-        transition: background-color 0.2s;
-    }
-
-    .medication-item button:hover {
-        background-color: #e9ecef;
-    }
-
-    .table-responsive {
-        width: 100%;
-        margin-bottom: 1rem;
-        max-height: 400px;
-        /* Giới hạn chiều cao của bảng */
-        overflow-y: auto;
-        /* Bật thanh cuộn dọc */
-    }
-
-    .badge {
-        padding: 0.5em 0.75em;
-    }
-
-    .btn-sm {
-        padding: 0.25rem 0.5rem;
-        font-size: 0.875rem;
-        margin: 0 0.125rem;
-    }
-
-    @media print {
-        .no-print {
-            display: none !important;
-        }
-
-        .modal {
-            position: absolute;
-            left: 0;
-            top: 0;
-            margin: 0;
-            padding: 0;
-            overflow: visible !important;
-        }
-    }
-</style>
 {% endblock %}
