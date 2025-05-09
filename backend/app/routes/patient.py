@@ -15,8 +15,23 @@ def dashboard():
     # Lấy thông tin bệnh nhân
     
     patient = mongo.db.patients.find_one({'_id': ObjectId(current_user.user_data['patient_id'])})
-
     
+    # Format date of birth
+    if patient and 'personalInfo' in patient and 'dateOfBirth' in patient['personalInfo']:
+        if isinstance(patient['personalInfo']['dateOfBirth'], datetime):
+            patient['personalInfo']['dateOfBirth'] = patient['personalInfo']['dateOfBirth'].strftime('%d/%m/%Y')
+
+    # Lấy chỉ số sức khỏe
+    health_metrics = mongo.db.health_metrics.find_one(
+        {'patientId': ObjectId(current_user.user_data['patient_id'])},
+        sort=[('recordedAt', -1)]  # Lấy bản ghi mới nhất
+    )
+    if health_metrics:
+        health_metrics['blood_pressure_date'] = health_metrics.get('recordedAt', '').strftime('%Y-%m-%d')
+        health_metrics['heart_rate_date'] = health_metrics.get('recordedAt', '').strftime('%Y-%m-%d')
+        health_metrics['weight_date'] = health_metrics.get('recordedAt', '').strftime('%Y-%m-%d')
+        health_metrics['height_date'] = health_metrics.get('recordedAt', '').strftime('%Y-%m-%d')
+
     # Lấy lịch hẹn sắp tới
     upcoming_appointments = list(mongo.db.appointments.find({
         'patientId': str(current_user.user_data.get('patient_id')),
@@ -47,8 +62,7 @@ def dashboard():
     return render_template(
         'patient/dashboard.html',
         patient=patient,
-        upcoming_appointments=upcoming_appointments,
-        recent_records=recent_records,
+        health_metrics=health_metrics,
         notifications_count=3
     )
 

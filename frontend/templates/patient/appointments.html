@@ -1,35 +1,82 @@
 {% extends "base.html" %}
 
-{% block title %}Lịch hẹn{% endblock %}
+{% block title %}Lịch hẹn - Bệnh nhân{% endblock %}
 
 {% block page_title %}Lịch hẹn{% endblock %}
 
 {% block sidebar_menu %}
-<a href="{{ url_for('patient.dashboard') }}" class="nav-link">
-    <i class="fas fa-home"></i>
-    <span>Trang chủ</span>
-</a>
-<a href="{{ url_for('patient.appointments') }}" class="nav-link">
-    <i class="fas fa-calendar-alt"></i>
-    <span>Lịch hẹn</span>
-</a>
-<a href="{{ url_for('patient.records') }}" class="nav-link">
-    <i class="fas fa-file-medical"></i>
-    <span>Hồ sơ bệnh án</span>
-</a>
-<a href="{{ url_for('patient.prescriptions') }}" class="nav-link">
-    <i class="fas fa-prescription"></i>
-    <span>Đơn thuốc</span>
-</a>
-<a href="{{ url_for('patient.change_password') }}" class="nav-link">
-    <i class="fas fa-user"></i>
-    Chỉnh sửa mật khẩu
-</a>
-<a href="{{ url_for('patient.invoices') }}" class="nav-link">
-    <i class="fas fa-file-invoice"></i>
-    <span>Hóa đơn</span>
+<style>
+    .nav-item {
+        margin-bottom: var(--spacing-sm);
+    }
 
-</a>
+    .nav-link {
+        display: flex;
+        align-items: center;
+        gap: var(--spacing-sm);
+        padding: var(--spacing-md) var(--spacing-lg);
+        color: var(--text-light);
+        font-size: 0.95rem;
+        font-weight: 500;
+        border-radius: var(--border-radius);
+        transition: all 0.3s ease;
+        text-decoration: none;
+        position: relative;
+        z-index: 1;
+        cursor: pointer;
+    }
+
+    .nav-link:hover {
+        background: rgba(44, 107, 255, 0.1);
+        color: var(--primary);
+    }
+
+    .nav-link.active {
+        background: var(--primary);
+        color: var(--white);
+        font-weight: 600;
+        box-shadow: 0 2px 8px rgba(44, 107, 255, 0.2);
+    }
+
+    .nav-link i {
+        font-size: 1.1rem;
+    }
+
+    .nav-link span {
+        font-family: 'Inter', sans-serif;
+    }
+</style>
+
+<div class="nav-item">
+    <a href="{{ url_for('patient.dashboard') }}" class="nav-link">
+        <i class="fas fa-home"></i>
+        <span>Trang chủ</span>
+    </a>
+</div>
+<div class="nav-item">
+    <a href="{{ url_for('patient.appointments') }}" class="nav-link active">
+        <i class="fas fa-calendar-alt"></i>
+        <span>Lịch hẹn</span>
+    </a>
+</div>
+<div class="nav-item">
+    <a href="{{ url_for('patient.records') }}" class="nav-link">
+        <i class="fas fa-file-medical"></i>
+        <span>Hồ sơ bệnh án</span>
+    </a>
+</div>
+<div class="nav-item">
+    <a href="{{ url_for('patient.prescriptions') }}" class="nav-link">
+        <i class="fas fa-prescription"></i>
+        <span>Đơn thuốc</span>
+    </a>
+</div>
+<div class="nav-item">
+    <a href="{{ url_for('patient.invoices') }}" class="nav-link">
+        <i class="fas fa-file-invoice"></i>
+        <span>Hóa đơn</span>
+    </a>
+</div>
 {% endblock %}
 
 {% block extra_css %}
@@ -43,11 +90,23 @@
         padding: var(--spacing-md) 0;
     }
 
-    .col {
+    .col-12, .col-md-6, .col-md-4 {
+        padding: var(--spacing-sm);
+    }
+
+    .col-12 {
+        flex: 1 1 100%;
+        max-width: 100%;
+    }
+
+    .col-md-6 {
         flex: 1 1 50%;
         max-width: 50%;
-        padding: var(--spacing-sm);
-        min-width: 250px;
+    }
+
+    .col-md-4 {
+        flex: 1 1 33.333%;
+        max-width: 33.333%;
     }
 
     .card {
@@ -57,7 +116,6 @@
         transition: transform 0.3s ease, box-shadow 0.3s ease;
         position: relative;
         overflow: hidden;
-        margin-bottom: var(--spacing-lg);
     }
 
     .card:hover {
@@ -95,11 +153,6 @@
         gap: var(--spacing-sm);
     }
 
-    .card-title i {
-        color: var(--primary);
-        font-size: 1.1em;
-    }
-
     .card-body {
         padding: var(--spacing-xl);
     }
@@ -126,6 +179,7 @@
         font-size: 0.95rem;
         background: var(--white);
         transition: all 0.3s ease;
+        font-family: 'Inter', sans-serif;
     }
 
     .form-control:focus,
@@ -157,6 +211,7 @@
         text-align: left;
         font-size: 0.9rem;
         color: var(--text);
+        vertical-align: middle;
     }
 
     .table th {
@@ -168,7 +223,6 @@
 
     .table td {
         border-bottom: 1px solid var(--gray-200);
-        vertical-align: middle;
     }
 
     .table tr:last-child td {
@@ -176,7 +230,7 @@
     }
 
     .table tr:hover {
-        background: rgba(44, 107, 255, 0.02);
+        background: rgba(44, 107, 255, 0.05);
     }
 
     .btn {
@@ -190,8 +244,7 @@
         cursor: pointer;
         transition: all 0.3s ease;
         border: none;
-        position: relative;
-        z-index: 1;
+        font-family: 'Inter', sans-serif;
     }
 
     .btn-primary {
@@ -202,29 +255,26 @@
     .btn-primary:hover {
         background: linear-gradient(45deg, var(--primary-dark), var(--secondary));
         box-shadow: 0 4px 12px rgba(44, 107, 255, 0.3);
-        transform: translateY(-2px);
     }
 
     .btn-danger {
-        background: #dc3545;
+        background: var(--danger);
         color: var(--white);
     }
 
     .btn-danger:hover {
-        background: #c82333;
+        background: #b91c1c;
         box-shadow: 0 4px 12px rgba(220, 53, 69, 0.3);
-        transform: translateY(-2px);
     }
 
     .btn-warning {
         background: #ffc107;
-        color: #212529;
+        color: var(--text);
     }
 
     .btn-warning:hover {
         background: #e0a800;
         box-shadow: 0 4px 12px rgba(255, 193, 7, 0.3);
-        transform: translateY(-2px);
     }
 
     .btn-sm {
@@ -244,9 +294,24 @@
         color: #d97706;
     }
 
+    .badge-success {
+        background: #d1fae5;
+        color: #047857;
+    }
+
     .badge-secondary {
         background: #e5e7eb;
         color: #4b5563;
+    }
+
+    .badge-danger {
+        background: #fee2e2;
+        color: #b91c1c;
+    }
+
+    .text-muted {
+        color: var(--text-light);
+        font-size: 0.9rem;
     }
 
     @media (max-width: 768px) {
@@ -255,247 +320,308 @@
             gap: var(--spacing-md);
         }
 
-        .col {
+        .col-md-6, .col-md-4 {
             flex: 1 1 100%;
             max-width: 100%;
-            min-width: 0;
         }
     }
 </style>
 {% endblock %}
 
 {% block content %}
-<!-- Appointment Booking Form -->
-<div class="card mb-4">
-    <div class="card-header">
-        <h2 class="card-title">
-            <i class="fas fa-calendar-plus me-2"></i>
-            Đặt lịch hẹn mới
-        </h2>
-    </div>
-    <div class="card-body">
-        <form id="appointmentForm">
-            <div class="row">
-                <div class="col">
-                    <!-- Appointment Type -->
-                    <div class="form-group">
-                        <label class="form-label">Loại khám</label>
-                        <select class="form-select" name="type" required>
-                            <option value="Khám lần đầu">Khám lần đầu</option>
-                            <option value="Tái khám">Tái khám</option>
-                            <option value="Khám tổng quát">Khám tổng quát</option>
-                            <option value="Nội soi">Nội soi</option>
-                            <option value="Chụp X quang">Chụp X quang</option>
-                            <option value="Khám chuyên khoa tim mạch">Khám chuyên khoa tim mạch</option>
-                        </select>
-                    </div>
-                </div>
-
-
-                <!-- Doctor Selection -->
-                <div class="col">
-                    <div class="form-group">
-                        <label class="form-label">Bác sĩ</label>
-                        <select class="form-select" name="doctor_id" required onchange="loadDoctorSchedule(this.value)">
-                            <option value="">Chọn bác sĩ...</option>
-                            {% for doctor in doctors %}
-                            <option value="{{ doctor._id }}">
-                                {{ doctor.personalInfo.fullName }} - {{ doctor.professionalInfo.specialization }}
-                            </option>
-                            {% endfor %}
-                        </select>
-                    </div>
-                </div>
+<div class="row">
+    <!-- Appointment Booking Form -->
+    <div class="col-12">
+        <div class="card">
+            <div class="card-header">
+                <h2 class="card-title">
+                    <i class="fas fa-calendar-plus"></i>
+                    Đặt lịch hẹn mới
+                </h2>
             </div>
-            <div class="row">
-                <div class="col">
-                    <!-- Appointment Date -->
-                    <div class="form-group">
-                        <label class="form-label">Ngày khám</label>
-                        <input type="date" class="form-control" name="appointment_date" required
-                            min="{{ today.strftime('%Y-%m-%d') }}" onchange="loadTimeSlots()">
-                    </div>
-                </div>
-                <div class="col">
-                    <div class="form-group">
-                        <label class="form-label">Giờ khám</label>
-                        <div class="time-select" id="timeSlots">
-                            <!-- Time slots will be loaded here -->
+            <div class="card-body">
+                <form id="appointmentForm" onsubmit="saveAppointment(event)">
+                    <div class="row">
+                        <div class="col-md-6">
+                            <div class="form-group">
+                                <label class="form-label">Loại khám</label>
+                                <select class="form-select" name="type" required>
+                                    <option value="Khám lần đầu">Khám lần đầu</option>
+                                    <option value="Tái khám">Tái khám</option>
+                                    <option value="Khám tổng quát">Khám tổng quát</option>
+                                    <option value="Nội soi">Nội soi</option>
+                                    <option value="Chụp X quang">Chụp X quang</option>
+                                    <option value="Khám chuyên khoa tim mạch">Khám chuyên khoa tim mạch</option>
+                                </select>
+                            </div>
                         </div>
-                        <input type="hidden" name="time_slot" id="selectedTimeSlot">
+                        <div class="col-md-6">
+                            <div class="form-group">
+                                <label class="form-label">Bác sĩ</label>
+                                <select class="form-select" name="doctor_id" required onchange="loadDoctorSchedule(this.value)">
+                                    <option value="">Chọn bác sĩ...</option>
+                                    {% for doctor in doctors %}
+                                    <option value="{{ doctor._id }}">
+                                        {{ doctor.personalInfo.fullName }} - {{ doctor.professionalInfo.specialization }}
+                                    </option>
+                                    {% endfor %}
+                                </select>
+                            </div>
+                        </div>
                     </div>
+                    <div class="row">
+                        <div class="col-md-6">
+                            <div class="form-group">
+                                <label class="form-label">Ngày khám</label>
+                                <input type="date" class="form-control" name="appointment_date" required
+                                    min="{{ today.strftime('%Y-%m-%ellisen
+
+System: d') }}" onchange="loadTimeSlots()">
+                            </div>
+                        </div>
+                        <div class="col-md-6">
+                            <div class="form-group">
+                                <label class="form-label">Giờ khám</label>
+                                <div class="time-select" id="timeSlots"></div>
+                                <input type="hidden" name="time_slot" id="selectedTimeSlot">
+                            </div>
+                        </div>
+                    </div>
+                    <div class="form-group">
+                        <label class="form-label" for="symptoms">Mô tả triệu chứng</label>
+                        <textarea class="form-control" id="symptoms" name="reason" rows="3"
+                            placeholder="Mô tả ngắn gọn các triệu chứng của bạn"></textarea>
+                    </div>
+                    <div class="form-group">
+                        <label class="form-label">Ghi chú</label>
+                        <textarea class="form-control" id="note" name="notes" rows="3" placeholder="Ghi chú"></textarea>
+                    </div>
+                    <button type="submit" class="btn btn-primary">
+                        <i class="fas fa-calendar-check"></i>
+                        Đặt lịch
+                    </button>
+                </form>
+            </div>
+        </div>
+    </div>
+
+    <!-- Appointments List -->
+    <div class="col-12">
+        <div class="card">
+            <div class="card-header">
+                <h2 class="card-title">
+                    <i class="fas fa-calendar"></i>
+                    Danh sách lịch hẹn
+                </h2>
+            </div>
+            <div class="card-body">
+                <div class="table-container">
+                    <table class="table">
+                        <thead>
+                            <tr>
+                                <th>Ngày</th>
+                                <th>Giờ</th>
+                                <th>Khoa</th>
+                                <th>Bác sĩ</th>
+                                <th>Lý do</th>
+                                <th>Trạng thái</th>
+                                <th>Thao tác</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for appointment in appointments %}
+                            <tr>
+                                <td>{{ appointment.datetime }}</td>
+                                <td>{{ appointment.timeSlot }}</td>
+                                <td>{{ appointment.department }}</td>
+                                <td>{{ appointment.doctor_name }}</td>
+                                <td>{{ appointment.reason }}</td>
+                                <td>
+                                    <span class="badge badge-{{ appointment.status_color }}">
+                                        {{ appointment.status }}
+                                    </span>
+                                </td>
+                                <td>
+                                    {% if appointment.can_cancel %}
+                                    <button type="button" class="btn btn-sm btn-danger"
+                                        onclick="cancelAppointment('{{ appointment.id }}')">
+                                        <i class="fas fa-times"></i>
+                                        Hủy
+                                    </button>
+                                    {% endif %}
+                                    {% if appointment.can_reschedule %}
+                                    <button type="button" class="btn btn-sm btn-warning"
+                                        onclick="rescheduleAppointment('{{ appointment.id }}')">
+                                        <i class="fas fa-clock"></i>
+                                        Đổi lịch
+                                    </button>
+                                    {% endif %}
+                                </td>
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
                 </div>
             </div>
-            <div class="form-group">
-                <label class="form-label" for="symptoms">Mô tả triệu chứng</label>
-                <textarea class="form-control" id="symptoms" name="reason" rows="3"
-                    placeholder="Mô tả ngắn gọn các triệu chứng của bạn"></textarea>
-            </div>
-            <!-- Notes -->
-            <div class="form-group mb-3">
-                <label class="form-label">Ghi chú</label>
-                <textarea class="form-control" id="note" name="notes" rows="3" placeholder="Ghi chú"></textarea>
-            </div>
-            <button type="submit" class="btn btn-primary" onclick="saveAppointment()"> <i
-                    class="fas fa-calendar-check me-2"></i>Đặt lịch </button>
-        </form>
-    </div>
-    <!-- Appointments List -->
-    <div class="card">
-        <div class="card-header">
-            <h2 class="card-title">
-                <i class="fas fa-calendar me-2"></i>
-                Danh sách lịch hẹn
-            </h2>
-        </div>
-        <div class="card-body">
-            <div class="table-container">
-                <table class="table">
-                    <thead>
-                        <tr>
-                            <th>Ngày</th>
-                            <th>Giờ</th>
-                            <th>Khoa</th>
-                            <th>Bác sĩ</th>
-                            <th>Lí do</th>
-                            <th>Trạng thái</th>
-                            <!-- <th>Thao tác</th>-->
-                        </tr>
-                    </thead>
-                    <tbody>
-                        {% for appointment in appointments %}
-                        <tr>
-                            <td>{{ appointment.datetime }}</td>
-                            <td>{{ appointment.timeSlot }}</td>
-                            <td>{{ appointment.department }}</td>
-                            <td>{{ appointment.doctor_name }}</td>
-                            <td>{{ appointment.reason }}</td>
-                            <td>
-                                <span class="badge badge-{{ appointment.status_color }}">
-                                    {{ appointment.status }}
-                                </span>
-                            </td>
-                            <!--<td>
-                            {% if appointment.can_cancel %}
-
-                            <button type="button" class="btn btn-sm btn-danger"
-                                onclick="cancelAppointment('{{ appointment.id }}')">
-
-                                <i class="fas fa-times me-1"></i>Hủy
-                            </button>
-                            {% endif %}
-                            {% if appointment.can_reschedule %}
-
-                            <button type="button" class="btn btn-sm btn-warning"
-                                onclick="rescheduleAppointment('{{ appointment.id }}')">
-
-                                <i class="fas fa-clock me-1"></i>Đổi lịch
-                            </button>
-                            {% endif %}
-                        </td>-->
-                        </tr>
-                        {% endfor %}
-                    </tbody>
-                </table>
-            </div>
         </div>
     </div>
+</div>
+{% endblock %}
 
-    <!-- JavaScript for dynamic form handling -->
-    <script>
-        function loadDoctorSchedule(doctorId) {
-            console.log("Doctor ID:", doctorId);
-            // Reset time slots
-            document.getElementById('timeSlots').innerHTML = '';
-            document.getElementById('selectedTimeSlot').value = '';
-
-            // If no doctor is selected, return
-            if (!doctorId) return;
-
-            // Load doctor's schedule
-            const date = document.querySelector('input[name="appointment_date"]').value;
-            if (date) {
-                loadTimeSlots();
-            }
+{% block extra_scripts %}
+<script>
+    function saveAppointment(event) {
+        event.preventDefault();
+        const form = document.getElementById('appointmentForm');
+        const formData = new FormData(form);
+        
+        // Validate form data
+        if (!formData.get('time_slot')) {
+            alert('Vui lòng chọn giờ khám');
+            return;
         }
 
-        function loadTimeSlots() {
-            const doctorId = document.querySelector('select[name="doctor_id"]').value;
-            const date = document.querySelector('input[name="appointment_date"]').value;
-            const timeSlotsContainer = document.getElementById('timeSlots');
-
-            // Nếu chưa chọn bác sĩ hoặc ngày thì không làm gì
-            if (!doctorId || !date) {
-                timeSlotsContainer.innerHTML = '';
-                return;
+        fetch('/patient/api/appointments', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+            },
+            body: JSON.stringify(Object.fromEntries(formData))
+        })
+        .then(response => response.json())
+        .then(result => {
+            if (result.success) {
+                alert('Đặt lịch hẹn thành công');
+                window.location.reload(); // Reload trang để hiển thị lịch hẹn mới
+            } else {
+                alert(result.message || 'Có lỗi xảy ra khi đặt lịch hẹn');
             }
+        })
+        .catch(error => {
+            console.error('Error:', error);
+            alert('Có lỗi xảy ra khi đặt lịch hẹn');
+        });
+    }
 
-            // Gửi request tới backend để lấy khung giờ
-            fetch(`/receptionist/api/appointments/time-slots?doctorId=${doctorId}&date=${date}`)
-                .then(response => {
-                    if (!response.ok) {
-                        throw new Error("Không thể tải khung giờ");
-                    }
-                    return response.json();
-                })
-                .then(slots => {
-                    if (!Array.isArray(slots)) {
-                        throw new Error("Dữ liệu không hợp lệ");
-                    }
+    function loadDoctorSchedule(doctorId) {
+        // Reset time slots
+        document.getElementById('timeSlots').innerHTML = '';
+        document.getElementById('selectedTimeSlot').value = '';
 
-                    // Tạo thẻ <select> với các option giờ có thể đặt
-                    const availableSlots = slots.filter(slot => slot.available);
-                    if (availableSlots.length === 0) {
-                        timeSlotsContainer.innerHTML = '<div class="text-muted">Không có khung giờ khả dụng</div>';
-                        return;
-                    }
+        // If no doctor is selected, return
+        if (!doctorId) return;
 
-                    const optionsHtml = availableSlots.map(slot => `
-                <option value="${slot.time}">${slot.time}</option>
+        // Load doctor's schedule
+        const date = document.querySelector('input[name="appointment_date"]').value;
+        if (date) {
+            loadTimeSlots();
+        }
+    }
+
+    function loadTimeSlots() {
+        const doctorId = document.querySelector('select[name="doctor_id"]').value;
+        const date = document.querySelector('input[name="appointment_date"]').value;
+        const timeSlotsContainer = document.getElementById('timeSlots');
+
+        // Nếu chưa chọn bác sĩ hoặc ngày thì không làm gì
+        if (!doctorId || !date) {
+            timeSlotsContainer.innerHTML = '';
+            return;
+        }
+
+        // Gửi request tới backend để lấy khung giờ
+        fetch(`/receptionist/api/appointments/time-slots?doctorId=${doctorId}&date=${date}`)
+            .then(response => {
+                if (!response.ok) {
+                    throw new Error("Không thể tải khung giờ");
+                }
+                return response.json();
+            })
+            .then(slots => {
+                if (!Array.isArray(slots)) {
+                    throw new Error("Dữ liệu không hợp lệ");
+                }
+
+                // Tạo thẻ <select> với các option giờ có thể đặt
+                const availableSlots = slots.filter(slot => slot.available);
+                if (availableSlots.length === 0) {
+                    timeSlotsContainer.innerHTML = '<div class="text-muted">Không có khung giờ khả dụng</div>';
+                    return;
+                }
+
+                const optionsHtml = availableSlots.map(slot => `
+                    <option value="${slot.time}">${slot.time}</option>
                 `).join('');
 
-                    timeSlotsContainer.innerHTML = `
-                <select class="form-select" onchange="document.getElementById('selectedTimeSlot').value = this.value">
-                    <option value="">Chọn giờ khám...</option>
-                    ${optionsHtml}
-                </select>
-            `;
-                })
-                .catch(error => {
-                    console.error('Lỗi khi tải khung giờ:', error.message);
-                    timeSlotsContainer.innerHTML = '<div class="text-danger">Không thể tải khung giờ. Vui lòng thử lại sau.</div>';
-                });
-        }
+                timeSlotsContainer.innerHTML = `
+                    <select class="form-select" onchange="document.getElementById('selectedTimeSlot').value = this.value">
+                        <option value="">Chọn giờ khám...</option>
+                        ${optionsHtml}
+                    </select>
+                `;
+            })
+            .catch(error => {
+                console.error('Lỗi khi tải khung giờ:', error.message);
+                timeSlotsContainer.innerHTML = '<div class="text-danger">Không thể tải khung giờ. Vui lòng thử lại sau.</div>';
+            });
+    }
 
-        function saveAppointment() {
-            const form = document.getElementById('appointmentForm');
-            const formData = new FormData(form);
-            console.log(Object.fromEntries(formData));
-            // Validate form data
-            if (!formData.get('time_slot')) {
-                alert('Vui lòng chọn giờ khám');
-                return;
+    function saveAppointment() {
+        const form = document.getElementById('appointmentForm');
+        const formData = new FormData(form);
+        
+        // Validate form data
+        if (!formData.get('time_slot')) {
+            alert('Vui lòng chọn giờ khám');
+            return;
+        }
+        
+        fetch('/patient/api/appointments', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+            },
+            body: JSON.stringify(Object.fromEntries(formData))
+        })
+        .then(response => response.json())
+        .then(result => {
+            if (result.success) {
+                window.location.reload();
+            } else {
+                alert('Có lỗi xảy ra khi đặt lịch hẹn');
             }
-            console.log(Object.fromEntries(formData));
-            fetch('/patient/api/appointments', {
+        })
+        .catch(error => {
+            console.error('Lỗi:', error);
+            alert('Có lỗi xảy ra khi kết nối với máy chủ');
+        });
+    }
+
+    function rescheduleAppointment(appointmentId) {
+        window.location.href = `/patient/appointments/${appointmentId}/reschedule`;
+    }
+    
+    function cancelAppointment(appointmentId) {
+        if (confirm('Bạn có chắc muốn hủy lịch hẹn này không?')) {
+            fetch(`/patient/api/appointments/${appointmentId}/cancel`, {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json',
-                },
-                body: JSON.stringify(Object.fromEntries(formData))
+                }
             })
-                .then(response => response.json())
-                .then(result => {
-                    if (result.success) {
-                        // window.location.reload();
-                    } else {
-                        alert('Có lỗi xảy ra khi đặt lịch hẹn');
-                    }
-                });
+            .then(response => response.json())
+            .then(result => {
+                if (result.success) {
+                    window.location.reload();
+                } else {
+                    alert('Có lỗi xảy ra khi hủy lịch hẹn');
+                }
+            })
+            .catch(error => {
+                console.error('Lỗi:', error);
+                alert('Có lỗi xảy ra khi kết nối với máy chủ');
+            });
         }
-
-        function rescheduleAppointment(appointmentId) {
-            window.location.href = `/patient/appointments/${appointmentId}/reschedule`;
-        }
-    </script>
-    {% endblock %}
+    }
+</script>
+{% endblock %}
