@@ -5,6 +5,7 @@ from backend.app.utils.auth_utils import role_required
 from ..extensions import mongo
 from bson import ObjectId
 from datetime import datetime, timedelta
+from ..utils.ai_utils import get_symptom_suggestions, get_disease_prediction
 
 
 patient_api = Blueprint('patient/api', __name__)
@@ -316,4 +317,110 @@ def get_invoices():
     except Exception as e:
         print(f'Lỗi khi lấy danh sách hóa đơn: {e}')
         return jsonify({'success': False, 'message': 'Đã xảy ra lỗi khi lấy danh sách hóa đơn'}), 500
+        
+@patient_api.route('/symptom_suggestions', methods=['POST'])
+# @login_required - Temporarily removed for testing
+def symptom_suggestions():
+    """
+    API endpoint để gợi ý các triệu chứng dựa trên từ khóa người dùng nhập
+    """
+    try:
+        data = request.get_json()
+        keyword = data.get('keyword', '')
+        
+        if not keyword:
+            return jsonify({
+                'success': False, 
+                'message': 'Vui lòng nhập từ khóa tìm kiếm'
+            }), 400
+        
+        # Lấy danh sách triệu chứng phù hợp
+        suggestions = get_symptom_suggestions(keyword)
+        
+        return jsonify({
+            'success': True,
+            'suggestions': suggestions
+        }), 200
+    except Exception as e:
+        print(f"Lỗi khi tìm kiếm triệu chứng: {e}")
+        return jsonify({
+            'success': False,
+            'message': 'Đã xảy ra lỗi khi tìm kiếm triệu chứng'
+        }), 500
+
+@patient_api.route('/predict_disease', methods=['POST'])
+# @login_required - Temporarily removed for testing
+def predict_disease():
+    """
+    API endpoint để dự đoán bệnh dựa trên các triệu chứng đã chọn
+    """
+    try:
+        data = request.get_json()
+        symptoms = data.get('symptoms', [])
+        
+        if not symptoms:
+            return jsonify({
+                'success': False,
+                'message': 'Vui lòng chọn ít nhất một triệu chứng'
+            }), 400
+        
+        # Dự đoán bệnh
+        predictions = get_disease_prediction(symptoms)
+        
+        return jsonify({
+            'success': True,
+            'predictions': predictions
+        }), 200
+    except Exception as e:
+        print(f"Lỗi khi dự đoán bệnh: {e}")
+        return jsonify({
+            'success': False,
+            'message': 'Đã xảy ra lỗi khi dự đoán bệnh'
+        }), 500
+        
+@patient_api.route('/predict_from_text', methods=['POST'])
+# @login_required - Temporarily removed for testing
+def predict_from_text():
+    """
+    API endpoint để dự đoán bệnh dựa trên văn bản triệu chứng nhập vào
+    """
+    try:
+        data = request.get_json()
+        symptoms_text = data.get('symptoms_text', '')
+        
+        if not symptoms_text:
+            return jsonify({
+                'success': False,
+                'message': 'Vui lòng nhập triệu chứng'
+            }), 400
+            
+        # Tách các triệu chứng thành danh sách (phân tách bằng dấu phẩy)
+        symptom_inputs = [s.strip() for s in symptoms_text.split(',')]
+        
+        # Tìm các triệu chứng tương ứng bằng fuzzy matching
+        from ..utils.ai_utils import match_symptoms_from_text
+        matched_symptoms, original_inputs = match_symptoms_from_text(symptom_inputs)
+        
+        # Nếu không tìm thấy triệu chứng nào phù hợp
+        if not matched_symptoms:
+            return jsonify({
+                'success': False,
+                'message': 'Không tìm thấy triệu chứng phù hợp'
+            }), 400
+            
+        # Dự đoán bệnh
+        predictions = get_disease_prediction(matched_symptoms)
+        
+        return jsonify({
+            'success': True,
+            'matched_symptoms': [{'original': original, 'matched': matched} 
+                               for original, matched in zip(original_inputs, matched_symptoms)],
+            'predictions': predictions
+        }), 200
+    except Exception as e:
+        print(f"Lỗi khi dự đoán bệnh từ văn bản: {e}")
+        return jsonify({
+            'success': False,
+            'message': 'Đã xảy ra lỗi khi dự đoán bệnh'
+        }), 500
     

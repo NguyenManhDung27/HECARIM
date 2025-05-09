@@ -213,6 +213,10 @@
     .chat-input button:hover {
         background: var(--primary-dark);
     }
+    
+    .chat-input {
+        background: #fff;
+    }
 
     .suggestions-list {
         list-style: none;
@@ -487,30 +491,23 @@
     </div>
     <div class="chat-messages" id="chatMessages">
         <div class="chat-message bot">
-            Xin chào! Tôi là trợ lý ảo của bạn. Nhập triệu chứng của bạn để tôi dự đoán bệnh của bạn nhé!!!
+            Xin chào! Tôi là trợ lý ảo HecaAI. Nhập các triệu chứng của bạn, cách nhau bởi dấu phẩy (ví dụ: sốt, ho, đau đầu), và tôi sẽ dự đoán bệnh của bạn ngay lập tức!
         </div>
     </div>
-    <div class="selected-symptoms" id="selectedSymptoms" style="display: none;">
-        <strong>Triệu chứng đã chọn:</strong> <span id="symptomsList"></span>
-        <button class="btn btn-primary btn-sm" onclick="predictDisease()">Dự đoán</button>
-        <button class="btn btn-secondary btn-sm" onclick="clearSymptoms()">Xóa</button>
-    </div>
     <div class="chat-input">
-        <input type="text" id="chatInput" placeholder="Nhập triệu chứng (ví dụ: sốt, ho)">
-        <button onclick="sendMessage()">Gửi</button>
+        <input type="text" id="directInput" placeholder="Nhập các triệu chứng">
+        <button onclick="predictFromText()">Dự đoán</button>
     </div>
 </div>
 {% endblock %}
 
 {% block extra_scripts %}
 <script>
-    let selectedSymptoms = [];
-
     function toggleChatWindow() {
         const chatWindow = document.getElementById('chatWindow');
         chatWindow.classList.toggle('open');
         if (chatWindow.classList.contains('open')) {
-            document.getElementById('chatInput').focus();
+            document.getElementById('directInput').focus();
         }
     }
 
@@ -520,10 +517,9 @@
 
     function closeChatWindow() {
         document.getElementById('chatWindow').classList.remove('open');
-        selectedSymptoms = [];
-        updateSelectedSymptoms();
         const messages = document.getElementById('chatMessages');
-        messages.innerHTML = '<div class="chat-message bot">Nhập triệu chứng của bạn để tôi dự đoán bệnh có thể mắc phải.</div>';
+        messages.innerHTML = '<div class="chat-message bot">Xin chào! Tôi là trợ lý ảo của bạn. Nhập các triệu chứng của bạn, cách nhau bởi dấu phẩy (ví dụ: sốt, ho, đau đầu), và tôi sẽ dự đoán bệnh của bạn ngay lập tức!</div>';
+        document.getElementById('directInput').value = '';
     }
 
     function appendMessage(content, type) {
@@ -534,94 +530,60 @@
         messages.appendChild(message);
         messages.scrollTop = messages.scrollHeight;
     }
-
-    async function sendMessage() {
-        const input = document.getElementById('chatInput');
-        const keyword = input.value.trim();
-        if (!keyword) return;
-
-        appendMessage(keyword, 'user');
-        input.value = '';
-
-        try {
-            const response = await fetch('/patient/api/symptom_suggestions', {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ keyword })
-            });
-            const data = await response.json();
-
-            if (data.success && data.suggestions.length > 0) {
-                let content = 'Các triệu chứng phù hợp:<ul class="suggestions-list">';
-                data.suggestions.forEach((suggestion, index) => {
-                    content += `<li onclick="selectSymptom('${suggestion.symptom}')">${suggestion.symptom} (Độ phù hợp: ${suggestion.similarity})</li>`;
-                });
-                content += '</ul>';
-                appendMessage(content, 'bot');
-            } else {
-                appendMessage('Không tìm thấy triệu chứng phù hợp. Vui lòng thử từ khóa khác.', 'bot');
-            }
-        } catch (error) {
-            appendMessage('Đã xảy ra lỗi. Vui lòng thử lại.', 'bot');
-        }
-    }
-
-    function selectSymptom(symptom) {
-        if (!selectedSymptoms.includes(symptom)) {
-            selectedSymptoms.push(symptom);
-            updateSelectedSymptoms();
-        }
-    }
-
-    function updateSelectedSymptoms() {
-        const symptomsList = document.getElementById('symptomsList');
-        const selectedSymptomsDiv = document.getElementById('selectedSymptoms');
-        if (selectedSymptoms.length > 0) {
-            symptomsList.textContent = selectedSymptoms.join(', ');
-            selectedSymptomsDiv.style.display = 'flex';
-        } else {
-            selectedSymptomsDiv.style.display = 'none';
-        }
-    }
-
-    async function predictDisease() {
-        if (selectedSymptoms.length === 0) {
-            appendMessage('Vui lòng chọn ít nhất một triệu chứng để dự đoán.', 'bot');
+    
+    async function predictFromText() {
+        const input = document.getElementById('directInput');
+        const symptomsText = input.value.trim();
+        
+        if (!symptomsText) {
+            appendMessage('Vui lòng nhập các triệu chứng để dự đoán.', 'bot');
             return;
         }
-
+        
+        appendMessage(`Triệu chứng của bạn: ${symptomsText}`, 'user');
+        
         try {
-            const response = await fetch('/patient/api/predict_disease', {
+            appendMessage('Đang phân tích triệu chứng và dự đoán bệnh...', 'bot');
+            
+            const response = await fetch('/patient/api/predict_from_text', {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ symptoms: selectedSymptoms })
+                body: JSON.stringify({ symptoms_text: symptomsText })
             });
+            
             const data = await response.json();
-
-            if (data.success && data.predictions.length > 0) {
-                let content = 'Kết quả dự đoán:<ul>';
-                data.predictions.forEach(pred => {
-                    content += `<li>${pred.disease}: ${pred.probability}</li>`;
-                });
-                content += '</ul>';
-                appendMessage(content, 'bot');
+            
+            if (data.success) {
+                // Chỉ hiển thị kết quả dự đoán bệnh (không hiển thị các triệu chứng đã khớp)
+                if (data.predictions && data.predictions.length > 0) {
+                    let content = 'Kết quả dự đoán bệnh:<ul>';
+                    data.predictions.forEach(pred => {
+                        content += `<li>${pred.disease}: ${pred.probability}%</li>`;
+                    });
+                    content += '</ul>';
+                    
+                    // Thêm thông báo miễn trừ trách nhiệm
+                    content += '<p style="margin-top: 10px; font-style: italic; color: #666; font-size: 0.9em;">Lưu ý: Đây chỉ là dự đoán dựa trên các triệu chứng đã cung cấp và không thay thế cho tư vấn y tế chuyên nghiệp. Vui lòng tham khảo ý kiến bác sĩ để có chẩn đoán chính xác.</p>';
+                    
+                    appendMessage(content, 'bot');
+                } else {
+                    appendMessage('Không thể dự đoán bệnh từ các triệu chứng đã cung cấp. Vui lòng thử lại với các triệu chứng khác.', 'bot');
+                }
+                
+                // Xóa nội dung input
+                input.value = '';
             } else {
-                appendMessage('Không thể dự đoán bệnh. Vui lòng chọn thêm triệu chứng hoặc thử lại.', 'bot');
+                appendMessage(data.message || 'Không thể dự đoán bệnh. Vui lòng thử lại.', 'bot');
             }
         } catch (error) {
+            console.error(error);
             appendMessage('Đã xảy ra lỗi khi dự đoán. Vui lòng thử lại.', 'bot');
         }
     }
-
-    function clearSymptoms() {
-        selectedSymptoms = [];
-        updateSelectedSymptoms();
-        appendMessage('Đã xóa tất cả triệu chứng.', 'bot');
-    }
-
-    document.getElementById('chatInput').addEventListener('keypress', function(e) {
+    
+    document.getElementById('directInput').addEventListener('keypress', function(e) {
         if (e.key === 'Enter') {
-            sendMessage();
+            predictFromText();
         }
     });
 
