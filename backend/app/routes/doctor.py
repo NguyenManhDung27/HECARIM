@@ -197,11 +197,11 @@ def profile():
     doctor = mongo.db.doctors.find_one({'_id': current_user.user_data.get('staff_id')})
     if not doctor:
         return "Doctor profile not found", 404
-    return render_template('doctor/profile.html', doctor=doctor, notifications_count = 3)
+    return render_template('doctor/profile.html', doctor=doctor)
 @doctor_bp.route('/schedule-page')
 @login_required
 def schedule_page():
-    return render_template("doctor/schedule.html", notifications_count = 3)
+    return render_template("doctor/schedule.html")
 @doctor_bp.route('/changepassword', methods=['GET', 'POST'])
 @login_required
 def change_password():

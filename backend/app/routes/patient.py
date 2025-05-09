@@ -12,22 +12,18 @@ patient_bp = Blueprint('patient', __name__)
 @patient_bp.route('/dashboard')
 @login_required
 def dashboard():
-    # Lấy thông tin bệnh nhân
-    
-    patient = mongo.db.patients.find_one({'_id': ObjectId(current_user.user_data['patient_id'])})
-
-    
     # Lấy lịch hẹn sắp tới
     upcoming_appointments = list(mongo.db.appointments.find({
-        'patientId': str(current_user.user_data.get('patient_id')),
+        'patientId': ObjectId(current_user.user_data.get('patient_id')),
         'appointmentTime': {'$gte': datetime.now()}
     }).sort('appointmentTime', 1).limit(5))
-
+    print("Upcoming appointments:", upcoming_appointments)
     # Thêm thông tin bác sĩ vào lịch hẹn
     for appointment in upcoming_appointments:
         doctor = mongo.db.doctors.find_one({'_id': ObjectId(appointment['doctorId'])})
+        appointment['datetime'] = appointment['appointmentTime'].strftime('%Y-%m-%d')
+        appointment['timeSlot'] = appointment['timeSlot']
         appointment['doctor_name'] = doctor['personalInfo']['fullName'] if doctor else 'Không xác định'
-        appointment['department'] = doctor['department'] if doctor else 'Không xác định'
         appointment['status_color'] = 'warning' if appointment['status'] == 'pending' else 'success'
 
     # Lấy lịch sử khám gần đây
@@ -46,7 +42,6 @@ def dashboard():
 
     return render_template(
         'patient/dashboard.html',
-        patient=patient,
         upcoming_appointments=upcoming_appointments,
         recent_records=recent_records,
         notifications_count=3
@@ -215,4 +210,45 @@ def change_password():
 @login_required
 @role_required('patient')
 def invoices():
-    return render_template('patient/invoices.html', notifications_count=3)
+    return render_template('patient/invoices.html')
+
+@patient_bp.route('/profile')
+@login_required
+def profile():
+    patient = mongo.db.patients.find_one({'_id': ObjectId(current_user.user_data.get('patient_id'))})
+    print("Patient profile:", patient)
+    if not patient:
+        return "Patient profile not found", 404
+    patient['_id'] = str(patient['_id'])  # Convert ObjectId to string for rendering
+    return render_template('patient/profile.html', patient=patient)
+
+@patient_bp.route('/edit_profile', methods=['GET', 'POST'])
+@login_required
+def edit_profile():
+    patient = mongo.db.patients.find_one({'_id': ObjectId(current_user.user_data.get('patient_id'))})
+    if not patient:
+        return "Patient profile not found", 404
+    
+    if request.method == 'POST':
+        try:
+            # Cập nhật thông tin bệnh nhân
+            updated_info = {
+                'personalInfo.fullName': request.form.get('fullName'),
+                'personalInfo.gender': request.form.get('gender'),
+                'personalInfo.dateOfBirth': datetime.strptime(request.form.get('dateOfBirth'), '%Y-%m-%d'),
+                'personalInfo.phone': request.form.get('phone'),
+                'personalInfo.email': request.form.get('email'),
+                'personalInfo.address': request.form.get('address')
+            }
+            
+            mongo.db.patients.update_one(
+                {'_id': ObjectId(current_user.user_data.get('patient_id'))},
+                {'$set': updated_info}
+            )
+            
+            return jsonify({'success': True, 'message': 'Cập nhật thông tin thành công'})
+        except Exception as e:
+            return jsonify({'success': False, 'message': str(e)})
+    
+    patient['_id'] = str(patient['_id'])
+    return render_template('patient/edit_profile.html', patient=patient)

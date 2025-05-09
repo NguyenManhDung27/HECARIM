@@ -67,6 +67,7 @@ def book_appointment():
             """
             mail.send(msg)
             print("Email xác nhận đã được gửi thành công")
+            return jsonify({    "success": True,"message": "Lịch hẹn đã được tạo thành công"})
         except Exception as e:
             print(f'Lỗi khi gửi email xác nhận lịch hẹn: {e}')
             return jsonify({'success': False, 'message': 'Đã xảy ra lỗi khi gửi email xác nhận.'}), 500
@@ -283,4 +284,3 @@ def invoices():
     except Exception as e:
         print(f'Lỗi khi lấy danh sách hóa đơn: {e}')
         return jsonify({'success': False, 'message': 'Đã xảy ra lỗi khi lấy danh sách hóa đơn'}), 500
-    
