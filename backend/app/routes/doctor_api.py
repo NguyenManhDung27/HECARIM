@@ -311,9 +311,10 @@ def get_schedule():
         # Format appointments for frontend
         formatted_appointments = []
         for appointment in appointments:
+            patient = mongo.db.patients.find_one({'_id': ObjectId(appointment["patientId"])})
             formatted_appointments.append({
                 "id": str(appointment["_id"]),
-                "patient_id": str(appointment["patientId"]),
+                "patientName": patient['personalInfo']['fullName'] if patient else "N/A",
                 "date": appointment["appointmentTime"].strftime('%Y-%m-%d'),
                 "time": appointment["timeSlot"],
                 "status": appointment["status"]
